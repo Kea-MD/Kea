@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 2450 2450">
+  <!-- Generator: Adobe Illustrator 29.7.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 8)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #58595b;
+      }
+
+      .st1 {
+        fill: url(#linear-gradient2);
+      }
+
+      .st2 {
+        fill: url(#linear-gradient1);
+      }
+
+      .st3 {
+        fill: url(#linear-gradient3);
+      }
+
+      .st4 {
+        fill: #d1d3d4;
+      }
+
+      .st5 {
+        fill: #414042;
+      }
+
+      .st6 {
+        fill: url(#linear-gradient);
+      }
+
+      .st7 {
+        fill: #292728;
+      }
+
+      .st8 {
+        fill: #636466;
+      }
+
+      .st9 {
+        fill: #333132;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="2436.58" y1="534.09" x2="22" y2="3003.14" gradientTransform="translate(0 -548)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#333132"/>
+      <stop offset="1" stop-color="#000"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient1" x1="1484.29" y1="2665.46" x2="753.32" y2="301.73" gradientTransform="translate(0 2452) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset=".03" stop-color="#fff"/>
+      <stop offset=".17" stop-color="#fbfbfb"/>
+      <stop offset=".31" stop-color="#efeeef"/>
+      <stop offset=".45" stop-color="#dcdadb"/>
+      <stop offset=".59" stop-color="#c0bebf"/>
+      <stop offset=".73" stop-color="#9d9a9a"/>
+      <stop offset=".86" stop-color="#736e6f"/>
+      <stop offset="1" stop-color="#423c3d"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient2" x1="2079.59" y1="2325.5" x2="-427.65" y2="-362.22" gradientTransform="translate(0 2452) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset=".36" stop-color="#fff"/>
+      <stop offset=".92" stop-color="#4c4647"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient3" x1="3269.4" y1="1725.37" x2="762.16" y2="-962.35" gradientTransform="translate(0 2452) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset=".28" stop-color="#fff"/>
+      <stop offset=".5" stop-color="#c1bebf"/>
+      <stop offset=".72" stop-color="#898485"/>
+      <stop offset=".89" stop-color="#676061"/>
+      <stop offset=".98" stop-color="#5a5354"/>
+    </linearGradient>
+  </defs>
+  <rect id="background" class="st6" x="25" y="25" width="2400" height="2400"/>
+  <g id="middle">
+    <polygon class="st2" points="1525 25 1525 325 2125 325 2125 925 1825 925 1825 625 925 625 925 325 1225 325 1225 25 25 25 25 325 25 925 325 925 325 325 625 325 625 925 925 925 1525 925 1525 1225 2125 1225 2425 1225 2425 325 2425 25 1525 25"/>
+    <polygon class="st1" points="1525 1525 925 1525 925 1225 625 1225 625 2125 325 2125 325 1225 25 1225 25 2425 325 2425 625 2425 925 2425 925 1825 1525 1825 1525 1525"/>
+    <polygon class="st3" points="1825 1525 1825 1825 2125 1825 2125 2125 1225 2125 1225 2425 2425 2425 2425 2125 2425 1525 2125 1525 1825 1525"/>
+  </g>
+  <g id="bottom">
+    <polygon class="st5" points="2125 1225 1525 1225 1500 1250 2450 1250 2425 1225 2125 1225"/>
+    <polygon class="st5" points="25 925 0 950 350 950 325 925 25 925"/>
+    <polygon class="st5" points="325 325 325 325 350 350 600 350 625 325 325 325"/>
+    <polygon class="st5" points="1525 925 925 925 625 925 600 950 1500 950 1525 925 1525 925"/>
+    <polygon class="st5" points="925 325 950 350 1250 350 1225 325 925 325"/>
+    <polygon class="st5" points="1525 325 1500 350 2100 350 2125 325 1525 325"/>
+    <polygon class="st5" points="625 2425 325 2425 25 2425 0 2450 950 2450 925 2425 625 2425"/>
+    <polygon class="st5" points="1525 1825 925 1825 950 1850 1550 1850 1525 1825"/>
+    <polygon class="st5" points="1225 2425 1200 2450 2450 2450 2425 2425 1225 2425"/>
+    <polygon class="st5" points="1825 1825 1800 1850 2100 1850 2125 1825 1825 1825"/>
+  </g>
+  <g id="left">
+    <polygon class="st5" points="625 325 600 350 600 950 625 925 625 325"/>
+    <polygon class="st5" points="1525 925 1500 950 1500 1250 1525 1225 1525 925"/>
+    <polygon class="st5" points="25 325 25 25 0 0 0 950 25 925 25 325"/>
+    <polygon class="st5" points="2125 325 2100 350 2100 900 2125 925 2125 325"/>
+    <polygon class="st5" points="1525 25 1500 0 1500 350 1525 325 1525 25"/>
+    <polygon class="st5" points="25 1225 0 1200 0 2450 25 2425 25 1225"/>
+    <polygon class="st5" points="625 1225 600 1200 600 2100 625 2125 625 1225"/>
+    <polygon class="st5" points="1225 2125 1200 2100 1200 2450 1225 2425 1225 2125"/>
+    <polygon class="st5" points="1825 1525 1800 1500 1800 1850 1825 1825 1825 1525"/>
+    <polygon class="st5" points="2125 1825 2100 1850 2100 2100 2125 2125 2125 1825"/>
+  </g>
+  <g id="Top">
+    <polygon class="st4" points="25 25 1225 25 1250 0 0 0 25 25 25 25"/>
+    <polygon class="st4" points="2125 925 2100 900 1850 900 1825 925 2125 925"/>
+    <polygon class="st4" points="1825 625 1825 625 1850 600 950 600 925 625 1825 625"/>
+    <polygon class="st4" points="2425 25 2450 0 1500 0 1525 25 2425 25"/>
+    <polygon class="st4" points="625 2125 600 2100 350 2100 325 2125 625 2125"/>
+    <polygon class="st4" points="925 1225 950 1200 600 1200 625 1225 925 1225"/>
+    <polygon class="st4" points="1825 1525 2125 1525 2425 1525 2450 1500 1800 1500 1825 1525"/>
+    <polygon class="st4" points="2125 2125 2100 2100 1200 2100 1225 2125 2125 2125"/>
+    <polygon class="st4" points="0 1200 25 1225 325 1225 350 1200 0 1200"/>
+    <polygon class="st4" points="950 1500 925 1525 1525 1525 1550 1500 950 1500"/>
+  </g>
+  <g id="Right">
+    <polygon class="st0" points="2425 25 2425 325 2425 1225 2450 1250 2450 0 2425 25"/>
+    <polygon class="st0" points="325 925 350 950 350 350 325 325 325 925"/>
+    <polygon class="st0" points="925 625 950 600 950 350 925 325 925 625"/>
+    <polygon class="st0" points="1825 925 1850 900 1850 600 1825 625 1825 925"/>
+    <polygon class="st0" points="1225 325 1250 350 1250 0 1225 25 1225 325"/>
+    <polygon class="st0" points="925 1525 950 1500 950 1200 925 1225 925 1525"/>
+    <polygon class="st0" points="925 2425 950 2450 950 1850 925 1825 925 2425"/>
+    <polygon class="st0" points="2425 2125 2425 2425 2450 2450 2450 1500 2425 1525 2425 2125"/>
+    <polygon class="st0" points="325 1225 325 2125 350 2100 350 1200 325 1225"/>
+    <polygon class="st0" points="1525 1525 1525 1825 1550 1850 1550 1500 1525 1525"/>
+  </g>
+  <rect class="st8" x="1250" width="250" height="25"/>
+  <rect class="st9" x="2425" y="1250" width="25" height="250"/>
+  <rect class="st7" x="950" y="2425" width="250" height="25"/>
+  <rect class="st9" y="950" width="25" height="250"/>
+</svg>
