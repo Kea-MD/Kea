@@ -2,6 +2,8 @@ import styles from "./editor.module.css";
 import Logo from "@/components/logo/logo";
 import AI_Toolbar from "@/components/AI_Toolbar/AI_Toolbar";
 import { Button } from "@/components/button/Button";
+import EditorToolbar from "@/components/editorToolbar/editorToolbar";
+import editor from "@/components/editor/editor";
 
 export default function Editor() {
   return (
@@ -51,31 +53,12 @@ export default function Editor() {
 
             </div>
             {/* Editor Header */}
-            <div className={styles.editorToolbar}>
-              <Button variant="secondary" size="small" icon="format_bold"></Button>
-              <Button variant="secondary" size="small" icon="format_italic"></Button>
-              <Button variant="secondary" size="small" icon="format_underlined"></Button>
-              <Button variant="secondary" size="small" icon="format_strikethrough"></Button>
-              <Button variant="secondary" size="small" icon="superscript"></Button>
-              <Button variant="secondary" size="small" icon="subscript"></Button>
-              <Button variant="secondary" size="small" icon="code"></Button>
-              <Button variant="secondary" size="small" icon="function"></Button>
-              <Button variant="secondary" size="small" icon="format_ink_highlighter"></Button>
-              <Button variant="secondary" size="small" icon="comment"></Button>
-              <Button variant="secondary" size="small" icon="link"></Button>
-              <Button variant="secondary" size="small" icon="photo"></Button>
-              <Button variant="secondary" size="small" icon="table"></Button>
-              <Button variant="secondary" size="small" icon="format_quote"></Button>
-
-              <div className={styles.editorToolbarButton}>
-                <Button variant="secondary" size="small" icon="toolbar"></Button>
-              </div>
-            </div>
+            <EditorToolbar />
           </div>
 
           {/* Editor Content */}
           <div className={styles.editorContent}>
-
+            <editorS/>
           </div>
 
           {/* Editor Footer */}

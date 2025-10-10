@@ -1,0 +1,20 @@
+.editorToolbar {
+    display: flex;
+    padding: 7px 15px;
+    height: 30px;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    align-self: stretch;
+    border-bottom: 1px solid var(--surface-secondary);
+    position: relative;
+  }
+  
+  /* set the button to the right of the toolbar */
+  .editorToolbarButton {
+    position: absolute;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
