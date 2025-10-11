@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CollaborativeEditor from "@/components/CollaborativeEditor";
 
 export default function Home() {
   return (
@@ -31,6 +32,12 @@ export default function Home() {
         >
           Home
         </Link>
+      </div>
+
+      {/* Collaborative Editor Demo */}
+      <div style={{ marginTop: "3rem", textAlign: "left", maxWidth: "900px", margin: "3rem auto" }}>
+        <h2>Demo: Collaborative Markdown Editor</h2>
+        <CollaborativeEditor fileName="typrmd-demo" />
       </div>
     </div>
   );
