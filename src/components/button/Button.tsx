@@ -36,7 +36,7 @@ export function Button({
       onClick={onClick}
       type="button"
     >
-      <Icon name={icon} size={size} className={styles.icon} />
+      {icon && <Icon name={icon} size={size} className={styles.icon} />}
       {text && <span className={styles.text}>{text}</span>}
     </button>
   );
