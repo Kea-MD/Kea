@@ -23,5 +23,6 @@
     align-self: stretch;
     border-radius: var(--radius);
     background: var(--surface-secondary);
+    backdrop-filter: blur(10px);
     height: 50px;
 }

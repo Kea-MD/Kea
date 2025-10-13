@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "typr.md",
+  "productName": "TyprMD",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.typr.md",
   "build": {
     "frontendDist": "../.next",
     "devUrl": "http://localhost:3000",
@@ -12,11 +12,12 @@
   "app": {
     "windows": [
       {
-        "title": "typr.md",
-        "width": 800,
-        "height": 600,
+        "title": "TyprMD",
+        "width": 1500,
+        "height": 1000,
         "resizable": true,
-        "fullscreen": false
+        "maximized": true
+        
       }
     ],
     "security": {

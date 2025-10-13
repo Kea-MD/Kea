@@ -4,8 +4,9 @@
   gap: var(--space-4);
   flex: 1 0 0;
   align-self: normal;
-  color: var(--text);
+  color: var(--foreground);
   font-size: var(--font-size-2xl);
+
 }
 
 .logoText1 {

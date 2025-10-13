@@ -1,26 +1,28 @@
-import styles from "./editor.module.css";
+
+import styles from './styles.module.scss'
 import Logo from "@/components/logo/logo";
 import AI_Toolbar from "@/components/AI_Toolbar/AI_Toolbar";
 import { Button } from "@/components/button/Button";
-import EditorToolbar from "@/components/editorToolbar/editorToolbar";
-import editor from "@/components/editor/editor";
+import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
+
+const { page, pageContainer, sidebar, sidebarHeader, menuItems, sidebarContent, sidebarFooter, mainEditor, editorHeader, editorTabBar, editorContent } = styles;
 
 export default function Editor() {
   return (
-    <div className={styles.page}>
-      <div className={styles.pageContainer}>
+    <div className={page}>
+      <div className={pageContainer}>
 
         {/* Left Sidebar */}
-        <div className={styles.sidebar}>
+        <div className={sidebar}>
 
           {/* Sidebar Header */}
-          <div className={styles.sidebarHeader}>
+          <div className={sidebarHeader}>
             <Logo />
             <Button variant="primary" size="medium" icon="dock_to_right"></Button>
           </div>
 
           {/* Sidebar Menu Items */}
-          <div className={styles.menuItems}>
+          <div className={menuItems}>
             <Button variant="primary" size="small" text="File"></Button>
             <Button variant="primary" size="small" text="Edit"></Button>
             <Button variant="primary" size="small" text="View"></Button>
@@ -31,34 +33,33 @@ export default function Editor() {
           </div>
 
           {/* Sidebar Content */}
-          <div className={styles.sidebarContent}>
+          <div className={sidebarContent}>
 
           </div>
 
           {/* Sidebar Footer */}
-          <div className={styles.sidebarFooter}>
+          <div className={sidebarFooter}>
             <Button variant="primary" size="medium" icon="settings"></Button>
             <Button variant="primary" size="medium" icon="person_add"></Button>
           </div>
         </div>
 
         {/* Main Editor */}
-        <div className={styles.mainEditor}>
+        <div className={mainEditor}>
 
           {/* Editor Header */}
-          <div className={styles.editorHeader}>
+          <div className={editorHeader}>
 
             {/* Editor Tab Bar */}
-            <div className={styles.editorTabBar}>
+            <div className={editorTabBar}>
 
             </div>
-            {/* Editor Header */}
-            <EditorToolbar />
           </div>
 
           {/* Editor Content */}
-          <div className={styles.editorContent}>
-            <editorS/>
+          <div className={editorContent}>
+            <SimpleEditor />
+            {/* <Tiptap/> */}
           </div>
 
           {/* Editor Footer */}
@@ -66,20 +67,20 @@ export default function Editor() {
         </div>
 
         {/* Right Sidebar */}
-        <div className={styles.sidebar}>
+        <div className={sidebar}>
 
           {/* Sidebar Header */}
-          <div className={styles.sidebarHeader}>
+          <div className={sidebarHeader}>
           <Button variant="primary" size="medium" icon="dock_to_left"></Button>
           </div>
 
           {/* Sidebar Content */}
-          <div className={styles.sidebarContent}>
+          <div className={sidebarContent}>
 
           </div>
 
           {/* Sidebar Footer */}
-          <div className={styles.sidebarFooter}>
+          <div className={sidebarFooter}>
             <Button variant="primary" size="medium" icon="history"></Button>
           </div>
         </div>

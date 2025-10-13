@@ -1,12 +1,17 @@
+
+
+@use '../styles/_variables.scss';
+@use '../styles/_keyframe-animations.scss';
+
 :root {
   /* Colors */
   --background: #000000;
-  --foreground: #ffffff;
+  --foreground: #202020;
   --primary: #ffffff50;
   --secondary: #00000050;
   --surface: #ffffff10;
   --surface-secondary: #00000010;
-  --text: #ffffff;
+  --text: #000000;
   --text-secondary: #d1d5db;
   --border: #ffffff;
 
@@ -41,7 +46,7 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-}
+}   
 
 html,
 body {
