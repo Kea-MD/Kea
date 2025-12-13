@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import LogoImage from '../assets/Logo.svg'
+import LogoImage from '../assets/Logo-02.png'
 </script>
 
 <template>
   <div class="logo">
-    <img :src="LogoImage" alt="Logo" width="32" height="32" />
-    <div class="logo-text">
-      <span class="logo-text-1">Typr</span>
-      <span class="logo-text-2">MD</span>
-    </div>
+    <img :src="LogoImage" alt="Logo" width="auto" height="60" />
   </div>
 </template>
 
@@ -21,14 +17,6 @@ import LogoImage from '../assets/Logo.svg'
   align-self: normal;
   color: var(--white);
   font-size: var(--font-size-2xl);
-}
-
-.logo-text-1 {
-  font-weight: 800;
-}
-
-.logo-text-2 {
-  font-weight: 200;
 }
 </style>
 

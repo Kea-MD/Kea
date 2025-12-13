@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Typr",
+  "productName": "Orca",
   "version": "0.1.0",
-  "identifier": "com.galengreen.typr",
+  "identifier": "com.galengreen.orca",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,10 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "Typr",
+        "title": "Orca",
+        "shadow": true,
         "resizable": true,
         "maximized": true,
-        "titleBarStyle": "Transparent"
+        "titleBarStyle": "Transparent",
+        "backgroundColor": "#000000",
+        "transparent": true
       }
     ],
     "security": {

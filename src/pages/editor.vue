@@ -16,7 +16,7 @@ import Logo from '../components/logo.vue'
         resize-from="right"
       >
         <!-- Sidebar Header -->
-        <div class="sidebarHeader">
+        <div class="sidebarHeader" data-tauri-drag-region>
           <Logo />
           <Button variant="primary" size="medium" icon="dock_to_right" />
         </div>
@@ -44,7 +44,6 @@ import Logo from '../components/logo.vue'
         <!-- Editor Content -->
         <div class="editorContent">
           <SimpleEditor />
-          <!-- <Tiptap/> -->
         </div>
 
         <!-- Editor Footer -->
@@ -60,11 +59,13 @@ import Logo from '../components/logo.vue'
 
 /* Page */
 .page {
-  background: var(--background);
   display: flex;
   width: 100vw;
   height: 100vh;
-  padding: var(--space-3);
+  padding: 0 var(--space-3) var(--space-3) var(--space-3);
+  overflow: hidden;
+  overflow-y: hidden;
+  overflow-x: hidden;
 }
 
 .pageContainer {
@@ -89,8 +90,8 @@ import Logo from '../components/logo.vue'
 
 .sidebarHeader {
   display: flex;
-  height: 50px;
-  padding: 0 var(--space-4);
+  height: 70px;
+  padding: 0 var(--space-3);
   align-items: center;
   gap: var(--space-4);
   align-self: stretch;

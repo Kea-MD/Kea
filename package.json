@@ -1,5 +1,5 @@
 {
-  "name": "typr",
+  "name": "orca",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -10,30 +10,10 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@floating-ui/react": "^0.27.16",
-    "@radix-ui/react-dropdown-menu": "^2.1.16",
-    "@radix-ui/react-popover": "^1.1.15",
-    "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2",
-    "@tiptap/extension-highlight": "^3.10.3",
-    "@tiptap/extension-horizontal-rule": "^3.10.3",
-    "@tiptap/extension-image": "^3.10.3",
-    "@tiptap/extension-list": "^3.10.3",
-    "@tiptap/extension-subscript": "^3.10.3",
-    "@tiptap/extension-superscript": "^3.10.3",
-    "@tiptap/extension-text-align": "^3.10.3",
-    "@tiptap/extension-typography": "^3.10.3",
-    "@tiptap/extensions": "^3.10.3",
-    "@tiptap/pm": "^3.10.3",
-    "@tiptap/react": "^3.10.3",
-    "@tiptap/starter-kit": "^3.10.3",
-    "lodash.throttle": "^4.1.1",
-    "react-hotkeys-hook": "^5.2.1",
     "vue": "^3.5.13"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
-    "@types/lodash.throttle": "^4.1.9",
     "@vitejs/plugin-vue": "^5.2.1",
     "sass-embedded": "^1.93.3",
     "typescript": "~5.6.2",

@@ -4,7 +4,6 @@
 
 <template>
   <div class="simple-editor">
-    <!-- Editor content will go here -->
   </div>
 </template>
 
