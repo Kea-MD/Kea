@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import LogoImage from '../assets/Logo-02.png'
+import LogoImage from '../assets/Logo/LogoLow.png'
 </script>
 
 <template>
   <div class="logo">
-    <img :src="LogoImage" alt="Logo" width="auto" height="60" />
+    <img :src="LogoImage" alt="Logo" width="auto" height="40" />
   </div>
 </template>
 

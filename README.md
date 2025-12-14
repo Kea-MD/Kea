@@ -1,4 +1,4 @@
-# Orca
+<img src="./src/assets/Logo/LogoCombinedWhite.png" alt="#Orca" style="zoom:50%;" />
 
 > **A Markdown editor that just works—with others.**
 
