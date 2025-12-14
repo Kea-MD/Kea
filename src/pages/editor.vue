@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import Button from '../components/button.vue'
-import Logo from '../components/logo.vue'
 import SidePanel from '../components/side-panel.vue'
 import SimpleEditor from '../components/simple-editor.vue'
 </script>
 
 <template>
   <div class="page">
+    <!-- Top drag region for window traffic lights (macOS) -->
+    <div class="topDragRegion" data-tauri-drag-region></div>
     <div class="pageContainer">
       <!-- Left Sidebar -->
       <SidePanel
@@ -15,7 +16,6 @@ import SimpleEditor from '../components/simple-editor.vue'
       >
         <!-- Sidebar Header -->
         <div class="sidebarHeader" data-tauri-drag-region>
-          <Logo />
           <Button variant="primary" size="medium" icon="dock_to_right" />
         </div>
 
@@ -35,7 +35,7 @@ import SimpleEditor from '../components/simple-editor.vue'
         <!-- Editor Header -->
         <div class="editorHeader">
           <!-- Editor Tab Bar -->
-          <div class="editorTabBar">
+          <div class="editorTabBar" data-tauri-drag-region>
           </div>
         </div>
 
@@ -52,24 +52,36 @@ import SimpleEditor from '../components/simple-editor.vue'
 
 /* Page */
 .page {
+  position: relative;
   display: flex;
   width: 100vw;
   height: 100vh;
-  padding: 0 var(--space-3) var(--space-3) var(--space-3);
+  padding: var(--space-2);
   overflow: hidden;
-  overflow-y: hidden;
-  overflow-x: hidden;
+  border-radius: var(--radius-lg);
+}
+
+/* Top drag region for window controls */
+.topDragRegion {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  z-index: 9999;
+  -webkit-app-region: drag;
 }
 
 .pageContainer {
   width: 100%;
   display: flex;
-  padding: var(--space-3);
+  padding: var(--space-2);
   align-items: flex-start;
   flex: 1 0 0;
   align-self: stretch;
-  background: var(--surface);
+  background: rgba(10, 10, 10, 0.8);
   border-radius: var(--radius-lg);
+  border: 1px solid rgba(50, 50, 50, 0.5);
 }
 
 /* Sidebar */
@@ -85,10 +97,10 @@ import SimpleEditor from '../components/simple-editor.vue'
   display: flex;
   height: 70px;
   padding: 0 var(--space-3);
-  align-items: center;
-  gap: var(--space-4);
+  align-items: right;
   align-self: stretch;
   border-bottom: 1px solid var(--surface);
+  justify-content: flex-end;
 }
 
 .menuItems {

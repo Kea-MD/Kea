@@ -34,7 +34,7 @@
   /* Border radius */
   --radius-sm: 20px;
   --radius: 30px;
-  --radius-lg: 40px;
+  --radius-lg: 37.5px;
   --radius-full: 9999px;
 
   /* Shadows */
@@ -344,14 +344,22 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  background: transparent;
 }
 
 body {
   color: var(--text);
-  background: var(--background);
+  background: transparent;
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  height: 100vh;
+  width: 100vw;
+  background: transparent;
+  overflow: hidden;
 }
 
 
