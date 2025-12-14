@@ -159,11 +159,6 @@
   --tt-color-red-dec-4: hsla(3, 100%, 16%, 1);
   --tt-color-red-dec-5: hsla(1, 100%, 9%, 1);
 
-  /* Basic colors */
-  --white: rgba(255, 255, 255, 1);
-  --black: rgb(5, 5, 5);
-  --transparent: rgba(255, 255, 255, 0);
-
   /****************** 
     Shadow variables
     ******************/
@@ -211,6 +206,8 @@
   ::before,
   ::after {
     box-sizing: border-box;
+    padding: 0;
+    margin: 0;
     transition: none var(--tt-transition-duration-default)
       var(--tt-transition-easing-default);
   }
@@ -360,14 +357,6 @@ body {
   width: 100vw;
   background: transparent;
   overflow: hidden;
-}
-
-
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 a {
