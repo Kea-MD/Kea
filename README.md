@@ -1,19 +1,18 @@
-<img src="./src/assets/Logo/LogoCombinedWhite.png" alt="#Orca" style="zoom:50%;" />
+<img src="./src/assets/Logo/LogoCombinedWhite.png" alt="#Orca" style="width: 500px; height: auto;" />
 
 > **A Markdown editor that just works—with others.**
 
 Orca is a lightweight, local-first, collaborative peer-to-peer Markdown editor. It brings the ease of Google Docs to plain-text workflows, letting you create, edit, and share documents seamlessly while staying fully local and integrating into any existing file system.
 
-##  Key Features
+## Key Features
 
-- **Live Collaboration**: Real-time P2P editing with sub-100ms sync
-- **External Editor Sync**: Use VS Code, vim, or any editor alongside Orca—changes sync automatically
+- **Live Collaboration**: Real-time P2P editing
 - **Local-First**: Your files stay on your machine, no cloud storage required
 - **WYSIWYG Markdown**: Edit in markdown source but see rendered output live
 - **Distraction-Free**: Minimalist UI that gets out of the way
 - **Cross-Platform**: macOS, Windows, Linux, and Web
 
-##  Development Setup
+## Development Setup
 
 ### Quick Start
 

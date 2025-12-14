@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import SidePanel from '../components/side-panel.vue'
 import Button from '../components/button.vue'
-import SimpleEditor from '../components/simple-editor.vue'
-import AIToolbar from '../components/ai-toolbar.vue'
 import Logo from '../components/logo.vue'
-
+import SidePanel from '../components/side-panel.vue'
+import SimpleEditor from '../components/simple-editor.vue'
 </script>
 
 <template>
@@ -45,12 +43,7 @@ import Logo from '../components/logo.vue'
         <div class="editorContent">
           <SimpleEditor />
         </div>
-
-        <!-- Editor Footer -->
-        <AIToolbar />
       </div>
-
-      
     </div>
   </div>
 </template>
