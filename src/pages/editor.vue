@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Button from '../components/button.vue'
 import SidePanel from '../components/side-panel.vue'
-import SimpleEditor from '../components/simple-editor.vue'
+import Editor from '../components/editor.vue'
 </script>
 
 <template>
@@ -41,7 +41,7 @@ import SimpleEditor from '../components/simple-editor.vue'
 
         <!-- Editor Content -->
         <div class="editorContent">
-          <SimpleEditor />
+          <Editor />
         </div>
       </div>
     </div>
