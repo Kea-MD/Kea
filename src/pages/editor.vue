@@ -49,24 +49,21 @@ import SimpleEditor from '../components/simple-editor.vue'
 </template>
 
 <style scoped>
-
-/* Page */
+/* Page Layout */
 .page {
   position: relative;
   display: flex;
   width: 100vw;
   height: 100vh;
-  padding: var(--space-2);
+  padding: 7.5px;
   overflow: hidden;
-  border-radius: var(--radius-lg);
+  border-radius: 37.5px;
+  overscroll-behavior: none;
 }
 
-/* Top drag region for window controls */
 .topDragRegion {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0 0 auto 0;
   height: 30px;
   z-index: 9999;
   -webkit-app-region: drag;
@@ -75,101 +72,86 @@ import SimpleEditor from '../components/simple-editor.vue'
 .pageContainer {
   width: 100%;
   display: flex;
-  padding: var(--space-2);
-  align-items: flex-start;
-  flex: 1 0 0;
-  align-self: stretch;
+  padding: 7.5px;
+  flex: 1;
   background: rgba(10, 10, 10, 0.8);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(50, 50, 50, 0.5);
+  border-radius: 37.5px;
+  overscroll-behavior: none;
 }
 
 /* Sidebar */
 .sidebar {
   display: flex;
   flex-direction: column;
-  align-self: stretch;
-  padding: var(--space);
+  padding: 10px;
   height: 100%;
 }
 
 .sidebarHeader {
   display: flex;
   height: 70px;
-  padding: 0 var(--space-3);
-  align-items: right;
-  align-self: stretch;
-  border-bottom: 1px solid var(--surface);
+  padding: 0 10px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   justify-content: flex-end;
 }
 
 .menuItems {
   display: flex;
   height: 50px;
-  padding: var(--space-4) 0;
+  padding: 15px 0;
   justify-content: center;
   align-items: center;
-  gap: var(--space-4);
-  align-self: stretch;
+  gap: 15px;
 }
 
 .sidebarContent {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  flex: 1 0 0;
-  align-self: stretch;
+  flex: 1;
 }
 
 .sidebarFooter {
   display: flex;
   height: 50px;
-  padding: 0 var(--space-4);
+  padding: 0 15px;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
-  align-self: stretch;
-  border-top: 1px solid var(--surface);
+  gap: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Main Editor */
 .mainEditor {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  flex: 1 0 0;
-  align-self: stretch;
-  border-radius: var(--radius);
+  flex: 1;
+  border-radius: 30px;
   background: var(--tt-bg-color);
-  padding: var(--space);
+  padding: 10px;
   overflow: hidden;
   position: relative;
 }
 
 .editorHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  align-self: stretch;
-  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .editorTabBar {
   height: 30px;
   width: 100%;
-  padding: 0 0 0 0;
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  align-self: stretch;
-  background: #00000010;
+  background: rgba(0, 0, 0, 0.063);
 }
 
-/* set the button to the right of the toolbar */
 .editorToolbarButton {
   position: absolute;
   right: 10px;
@@ -184,17 +166,14 @@ import SimpleEditor from '../components/simple-editor.vue'
   flex-direction: column;
   width: 100%;
   height: 100%;
-  overflow: none;
-  padding-top: 30px; /* Account for the absolute positioned header */
+  padding-top: 30px;
 }
 
-/* Icons */
 .icon {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
+  gap: 7.5px;
+  padding: 15px;
 }
-
 </style>
 

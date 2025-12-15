@@ -14,7 +14,7 @@
     "windows": [
       {
         "title": "",
-        "shadow": true,
+        "shadow": false,
         "resizable": true,
         "maximized": true,
         "titleBarStyle": "Overlay",
