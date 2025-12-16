@@ -3,6 +3,11 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import editor from "./pages/editor.vue";
 import "./styles/global.css";
 
+// Apply web-platform class if not running in Tauri
+if (!(window as any).__TAURI_INTERNALS__) {
+  document.body.classList.add("web-platform");
+}
+
 createApp(editor).mount("#app");
 
 // Enable window dragging for elements with data-tauri-drag-region attribute
