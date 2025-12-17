@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import Button from '../components/button.vue'
 import SidePanel from '../components/side-panel.vue'
-import Editor from '../components/editor.vue'
+import Editor from '../components/editor/Editor.vue'
+import { useTheme } from '../composables/useTheme'
+
+// Initialize theme
+useTheme()
 </script>
 
 <template>
@@ -15,7 +19,7 @@ import Editor from '../components/editor.vue'
         resize-from="right"
       >
         <!-- Sidebar Header -->
-        <div class="sidebarHeader" data-tauri-drag-region>
+        <div class="sidebarHeader">
           <Button variant="primary" size="medium" icon="dock_to_right" />
         </div>
 
@@ -35,7 +39,7 @@ import Editor from '../components/editor.vue'
         <!-- Editor Header -->
         <div class="editorHeader">
           <!-- Editor Tab Bar -->
-          <div class="editorTabBar" data-tauri-drag-region>
+          <div class="editorTabBar">
           </div>
         </div>
 
@@ -64,7 +68,7 @@ import Editor from '../components/editor.vue'
 .topDragRegion {
   position: absolute;
   inset: 0 0 auto 0;
-  height: 30px;
+  height: 20px;
   z-index: 9999;
   -webkit-app-region: drag;
 }
