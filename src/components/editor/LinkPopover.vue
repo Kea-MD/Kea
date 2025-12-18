@@ -83,20 +83,26 @@ defineExpose({ toggle })
       <div class="link-actions">
         <Button
           label="Apply"
-          icon="pi pi-check"
           size="small"
           @click="applyLink"
           :disabled="!linkUrl"
-        />
+        >
+          <template #icon>
+            <span class="material-symbols-outlined">check</span>
+          </template>
+        </Button>
         <Button
           v-if="isInLink"
           label="Remove"
-          icon="pi pi-times"
           size="small"
           severity="danger"
           outlined
           @click="removeLink"
-        />
+        >
+          <template #icon>
+            <span class="material-symbols-outlined">delete</span>
+          </template>
+        </Button>
       </div>
     </div>
   </Popover>

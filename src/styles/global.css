@@ -10,15 +10,15 @@
   -moz-osx-font-smoothing: grayscale;
 
   /* Colors */
-  --background: #000000;
+  --background: #ffffff;
   --foreground: #202020;
-  --primary: #ffffff50;
-  --secondary: #00000050;
-  --surface: #ffffff10;
-  --surface-secondary: #00000010;
-  --text: #000000;
-  --text-secondary: #d1d5db;
-  --border: #ffffff;
+  --primary: #000000;
+  --secondary: #666666;
+  --surface: #f3f4f6;
+  --surface-secondary: #e5e7eb;
+  --text: #111827;
+  --text-secondary: #4b5563;
+  --border: #e5e7eb;
   --white: rgba(255, 255, 255, 1);
   --black: rgb(5, 5, 5);
 
@@ -232,6 +232,16 @@
 
 /* Global colors - Dark mode */
 .dark {
+  --background: #000000;
+  --foreground: #f3f4f6;
+  --primary: #ffffff;
+  --secondary: #9ca3af;
+  --surface: #1f2937;
+  --surface-secondary: #374151;
+  --text: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border: #374151;
+
   --tt-bg-color: var(--tt-gray-dark-100);
   --tt-border-color: var(--tt-gray-dark-a-200);
   --tt-border-color-tint: var(--tt-gray-dark-a-100);
@@ -412,3 +422,9 @@ a {
 .text-secondary { color: var(--text-secondary); }
 .bg-surface { background-color: var(--surface); }
 .border { border: 1px solid var(--border); }
+
+/* PrimeVue transition overrides - disable all animations */
+.p-select,
+.p-select-dropdown {
+  transition: none !important;
+}

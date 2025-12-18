@@ -83,14 +83,17 @@ defineExpose({ toggle })
         <div class="color-section-header">
           <span class="color-section-title">Highlight</span>
           <Button
-            icon="pi pi-times"
             size="small"
             text
             rounded
             severity="secondary"
             @click="clearHighlight"
             v-tooltip.top="'Clear Highlight'"
-          />
+          >
+            <template #icon>
+              <span class="material-symbols-outlined">close</span>
+            </template>
+          </Button>
         </div>
         <div class="color-grid">
           <button
@@ -109,14 +112,17 @@ defineExpose({ toggle })
         <div class="color-section-header">
           <span class="color-section-title">Text Color</span>
           <Button
-            icon="pi pi-times"
             size="small"
             text
             rounded
             severity="secondary"
             @click="clearTextColor"
             v-tooltip.top="'Clear Color'"
-          />
+          >
+            <template #icon>
+              <span class="material-symbols-outlined">close</span>
+            </template>
+          </Button>
         </div>
         <div class="color-grid">
           <button

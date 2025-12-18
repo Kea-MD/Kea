@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from '../components/button.vue'
+import Button from 'primevue/button'
 import SidePanel from '../components/side-panel.vue'
 import Editor from '../components/editor/Editor.vue'
 import { useTheme } from '../composables/useTheme'
@@ -15,12 +15,16 @@ useTheme()
     <div class="pageContainer">
       <!-- Left Sidebar -->
       <SidePanel
-        class="sidebar"
+        class="sidebar dark"
         resize-from="right"
       >
         <!-- Sidebar Header -->
         <div class="sidebarHeader">
-          <Button variant="primary" size="medium" icon="dock_to_right" />
+          <Button severity="secondary" text rounded>
+            <template #icon>
+              <span class="material-symbols-outlined">dock_to_right</span>
+            </template>
+          </Button>
         </div>
 
         <!-- Sidebar Content -->
@@ -29,8 +33,16 @@ useTheme()
 
         <!-- Sidebar Footer -->
         <div class="sidebarFooter">
-          <Button variant="primary" size="medium" icon="settings" />
-          <Button variant="primary" size="medium" icon="person_add" />
+          <Button severity="secondary" text rounded>
+            <template #icon>
+              <span class="material-symbols-outlined">settings</span>
+            </template>
+          </Button>
+          <Button severity="secondary" text rounded>
+            <template #icon>
+              <span class="material-symbols-outlined">person_add</span>
+            </template>
+          </Button>
         </div>
       </SidePanel>
 
