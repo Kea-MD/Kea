@@ -17,6 +17,19 @@ import EditorToolbar from './EditorToolbar.vue'
 
 import content from '../../data/content.json'
 
+interface Props {
+  sidebarOpen?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  sidebarOpen: true
+})
+
+const emit = defineEmits<{
+  (e: 'toggle-sidebar'): void
+  (e: 'hover-sidebar', hovering: boolean): void
+}>()
+
 const editor = useEditor({
   content,
   extensions: [
@@ -61,7 +74,12 @@ const editor = useEditor({
 
 <template>
   <div class="editor-container">
-    <EditorToolbar :editor="editor" />
+    <EditorToolbar
+      :editor="editor"
+      :sidebar-open="props.sidebarOpen"
+      @toggle-sidebar="emit('toggle-sidebar')"
+      @hover-sidebar="emit('hover-sidebar', $event)"
+    />
     <EditorContent :editor="editor" class="editor-content" />
   </div>
 </template>

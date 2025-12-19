@@ -11,9 +11,17 @@ import { useTheme } from '../../composables/useTheme'
 
 interface Props {
   editor: Editor | undefined
+  sidebarOpen?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  sidebarOpen: true
+})
+
+const emit = defineEmits<{
+  (e: 'toggle-sidebar'): void
+  (e: 'hover-sidebar', hovering: boolean): void
+}>()
 const { isDark, toggleTheme } = useTheme()
 
 // Heading options
@@ -147,11 +155,28 @@ const handleImageUpload = (event: Event) => {
 <template>
   <Toolbar class="editor-toolbar">
     <template #start>
+      <!-- Sidebar Toggle -->
+      <Button
+        severity="secondary"
+        text
+        :class="{ 'is-active': sidebarOpen }"
+        @click="emit('toggle-sidebar')"
+        @mouseenter="emit('hover-sidebar', true)"
+        @mouseleave="emit('hover-sidebar', false)"
+        v-tooltip.bottom="sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'"
+        class="sidebar-toggle-btn"
+      >
+      <template #icon>
+          <span class="material-symbols-outlined">dock_to_right</span>
+        </template>
+      </Button>
+
+      <Divider layout="vertical" />
+
       <!-- History -->
       <Button
         severity="secondary"
         text
-        rounded
         :disabled="!canUndo"
         @click="undo"
         v-tooltip.bottom="'Undo'"
@@ -529,6 +554,32 @@ const handleImageUpload = (event: Event) => {
   font-size: 1.2rem;
   font-weight: 400;
   line-height: 1;
+}
+
+/* Sidebar toggle icon */
+.sidebar-toggle-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-toggle-icon .icon-bar {
+  transform-origin: center;
+  transform: scaleX(0.3);
+  transition: transform 0.16s cubic-bezier(0.0, 0.0, 0.58, 1.0);
+}
+
+.sidebar-toggle-icon.sidebar-open .icon-bar {
+  transform: scaleX(1);
+}
+
+.sidebar-toggle-btn:hover .icon-bar,
+.sidebar-toggle-btn:focus-visible .icon-bar {
+  transform: scaleX(1);
+}
+
+.sidebar-toggle-btn.is-active:hover .icon-bar,
+.sidebar-toggle-btn.is-active:focus-visible .icon-bar {
+  transform: scaleX(0.3);
 }
 </style>
 

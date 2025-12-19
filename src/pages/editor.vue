@@ -1,63 +1,91 @@
 <script setup lang="ts">
-import Button from 'primevue/button'
-import SidePanel from '../components/side-panel.vue'
+import { ref } from 'vue'
 import Editor from '../components/editor/Editor.vue'
+import Sidebar from '../components/sidebar/Sidebar.vue'
 import { useTheme } from '../composables/useTheme'
 
 // Initialize theme
 useTheme()
+
+// Sidebar state
+const sidebarOpen = ref(true)
+const sidebarHovering = ref(false)
+const hoverDisabled = ref(false)
+let hoverTimeout: ReturnType<typeof setTimeout> | null = null
+
+const toggleSidebar = () => {
+  const wasOpen = sidebarOpen.value
+  sidebarOpen.value = !sidebarOpen.value
+
+  // If closing the sidebar, temporarily disable hover
+  if (wasOpen) {
+    hoverDisabled.value = true
+    sidebarHovering.value = false
+    setTimeout(() => {
+      hoverDisabled.value = false
+    }, 300)
+  }
+}
+
+const handleSidebarHover = (hovering: boolean) => {
+  if (hoverDisabled.value) return
+
+  // Clear any pending unhover timeout
+  if (hoverTimeout) {
+    clearTimeout(hoverTimeout)
+    hoverTimeout = null
+  }
+
+  if (hovering) {
+    sidebarHovering.value = true
+  } else {
+    // Delay unhover to prevent flickering
+    hoverTimeout = setTimeout(() => {
+      sidebarHovering.value = false
+    }, 200)
+  }
+}
+
+const handleNewRequest = () => {
+  // TODO: Implement new request logic
+  console.log('New request')
+}
+
+const handleFeedback = () => {
+  // TODO: Implement feedback logic
+  console.log('Feedback')
+}
+
+const handleSettings = () => {
+  // TODO: Implement settings logic
+  console.log('Settings')
+}
 </script>
 
 <template>
   <div class="page">
-    <!-- Top drag region for window traffic lights (macOS) -->
     <div class="topDragRegion" data-tauri-drag-region></div>
     <div class="pageContainer">
-      <!-- Left Sidebar -->
-      <SidePanel
-        class="sidebar dark"
-        resize-from="right"
-      >
-        <!-- Sidebar Header -->
-        <div class="sidebarHeader">
-          <Button severity="secondary" text rounded>
-            <template #icon>
-              <span class="material-symbols-outlined">dock_to_right</span>
-            </template>
-          </Button>
-        </div>
+      <div class="layout" :class="{ 'sidebar-open': sidebarOpen }">
+        <Sidebar
+          :is-open="sidebarOpen"
+          :is-hovering="sidebarHovering"
+          @new-request="handleNewRequest"
+          @feedback="handleFeedback"
+          @settings="handleSettings"
+        />
 
-        <!-- Sidebar Content -->
-        <div class="sidebarContent">
-        </div>
-
-        <!-- Sidebar Footer -->
-        <div class="sidebarFooter">
-          <Button severity="secondary" text rounded>
-            <template #icon>
-              <span class="material-symbols-outlined">settings</span>
-            </template>
-          </Button>
-          <Button severity="secondary" text rounded>
-            <template #icon>
-              <span class="material-symbols-outlined">person_add</span>
-            </template>
-          </Button>
-        </div>
-      </SidePanel>
-
-      <!-- Main Editor -->
-      <div class="mainEditor">
-        <!-- Editor Header -->
-        <div class="editorHeader">
-          <!-- Editor Tab Bar -->
-          <div class="editorTabBar">
+        <div class="mainEditor">
+          <div class="editorHeader">
+            <div class="editorTabBar"></div>
           </div>
-        </div>
-
-        <!-- Editor Content -->
-        <div class="editorContent">
-          <Editor />
+          <div class="editorContent">
+            <Editor
+              :sidebar-open="sidebarOpen"
+              @toggle-sidebar="toggleSidebar"
+              @hover-sidebar="handleSidebarHover"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -95,46 +123,16 @@ useTheme()
   overscroll-behavior: none;
 }
 
-/* Sidebar */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  height: 100%;
+/* Layout Grid */
+.layout {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 0 1fr;
+  transition: grid-template-columns 0.16s cubic-bezier(0.0, 0.0, 0.58, 1.0);
 }
 
-.sidebarHeader {
-  display: flex;
-  height: 70px;
-  padding: 0 10px;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  justify-content: flex-end;
-}
-
-.menuItems {
-  display: flex;
-  height: 50px;
-  padding: 15px 0;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-}
-
-.sidebarContent {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.sidebarFooter {
-  display: flex;
-  height: 50px;
-  padding: 0 15px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+.layout.sidebar-open {
+  grid-template-columns: 260px 1fr;
 }
 
 /* Main Editor */
@@ -156,24 +154,14 @@ useTheme()
   right: 0;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .editorTabBar {
-  height: 30px;
+  height: 0px;
   width: 100%;
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.063);
-}
-
-.editorToolbarButton {
-  position: absolute;
-  right: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .editorContent {
@@ -184,12 +172,4 @@ useTheme()
   height: 100%;
   padding-top: 30px;
 }
-
-.icon {
-  display: flex;
-  flex-direction: column;
-  gap: 7.5px;
-  padding: 15px;
-}
 </style>
-
