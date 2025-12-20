@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Button from 'primevue/button'
 
 interface Props {
   searchTerm: string
@@ -9,7 +8,6 @@ defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'update:searchTerm', value: string): void
-  (e: 'new-request'): void
 }>()
 
 const handleSearch = (event: Event) => {
@@ -24,16 +22,6 @@ const clearSearch = () => {
 
 <template>
   <header class="sidebar-header">
-    <Button
-      severity="secondary"
-      text
-      rounded
-      aria-label="New request"
-      class="new-request-btn"
-      @click="emit('new-request')"
-    >
-      New Request
-    </Button>
     <form @submit.prevent>
       <div class="tree-search-input-container">
         <span class="material-symbols-outlined search-icon">search</span>
@@ -58,23 +46,6 @@ const clearSearch = () => {
   padding: 0.75rem;
   display: grid;
   gap: 0.5rem;
-}
-
-.new-request-btn {
-  height: 32px;
-  border-radius: 6px;
-  border: 0;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.1);
-  position: relative;
-  width: 100%;
-  justify-content: center;
-}
-
-.new-request-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Search input */

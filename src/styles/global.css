@@ -423,8 +423,39 @@ a {
 .bg-surface { background-color: var(--surface); }
 .border { border: 1px solid var(--border); }
 
-/* PrimeVue transition overrides - disable all animations */
-.p-select,
-.p-select-dropdown {
+/* PrimeVue select - monochrome overrides */
+.p-select {
   transition: none !important;
+}
+
+.p-select.p-focus,
+.p-select.p-select-open {
+  border-color: var(--tt-gray-light-a-400) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.p-select-option.p-select-option-selected {
+  background: var(--tt-gray-light-a-100) !important;
+  color: var(--tt-gray-light-700) !important;
+}
+
+.p-select-option:hover {
+  background: var(--tt-gray-light-a-50) !important;
+  color: var(--tt-gray-light-600) !important;
+}
+
+.dark .p-select.p-focus,
+.dark .p-select.p-select-open {
+  border-color: var(--tt-gray-dark-a-400) !important;
+}
+
+.dark .p-select-option.p-select-option-selected {
+  background: var(--tt-gray-dark-a-100) !important;
+  color: var(--tt-gray-dark-700) !important;
+}
+
+.dark .p-select-option:hover {
+  background: var(--tt-gray-dark-a-50) !important;
+  color: var(--tt-gray-dark-600) !important;
 }

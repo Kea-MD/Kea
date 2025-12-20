@@ -156,17 +156,10 @@ const handleImageUpload = (event: Event) => {
   <Toolbar class="editor-toolbar">
     <template #start>
       <!-- Sidebar Toggle -->
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': sidebarOpen }"
-        @click="emit('toggle-sidebar')"
-        @mouseenter="emit('hover-sidebar', true)"
-        @mouseleave="emit('hover-sidebar', false)"
-        v-tooltip.bottom="sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'"
-        class="sidebar-toggle-btn"
-      >
-      <template #icon>
+      <Button severity="secondary" text :class="{ 'is-active': sidebarOpen }" @click="emit('toggle-sidebar')"
+        @mouseenter="emit('hover-sidebar', true)" @mouseleave="emit('hover-sidebar', false)"
+        v-tooltip.bottom="sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'" class="sidebar-toggle-btn">
+        <template #icon>
           <span class="material-symbols-outlined">dock_to_right</span>
         </template>
       </Button>
@@ -174,24 +167,12 @@ const handleImageUpload = (event: Event) => {
       <Divider layout="vertical" />
 
       <!-- History -->
-      <Button
-        severity="secondary"
-        text
-        :disabled="!canUndo"
-        @click="undo"
-        v-tooltip.bottom="'Undo'"
-      >
+      <Button severity="secondary" text :disabled="!canUndo" @click="undo" v-tooltip.bottom="'Undo'">
         <template #icon>
           <span class="material-symbols-outlined">undo</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :disabled="!canRedo"
-        @click="redo"
-        v-tooltip.bottom="'Redo'"
-      >
+      <Button severity="secondary" text :disabled="!canRedo" @click="redo" v-tooltip.bottom="'Redo'">
         <template #icon>
           <span class="material-symbols-outlined">redo</span>
         </template>
@@ -200,70 +181,46 @@ const handleImageUpload = (event: Event) => {
       <Divider layout="vertical" />
 
       <!-- Text Formatting -->
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isBold }"
-        @click="toggleBold"
-        v-tooltip.bottom="'Bold'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isBold }" @click="toggleBold" v-tooltip.bottom="'Bold'">
         <template #icon>
           <span class="material-symbols-outlined">format_bold</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isItalic }"
-        @click="toggleItalic"
-        v-tooltip.bottom="'Italic'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isItalic }" @click="toggleItalic"
+        v-tooltip.bottom="'Italic'">
         <template #icon>
           <span class="material-symbols-outlined">format_italic</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isUnderline }"
-        @click="toggleUnderline"
-        v-tooltip.bottom="'Underline'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isUnderline }" @click="toggleUnderline"
+        v-tooltip.bottom="'Underline'">
         <template #icon>
           <span class="material-symbols-outlined">format_underlined</span>
         </template>
       </Button>
-      
+
 
       <Divider layout="vertical" />
 
       <!-- Headings -->
-      <Select
-        v-model="currentHeading"
-        :options="headingOptions"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="P"
-        size="small"
-        class="heading-select"
-        v-tooltip.bottom="'Heading Level'"
-      />
+      <Select v-model="currentHeading" :options="headingOptions" optionLabel="label" optionValue="value" placeholder="P"
+        size="small" class="heading-select" v-tooltip.bottom="'Heading Level'">
+        <template #value="slotProps">
+          <span class="select-text">{{ slotProps.value }}</span>
+        </template>
+        <template #option="slotProps">
+          <span class="select-text">{{ slotProps.option.label }}</span>
+        </template>
+      </Select>
 
       <Divider layout="vertical" />
 
       <!-- Lists -->
-      <Select
-        v-model="currentList"
-        :options="listOptions"
-        optionValue="value"
-        placeholder=""
-        class="list-select"
-        size="small"
-        v-tooltip.bottom="'List Type'"
-      >
+      <Select v-model="currentList" :options="listOptions" optionValue="value" placeholder="" class="list-select"
+        size="small" v-tooltip.bottom="'List Type'">
         <template #value="slotProps">
           <span v-if="slotProps.value" class="material-symbols-outlined select-icon">
-            {{ listOptions.find(o => o.value === slotProps.value)?.label }}
+            {{listOptions.find(o => o.value === slotProps.value)?.label}}
           </span>
           <span v-else class="material-symbols-outlined select-icon">format_list_bulleted</span>
         </template>
@@ -275,46 +232,26 @@ const handleImageUpload = (event: Event) => {
       <Divider layout="vertical" />
 
       <!-- Text Alignment -->
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isAlignLeft }"
-        @click="setAlignLeft"
-        v-tooltip.bottom="'Align Left'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isAlignLeft }" @click="setAlignLeft"
+        v-tooltip.bottom="'Align Left'">
         <template #icon>
           <span class="material-symbols-outlined">format_align_left</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isAlignCenter }"
-        @click="setAlignCenter"
-        v-tooltip.bottom="'Align Center'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isAlignCenter }" @click="setAlignCenter"
+        v-tooltip.bottom="'Align Center'">
         <template #icon>
           <span class="material-symbols-outlined">format_align_center</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isAlignRight }"
-        @click="setAlignRight"
-        v-tooltip.bottom="'Align Right'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isAlignRight }" @click="setAlignRight"
+        v-tooltip.bottom="'Align Right'">
         <template #icon>
           <span class="material-symbols-outlined">format_align_right</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isAlignJustify }"
-        @click="setAlignJustify"
-        v-tooltip.bottom="'Justify'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isAlignJustify }" @click="setAlignJustify"
+        v-tooltip.bottom="'Justify'">
         <template #icon>
           <span class="material-symbols-outlined">format_align_justify</span>
         </template>
@@ -323,57 +260,32 @@ const handleImageUpload = (event: Event) => {
       <Divider layout="vertical" />
 
       <!-- Block Formatting -->
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isCode }"
-        @click="toggleCode"
-        v-tooltip.bottom="'Inline Code'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isCode }" @click="toggleCode"
+        v-tooltip.bottom="'Inline Code'">
         <template #icon>
           <span class="material-symbols-outlined">code</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isSubscript }"
-        @click="toggleSubscript"
-        v-tooltip.bottom="'Subscript'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isSubscript }" @click="toggleSubscript"
+        v-tooltip.bottom="'Subscript'">
         <template #icon>
           <span class="material-symbols-outlined">subscript</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isSuperscript }"
-        @click="toggleSuperscript"
-        v-tooltip.bottom="'Superscript'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isSuperscript }" @click="toggleSuperscript"
+        v-tooltip.bottom="'Superscript'">
         <template #icon>
           <span class="material-symbols-outlined">superscript</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isBlockquote }"
-        @click="toggleBlockquote"
-        v-tooltip.bottom="'Blockquote'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isBlockquote }" @click="toggleBlockquote"
+        v-tooltip.bottom="'Blockquote'">
         <template #icon>
           <span class="material-symbols-outlined">format_quote</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        :class="{ 'is-active': isCodeBlock }"
-        @click="toggleCodeBlock"
-        v-tooltip.bottom="'Code Block'"
-      >
+      <Button severity="secondary" text :class="{ 'is-active': isCodeBlock }" @click="toggleCodeBlock"
+        v-tooltip.bottom="'Code Block'">
         <template #icon>
           <span class="material-symbols-outlined">terminal</span>
         </template>
@@ -382,55 +294,31 @@ const handleImageUpload = (event: Event) => {
       <Divider layout="vertical" />
 
       <!-- Insert -->
-      <Button
-        severity="secondary"
-        text
-        @click="showLinkPopover"
-        v-tooltip.bottom="'Insert Link'"
-      >
+      <Button severity="secondary" text @click="showLinkPopover" v-tooltip.bottom="'Insert Link'">
         <template #icon>
           <span class="material-symbols-outlined">link</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        @click="triggerImageUpload"
-        v-tooltip.bottom="'Insert Image'"
-      >
+      <Button severity="secondary" text @click="triggerImageUpload" v-tooltip.bottom="'Insert Image'">
         <template #icon>
           <span class="material-symbols-outlined">image</span>
         </template>
       </Button>
-      <Button
-        severity="secondary"
-        text
-        @click="showColorPopover"
-        v-tooltip.bottom="'Highlight Color'"
-      >
+      <Button severity="secondary" text @click="showColorPopover" v-tooltip.bottom="'Highlight Color'">
         <template #icon>
           <span class="material-symbols-outlined">ink_highlighter</span>
         </template>
       </Button>
 
       <!-- Hidden file input for image upload -->
-      <input
-        ref="fileInput"
-        type="file"
-        accept="image/*"
-        style="display: none"
-        @change="handleImageUpload"
-      />
+      <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="handleImageUpload" />
+      <Divider layout="vertical" />
+
     </template>
 
     <template #end>
       <!-- Theme Toggle -->
-      <Button
-        severity="secondary"
-        text
-        @click="toggleTheme"
-        v-tooltip.bottom="isDark ? 'Light Mode' : 'Dark Mode'"
-      >
+      <Button severity="secondary" text @click="toggleTheme" v-tooltip.bottom="isDark ? 'Light Mode' : 'Dark Mode'">
         <template #icon>
           <span class="material-symbols-outlined">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
         </template>
@@ -500,42 +388,63 @@ const handleImageUpload = (event: Event) => {
   height: 1.5rem;
 }
 
-/* Material Symbols icon styling */
+/* Icons - subtle by default, stronger on hover/active */
 .editor-toolbar :deep(.material-symbols-outlined) {
   font-size: 18px;
-  font-weight: 400;
-  line-height: 1;
+  color: var(--tt-gray-light-400);
 }
 
-/* Active button state - subtle background instead of green */
+.editor-toolbar :deep(.p-button:hover .material-symbols-outlined) {
+  color: var(--tt-gray-light-600);
+}
+
 .editor-toolbar :deep(.p-button.is-active) {
-  background-color: var(--tt-gray-light-a-200);
+  background-color: var(--tt-gray-light-a-100);
+}
+
+.editor-toolbar :deep(.p-button.is-active .material-symbols-outlined) {
+  color: var(--tt-gray-light-700);
+}
+
+.dark .editor-toolbar :deep(.material-symbols-outlined) {
+  color: var(--tt-gray-dark-400);
+}
+
+.dark .editor-toolbar :deep(.p-button:hover .material-symbols-outlined) {
+  color: var(--tt-gray-dark-600);
 }
 
 .dark .editor-toolbar :deep(.p-button.is-active) {
-  background-color: var(--tt-gray-dark-a-200);
+  background-color: var(--tt-gray-dark-a-100);
 }
 
+.dark .editor-toolbar :deep(.p-button.is-active .material-symbols-outlined) {
+  color: var(--tt-gray-dark-700);
+}
 
-
-/* Compact select dropdowns */
+/* Select dropdowns */
 .heading-select,
 .list-select {
   width: 60px;
   height: 25px;
+  display: flex;
   align-items: center;
 }
 
 .heading-select :deep(.p-select),
 .list-select :deep(.p-select) {
   border-radius: 4px;
+  border-color: var(--tt-gray-light-a-200);
+  display: flex;
+  align-items: center;
 }
 
 .heading-select :deep(.p-select-label),
 .list-select :deep(.p-select-label) {
-  padding: 0px 10px;
+  padding: 0 10px;
   font-size: 0.9rem;
-  line-height: 0.9rem;
+  display: flex;
+  align-items: center;
 }
 
 .heading-select :deep(.p-select-dropdown),
@@ -549,37 +458,39 @@ const handleImageUpload = (event: Event) => {
   width: 0.7rem;
 }
 
-/* Icon styling in list select */
+.dark .heading-select :deep(.p-select),
+.dark .list-select :deep(.p-select) {
+  border-color: var(--tt-gray-dark-a-200);
+}
+
+/* Select content styling */
+.select-icon,
+.select-text {
+  color: var(--tt-gray-light-400);
+  display: flex;
+  align-items: center;
+}
+
 .select-icon {
   font-size: 1.2rem;
-  font-weight: 400;
-  line-height: 1;
 }
 
-/* Sidebar toggle icon */
-.sidebar-toggle-icon {
-  width: 18px;
-  height: 18px;
+.select-text {
+  font-size: 0.9rem;
 }
 
-.sidebar-toggle-icon .icon-bar {
-  transform-origin: center;
-  transform: scaleX(0.3);
-  transition: transform 0.16s cubic-bezier(0.0, 0.0, 0.58, 1.0);
+.p-select:hover .select-icon,
+.p-select:hover .select-text {
+  color: var(--tt-gray-light-600);
 }
 
-.sidebar-toggle-icon.sidebar-open .icon-bar {
-  transform: scaleX(1);
+.dark .select-icon,
+.dark .select-text {
+  color: var(--tt-gray-dark-400);
 }
 
-.sidebar-toggle-btn:hover .icon-bar,
-.sidebar-toggle-btn:focus-visible .icon-bar {
-  transform: scaleX(1);
-}
-
-.sidebar-toggle-btn.is-active:hover .icon-bar,
-.sidebar-toggle-btn.is-active:focus-visible .icon-bar {
-  transform: scaleX(0.3);
+.dark .p-select:hover .select-icon,
+.dark .p-select:hover .select-text {
+  color: var(--tt-gray-dark-600);
 }
 </style>
-

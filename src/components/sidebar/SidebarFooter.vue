@@ -25,18 +25,6 @@ const emit = defineEmits<{
       severity="secondary"
       text
       rounded
-      aria-label="Feedback"
-      class="footer-btn"
-      @click="emit('feedback')"
-    >
-      <template #icon>
-        <span class="material-symbols-outlined">edit_square</span>
-      </template>
-    </Button>
-    <Button
-      severity="secondary"
-      text
-      rounded
       aria-label="Settings"
       class="footer-btn"
       @click="emit('settings')"
@@ -76,9 +64,4 @@ const emit = defineEmits<{
   color: rgba(255, 255, 255, 0.8);
 }
 
-.footer-btn {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-}
 </style>

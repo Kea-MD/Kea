@@ -7,10 +7,12 @@ import SidebarFooter from './SidebarFooter.vue'
 interface Props {
   isOpen: boolean
   isHovering?: boolean
+  width?: number
 }
 
-withDefaults(defineProps<Props>(), {
-  isHovering: false
+const props = withDefaults(defineProps<Props>(), {
+  isHovering: false,
+  width: 260
 })
 
 const emit = defineEmits<{
@@ -23,10 +25,18 @@ const searchTerm = ref('')
 </script>
 
 <template>
-  <div class="aside" :class="{ 'sidebar-open': isOpen, 'sidebar-hovering': isHovering }">
+  <div
+    class="aside"
+    :class="{ 'sidebar-open': isOpen, 'sidebar-hovering': isHovering }"
+    :style="isOpen ? { width: `${props.width}px` } : undefined"
+  >
     <!-- Safety triangle to prevent accidental close when moving from button to sidebar -->
     <div class="safety-triangle" :class="{ 'is-active': isHovering && !isOpen }"></div>
-    <aside class="sidebar" :class="{ 'is-open': isOpen }">
+    <aside
+      class="sidebar"
+      :class="{ 'is-open': isOpen }"
+      :style="{ width: `${props.width - 10}px` }"
+    >
       <SidebarHeader
         :search-term="searchTerm"
         @update:search-term="searchTerm = $event"
@@ -64,7 +74,7 @@ const searchTerm = ref('')
 }
 
 .aside.sidebar-open {
-  width: 260px;
+  width: 260px; /* Default, overridden by inline style */
 }
 
 /* Safety triangle - connects button to sidebar */
@@ -90,7 +100,7 @@ const searchTerm = ref('')
 .aside:not(.sidebar-open):has(.safety-triangle:hover) .sidebar,
 .aside:not(.sidebar-open) .sidebar:hover {
   transform: translateX(0);
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(15px) saturate(180%);
   opacity: 1;
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -109,7 +119,7 @@ const searchTerm = ref('')
   position: absolute;
   left: 5px;
   top: 90px;
-  width: 250px;
+  width: 250px; /* Default, overridden by inline style */
   height: calc(100% - 95px);
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -132,8 +142,8 @@ const searchTerm = ref('')
 
 .sidebar.is-open {
   transform: translateX(0);
-  top: 40px;
-  height: calc(100% - 40px);
+  top: 25px;
+  height: calc(100% - 25px);
   opacity: 1;
 }
 

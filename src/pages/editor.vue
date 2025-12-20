@@ -3,9 +3,13 @@ import { ref } from 'vue'
 import Editor from '../components/editor/Editor.vue'
 import Sidebar from '../components/sidebar/Sidebar.vue'
 import { useTheme } from '../composables/useTheme'
+import { useSidebarResize } from '../composables/useSidebarResize'
 
 // Initialize theme
 useTheme()
+
+// Sidebar resize
+const { sidebarWidth, isResizing, startResize } = useSidebarResize()
 
 // Sidebar state
 const sidebarOpen = ref(true)
@@ -66,13 +70,26 @@ const handleSettings = () => {
   <div class="page">
     <div class="topDragRegion" data-tauri-drag-region></div>
     <div class="pageContainer">
-      <div class="layout" :class="{ 'sidebar-open': sidebarOpen }">
+      <div
+        class="layout"
+        :class="{ 'sidebar-open': sidebarOpen, 'is-resizing': isResizing }"
+        :style="sidebarOpen ? { gridTemplateColumns: `${sidebarWidth}px 1fr` } : undefined"
+      >
         <Sidebar
           :is-open="sidebarOpen"
           :is-hovering="sidebarHovering"
+          :width="sidebarWidth"
           @new-request="handleNewRequest"
           @feedback="handleFeedback"
           @settings="handleSettings"
+        />
+
+        <!-- Resize handle -->
+        <div
+          v-if="sidebarOpen"
+          class="resize-handle"
+          :class="{ 'is-resizing': isResizing }"
+          @mousedown="startResize"
         />
 
         <div class="mainEditor">
@@ -133,6 +150,46 @@ const handleSettings = () => {
 
 .layout.sidebar-open {
   grid-template-columns: 260px 1fr;
+}
+
+.layout.is-resizing {
+  transition: none;
+}
+
+/* Resize Handle */
+.resize-handle {
+  position: absolute;
+  top: 40px;
+  bottom: 5px;
+  width: 8px;
+  left: calc(v-bind(sidebarWidth) * 1px + 5px);
+  cursor: col-resize;
+  z-index: 10;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 40px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.resize-handle:hover::after,
+.resize-handle.is-resizing::after {
+  background: var(--tt-gray-light-a-300);
+}
+
+.dark .resize-handle:hover::after,
+.dark .resize-handle.is-resizing::after {
+  background: var(--tt-gray-dark-a-300);
 }
 
 /* Main Editor */

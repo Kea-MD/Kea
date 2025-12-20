@@ -35,3 +35,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# kilocode
+.kilocode/mcp.json
+.kilocodemodes
+
+# plans
+/plans
