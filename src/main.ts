@@ -1,4 +1,5 @@
 import { createApp } from "vue";
+import { createPinia } from "pinia";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import PrimeVue from "primevue/config";
 import Aura from "@primevue/themes/aura";
@@ -12,6 +13,10 @@ if (!(window as any).__TAURI_INTERNALS__) {
 }
 
 const app = createApp(editor);
+const pinia = createPinia();
+
+// Install Pinia
+app.use(pinia);
 
 // Configure PrimeVue with Aura theme and dark mode support
 app.use(PrimeVue, {

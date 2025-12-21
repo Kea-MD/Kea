@@ -1,9 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { listen } from '@tauri-apps/api/event'
 import Editor from '../components/editor/Editor.vue'
 import Sidebar from '../components/sidebar/Sidebar.vue'
+import TabBar from '../components/editor/TabBar.vue'
+import QuickSwitcher from '../components/QuickSwitcher.vue'
 import { useTheme } from '../composables/useTheme'
 import { useSidebarResize } from '../composables/useSidebarResize'
+import { useDocumentStore } from '../stores/documentStore'
+import { useWorkspaceStore } from '../stores/workspaceStore'
+
+// Initialize stores
+const documentStore = useDocumentStore()
+const workspaceStore = useWorkspaceStore()
 
 // Initialize theme
 useTheme()
@@ -16,6 +25,9 @@ const sidebarOpen = ref(true)
 const sidebarHovering = ref(false)
 const hoverDisabled = ref(false)
 let hoverTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Quick switcher state
+const showQuickSwitcher = ref(false)
 
 const toggleSidebar = () => {
   const wasOpen = sidebarOpen.value
@@ -51,19 +63,82 @@ const handleSidebarHover = (hovering: boolean) => {
 }
 
 const handleNewRequest = () => {
-  // TODO: Implement new request logic
-  console.log('New request')
+  documentStore.newFile()
 }
 
 const handleFeedback = () => {
-  // TODO: Implement feedback logic
   console.log('Feedback')
 }
 
 const handleSettings = () => {
-  // TODO: Implement settings logic
   console.log('Settings')
 }
+
+// Handle menu events from Tauri
+let unlistenMenu: (() => void) | null = null
+
+async function setupMenuListener() {
+  unlistenMenu = await listen<string>('menu-event', (event) => {
+    handleMenuAction(event.payload)
+  })
+}
+
+function handleMenuAction(action: string) {
+  switch (action) {
+    case 'new_file':
+      documentStore.newFile()
+      break
+    case 'open_file':
+      documentStore.openFileDialog()
+      break
+    case 'open_folder':
+      workspaceStore.openFolder()
+      break
+    case 'save':
+      documentStore.saveFile()
+      break
+    case 'save_as':
+      documentStore.saveFileAs()
+      break
+    case 'close_tab':
+      if (documentStore.activeDocumentId) {
+        documentStore.closeDocument(documentStore.activeDocumentId)
+      }
+      break
+    case 'toggle_sidebar':
+      toggleSidebar()
+      break
+    case 'quick_open':
+      showQuickSwitcher.value = true
+      break
+    case 'undo':
+    case 'redo':
+    case 'find':
+      // These are handled by the editor
+      break
+  }
+}
+
+// Keyboard shortcuts
+function handleKeydown(event: KeyboardEvent) {
+  const isMod = event.metaKey || event.ctrlKey
+
+  if (isMod && event.key === 'p') {
+    event.preventDefault()
+    showQuickSwitcher.value = true
+  }
+}
+
+onMounted(() => {
+  setupMenuListener()
+  documentStore.loadRecentFiles()
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  unlistenMenu?.()
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <template>
@@ -94,7 +169,7 @@ const handleSettings = () => {
 
         <div class="mainEditor">
           <div class="editorHeader">
-            <div class="editorTabBar"></div>
+            <TabBar />
           </div>
           <div class="editorContent">
             <Editor
@@ -106,6 +181,12 @@ const handleSettings = () => {
         </div>
       </div>
     </div>
+
+    <!-- Quick Switcher Modal -->
+    <QuickSwitcher
+      v-if="showQuickSwitcher"
+      @close="showQuickSwitcher = false"
+    />
   </div>
 </template>
 
@@ -213,12 +294,8 @@ const handleSettings = () => {
   flex-direction: column;
 }
 
-.editorTabBar {
-  height: 0px;
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
+.editorHeader {
+  min-height: 36px;
 }
 
 .editorContent {

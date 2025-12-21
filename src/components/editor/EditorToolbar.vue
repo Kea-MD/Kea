@@ -493,4 +493,6 @@ const handleImageUpload = (event: Event) => {
 .dark .p-select:hover .select-text {
   color: var(--tt-gray-dark-600);
 }
+
+
 </style>

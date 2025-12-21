@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import SidebarHeader from './SidebarHeader.vue'
-import SidebarTree from './SidebarTree.vue'
+import FileTree from './FileTree.vue'
 import SidebarFooter from './SidebarFooter.vue'
 
 interface Props {
@@ -20,8 +19,6 @@ const emit = defineEmits<{
   (e: 'feedback'): void
   (e: 'settings'): void
 }>()
-
-const searchTerm = ref('')
 </script>
 
 <template>
@@ -37,14 +34,10 @@ const searchTerm = ref('')
       :class="{ 'is-open': isOpen }"
       :style="{ width: `${props.width - 10}px` }"
     >
-      <SidebarHeader
-        :search-term="searchTerm"
-        @update:search-term="searchTerm = $event"
-        @new-request="emit('new-request')"
-      />
+      <SidebarHeader />
 
       <nav class="sidebar-nav" aria-label="Navigation">
-        <SidebarTree :search-term="searchTerm" />
+        <FileTree />
       </nav>
 
       <SidebarFooter

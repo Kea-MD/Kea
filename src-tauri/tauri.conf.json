@@ -37,6 +37,14 @@
       "icons/LogoLow.png",
       "icons/Logo.ico",
       "icons/Logo.icns"
+    ],
+    "fileAssociations": [
+      {
+        "ext": ["md", "markdown", "mdown", "mkd"],
+        "name": "Markdown",
+        "description": "Markdown Document",
+        "role": "Editor"
+      }
     ]
   }
 }

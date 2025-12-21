@@ -99,8 +99,6 @@ const defaultTreeData: TreeData = {
 
 const treeData = computed(() => props.data || defaultTreeData)
 
-const currentFocus = ref<HTMLElement | null>(null)
-const nodeMap = ref(new Map<string, { id: string; level: number; hasChildren: boolean; parentId: string | null; label: string }>())
 const expandedNodes = ref(new Set<string>())
 const treeRef = ref<HTMLElement | null>(null)
 
@@ -130,7 +128,7 @@ const handleItemClick = (event: MouseEvent, item: TreeItem) => {
 }
 
 // Handle keyboard navigation
-const handleKeydown = (event: KeyboardEvent, item: TreeItem, level: number) => {
+const handleKeydown = (event: KeyboardEvent, item: TreeItem, _level: number) => {
   switch (event.key) {
     case 'Enter':
     case ' ':

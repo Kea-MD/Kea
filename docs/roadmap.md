@@ -51,7 +51,47 @@ Each phase should result in something people can actually use. No "infrastructur
 
 ---
 
-## Phase 1: Core Editor (Week 3-4)
+## Phase 1: File Management
+
+> **Goal:** Work with multiple files and folders like a native app.
+
+### Deliverables
+
+- [ ] File browser sidebar (tree view)
+- [ ] Create new files/folders
+- [ ] Rename and delete files
+- [ ] Quick file switcher (`Cmd+P`)
+- [ ] Recent files list
+- [ ] View all files in a folder, greying out non-markdown files.
+- [ ] Be able to use native menu bar for file operations. (Open, Save, Save As, etc.)
+- [ ] Tab bar for open files
+- [ ] Tauri integration (native filesystem)
+- [ ] Native file associations (.md opens in Orca)
+- [ ] Be able to open folder, and see all files in the folder.
+  
+
+### Definition of Done
+
+**A developer would use this to manage their documentation folder.**
+
+### Technical Tasks
+
+```
+1. Build FileTree component with recursive rendering
+2. Implement create/rename/delete operations
+3. Add drag-and-drop reordering
+4. Build QuickSwitcher modal with fuzzy search
+5. Implement recent files storage (localStorage)
+6. Create TabBar component for open documents
+7. Set up Tauri project structure
+8. Implement Tauri file system commands
+9. Configure file associations for .md
+10. Add unsaved changes indicator + confirmation
+```
+
+### Success Metrics
+
+## Phase 2: Core Editor
 
 > **Goal:** A polished, standalone markdown editor worth using.
 
@@ -59,7 +99,6 @@ Each phase should result in something people can actually use. No "infrastructur
 
 - [ ] Full GFM support (tables, task lists, strikethrough)
 - [ ] Code blocks with syntax highlighting (Shiki)
-- [ ] Markdown syntax fading (hide `**` when bold, etc.)
 - [ ] Inline images (drag & drop, relative paths)
 - [ ] Smart paste (rich text → markdown)
 - [ ] Auto-pairs for markdown syntax
@@ -94,43 +133,6 @@ Each phase should result in something people can actually use. No "infrastructur
 - All common markdown operations under 50ms
 
 ---
-
-## Phase 2: File Management (Week 5-6)
-
-> **Goal:** Work with multiple files and folders like a native app.
-
-### Deliverables
-
-- [ ] File browser sidebar (tree view)
-- [ ] Create new files/folders
-- [ ] Rename and delete files
-- [ ] Drag & drop to reorder
-- [ ] Quick file switcher (`Cmd+P`)
-- [ ] Recent files list
-- [ ] Tab bar for open files
-- [ ] Tauri integration (native filesystem)
-- [ ] Native file associations (.md opens in Orca)
-
-### Definition of Done
-
-**A developer would use this to manage their documentation folder.**
-
-### Technical Tasks
-
-```
-1. Build FileTree component with recursive rendering
-2. Implement create/rename/delete operations
-3. Add drag-and-drop reordering
-4. Build QuickSwitcher modal with fuzzy search
-5. Implement recent files storage (localStorage)
-6. Create TabBar component for open documents
-7. Set up Tauri project structure
-8. Implement Tauri file system commands
-9. Configure file associations for .md
-10. Add unsaved changes indicator + confirmation
-```
-
-### Success Metrics
 
 - Open folder with 1000 files, tree renders < 200ms
 - Quick switcher responds to keystrokes < 50ms
