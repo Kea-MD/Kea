@@ -299,7 +299,11 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   z-index: 10;
-  filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.2));
+}
+
+.dark .editorHeader {
+  filter: none;
 }
 
 .editorContent {

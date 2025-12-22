@@ -338,7 +338,7 @@ const handleImageUpload = (event: Event) => {
   border: none;
   border-radius: 0px;
   padding: 0.5rem;
-  background: var(--tt-gray-light-200);
+  background: var(--tt-gray-light-100);
   gap: 0.25rem;
   overflow-x: auto;
   overflow-y: hidden;
@@ -346,7 +346,7 @@ const handleImageUpload = (event: Event) => {
 }
 
 .dark .editor-toolbar {
-  background: var(--tt-gray-dark-200);
+  background: var(--tt-gray-dark-50);
 }
 
 /* Hide scrollbar but keep functionality */

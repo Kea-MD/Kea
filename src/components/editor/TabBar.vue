@@ -91,10 +91,10 @@ function getTabClass(tab: OpenDocument) {
   align-items: top;
   gap: 10px;
   padding: 5px 5px 5px 15px;
-  background: var(--tt-gray-light-200);
+  background: var(--tt-gray-light-100);
   border-radius: 13px;
   cursor: pointer;
-  color: var(--tt-gray-light-500);
+  color: var(--tt-gray-light-400);
   font-size: 0.8125rem;
   white-space: nowrap;
   max-width: 180px;
@@ -108,7 +108,7 @@ function getTabClass(tab: OpenDocument) {
 }
 
 .tab.is-active {
-  background: var(--tt-gray-light-200);
+  background: var(--tt-gray-light-100);
   color: var(--tt-gray-light-600);
   height: 33px;
   border-radius: 13px 13px 0 0;
@@ -125,7 +125,7 @@ function getTabClass(tab: OpenDocument) {
   height: 19px;
   background: transparent;
   border-bottom-right-radius: 19px;
-  box-shadow: 5px 5px 0px 5px var(--tt-gray-light-200);
+  box-shadow: 5px 5px 0px 5px var(--tt-gray-light-100);
   pointer-events: none;
 }
 
@@ -139,7 +139,7 @@ function getTabClass(tab: OpenDocument) {
   height: 19px;
   background: transparent;
   border-bottom-left-radius: 19px;
-  box-shadow: -5px 5px 0 5px var(--tt-gray-light-200);
+  box-shadow: -5px 5px 0 5px var(--tt-gray-light-100);
   pointer-events: none;
 }
 
@@ -200,17 +200,17 @@ function getTabClass(tab: OpenDocument) {
 /* Dark mode styles (unscoped to access .dark on html) */
 
 .dark .tab {
-  background: var(--tt-gray-dark-200);
-  color: var(--tt-gray-dark-500);
+  background: var(--tt-gray-dark-50);
+  color: var(--tt-gray-dark-300);
 }
 
 .dark .tab:hover {
-  background: var(--tt-gray-dark-300);
+  background: var(--tt-gray-dark-200);
   color: var(--tt-gray-dark-700);
 }
 
 .dark .tab.is-active {
-  background: var(--tt-gray-dark-200);
+  background: var(--tt-gray-dark-50);
   color: var(--tt-gray-dark-700);
 }
 
@@ -219,10 +219,10 @@ function getTabClass(tab: OpenDocument) {
 }
 
 .dark .tab.is-active::after {
-  box-shadow: -5px 5px 0px 5px var(--tt-gray-dark-200);
+  box-shadow: -5px 5px 0px 5px var(--tt-gray-dark-50);
 }
 
 .dark .tab.is-active::before {
-  box-shadow: 5px 5px 0px 5px var(--tt-gray-dark-200);
+  box-shadow: 5px 5px 0px 5px var(--tt-gray-dark-50);
 }
 </style>
