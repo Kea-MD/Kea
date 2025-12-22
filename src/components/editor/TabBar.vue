@@ -2,6 +2,14 @@
 import { computed } from 'vue'
 import { useDocumentStore, type OpenDocument } from '../../stores/documentStore'
 
+interface Props {
+  sidebarOpen?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  sidebarOpen: true
+})
+
 const documentStore = useDocumentStore()
 
 const tabs = computed(() => documentStore.openTabs)
@@ -33,25 +41,13 @@ function getTabClass(tab: OpenDocument) {
 </script>
 
 <template>
-  <div class="tab-bar" v-if="tabs.length > 0">
+  <div class="tab-bar" :class="{ 'sidebar-closed': !props.sidebarOpen }">
     <div class="tabs-container">
-      <div
-        v-for="tab in tabs"
-        :key="tab.id"
-        :class="getTabClass(tab)"
-        @click="selectTab(tab.id)"
-        @mousedown="handleMiddleClick($event, tab.id)"
-      >
-        <span class="tab-icon">
-          <i class="pi pi-file"></i>
-        </span>
+      <div v-for="tab in tabs" :key="tab.id" :class="getTabClass(tab)" @click="selectTab(tab.id)"
+        @mousedown="handleMiddleClick($event, tab.id)">
         <span class="tab-name">{{ tab.name }}</span>
         <span v-if="tab.isDirty" class="dirty-indicator" title="Unsaved changes"></span>
-        <button
-          class="close-btn"
-          @click="closeTab($event, tab.id)"
-          title="Close"
-        >
+        <button class="close-btn" @click="closeTab($event, tab.id)" title="Close">
           <i class="pi pi-times"></i>
         </button>
       </div>
@@ -62,20 +58,27 @@ function getTabClass(tab: OpenDocument) {
 <style scoped>
 .tab-bar {
   display: flex;
-  align-items: center;
-  height: 36px;
-  padding: 10px 25px;
-  background: transparent;
-  border-bottom: 1px solid var(--tt-border-color-tint);
+  align-items: flex-start;
+  padding: 7px 15px 0 15px;
   overflow: hidden;
+  height: 40px;
+  z-index: 1;
 }
+
+.tab-bar.sidebar-closed {
+  padding-left: 90px;
+}
+
 
 .tabs-container {
   display: flex;
-  gap: 2px;
-  overflow-x: auto;
+  gap: 7px;
+  overflow-x: visible;
+  overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  padding: 0 16px;
+  margin: 0 -16px;
 }
 
 .tabs-container::-webkit-scrollbar {
@@ -85,66 +88,59 @@ function getTabClass(tab: OpenDocument) {
 /* Light mode (default) */
 .tab {
   display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.37rem 1rem;
-  background: var(--tt-gray-light-a-50);
-  border-radius: 20px;
+  align-items: top;
+  gap: 10px;
+  padding: 5px 5px 5px 15px;
+  background: var(--tt-gray-light-200);
+  border-radius: 13px;
   cursor: pointer;
   color: var(--tt-gray-light-500);
   font-size: 0.8125rem;
   white-space: nowrap;
   max-width: 180px;
-  transition: background 0.1s, color 0.1s;
   position: relative;
+  height: 26px;
 }
 
 .tab:hover {
-  background: var(--tt-gray-light-a-100);
+  background: var(--tt-gray-light-300);
   color: var(--tt-gray-light-700);
 }
 
 .tab.is-active {
-  background: var(--tt-gray-light-a-200);
-  color: var(--tt-gray-light-800);
-  border-radius: 15px 15px 0 0;
+  background: var(--tt-gray-light-200);
+  color: var(--tt-gray-light-600);
+  height: 33px;
+  border-radius: 13px 13px 0 0;
+
 }
 
-/* Dark mode */
-:global(.dark) .tab {
-  background: var(--tt-gray-dark-a-50);
-  color: var(--tt-gray-dark-500);
+/* Inverse radius effect - left side */
+.tab.is-active::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -19px;
+  width: 19px;
+  height: 19px;
+  background: transparent;
+  border-bottom-right-radius: 19px;
+  box-shadow: 5px 5px 0px 5px var(--tt-gray-light-200);
+  pointer-events: none;
 }
 
-:global(.dark) .tab:hover {
-  background: var(--tt-gray-dark-a-100);
-  color: var(--tt-gray-dark-700);
-}
-
-:global(.dark) .tab.is-active {
-  background: var(--tt-gray-dark-a-200);
-  color: var(--tt-gray-dark-900);
-}
-
+/* Inverse radius effect - right side */
 .tab.is-active::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--tt-brand-color-500);
-}
-
-.tab-icon {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.tab-icon .pi {
-  font-size: 0.75rem;
-  color: var(--tt-brand-color-500);
+  right: -19px;
+  width: 19px;
+  height: 19px;
+  background: transparent;
+  border-bottom-left-radius: 19px;
+  box-shadow: -5px 5px 0 5px var(--tt-gray-light-200);
+  pointer-events: none;
 }
 
 .tab-name {
@@ -153,11 +149,12 @@ function getTabClass(tab: OpenDocument) {
 }
 
 .dirty-indicator {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: var(--tt-brand-color-500);
   border-radius: 50%;
   flex-shrink: 0;
+  margin: 4px;
 }
 
 .close-btn {
@@ -187,10 +184,6 @@ function getTabClass(tab: OpenDocument) {
   background: var(--tt-gray-light-a-200);
 }
 
-:global(.dark) .close-btn:hover {
-  background: var(--tt-gray-dark-a-200);
-}
-
 .close-btn .pi {
   font-size: 0.625rem;
 }
@@ -202,5 +195,34 @@ function getTabClass(tab: OpenDocument) {
 
 .tab.is-dirty:hover .dirty-indicator {
   display: none;
+}
+
+/* Dark mode styles (unscoped to access .dark on html) */
+
+.dark .tab {
+  background: var(--tt-gray-dark-200);
+  color: var(--tt-gray-dark-500);
+}
+
+.dark .tab:hover {
+  background: var(--tt-gray-dark-300);
+  color: var(--tt-gray-dark-700);
+}
+
+.dark .tab.is-active {
+  background: var(--tt-gray-dark-200);
+  color: var(--tt-gray-dark-700);
+}
+
+.dark .close-btn:hover {
+  background: var(--tt-gray-dark-a-200);
+}
+
+.dark .tab.is-active::after {
+  box-shadow: -5px 5px 0px 5px var(--tt-gray-dark-200);
+}
+
+.dark .tab.is-active::before {
+  box-shadow: 5px 5px 0px 5px var(--tt-gray-dark-200);
 }
 </style>

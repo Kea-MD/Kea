@@ -156,14 +156,16 @@ const handleImageUpload = (event: Event) => {
   <Toolbar class="editor-toolbar">
     <template #start>
       <!-- Sidebar Toggle -->
-      <Button severity="secondary" text :class="{ 'is-active': sidebarOpen }" @click="emit('toggle-sidebar')"
+      <Button severity="secondary" text :class="{ sidebarOpen }" @click="emit('toggle-sidebar')"
         @mouseenter="emit('hover-sidebar', true)" @mouseleave="emit('hover-sidebar', false)"
         v-tooltip.bottom="sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'" class="sidebar-toggle-btn">
         <template #icon>
           <span class="material-symbols-outlined">dock_to_right</span>
         </template>
       </Button>
+    </template>
 
+    <template #center>
       <Divider layout="vertical" />
 
       <!-- History -->
@@ -334,14 +336,17 @@ const handleImageUpload = (event: Event) => {
 <style scoped>
 .editor-toolbar {
   border: none;
-  border-bottom: 1px solid var(--tt-border-color);
-  border-radius: 0;
+  border-radius: 0px;
   padding: 0.5rem;
-  background: var(--tt-bg-color);
+  background: var(--tt-gray-light-200);
   gap: 0.25rem;
   overflow-x: auto;
   overflow-y: hidden;
   flex-wrap: nowrap;
+}
+
+.dark .editor-toolbar {
+  background: var(--tt-gray-dark-200);
 }
 
 /* Hide scrollbar but keep functionality */
@@ -391,35 +396,27 @@ const handleImageUpload = (event: Event) => {
 /* Icons - subtle by default, stronger on hover/active */
 .editor-toolbar :deep(.material-symbols-outlined) {
   font-size: 18px;
-  color: var(--tt-gray-light-400);
-}
-
-.editor-toolbar :deep(.p-button:hover .material-symbols-outlined) {
-  color: var(--tt-gray-light-600);
-}
-
-.editor-toolbar :deep(.p-button.is-active) {
-  background-color: var(--tt-gray-light-a-100);
-}
-
-.editor-toolbar :deep(.p-button.is-active .material-symbols-outlined) {
-  color: var(--tt-gray-light-700);
+  color: var(--tt-gray-light-500);
 }
 
 .dark .editor-toolbar :deep(.material-symbols-outlined) {
-  color: var(--tt-gray-dark-400);
+  color: var(--tt-gray-dark-500);
 }
 
-.dark .editor-toolbar :deep(.p-button:hover .material-symbols-outlined) {
-  color: var(--tt-gray-dark-600);
+.editor-toolbar :deep(.p-button.is-active) {
+  background-color: var(--tt-gray-light-a-200);
 }
 
 .dark .editor-toolbar :deep(.p-button.is-active) {
-  background-color: var(--tt-gray-dark-a-100);
+  background-color: var(--tt-gray-dark-a-200);
+}
+
+.editor-toolbar :deep(.p-button.is-active .material-symbols-outlined) {
+  color: var(--tt-gray-light-600);
 }
 
 .dark .editor-toolbar :deep(.p-button.is-active .material-symbols-outlined) {
-  color: var(--tt-gray-dark-700);
+  color: var(--tt-gray-dark-600);
 }
 
 /* Select dropdowns */
@@ -466,7 +463,7 @@ const handleImageUpload = (event: Event) => {
 /* Select content styling */
 .select-icon,
 .select-text {
-  color: var(--tt-gray-light-400);
+  color: var(--tt-gray-light-600);
   display: flex;
   align-items: center;
 }
@@ -486,13 +483,12 @@ const handleImageUpload = (event: Event) => {
 
 .dark .select-icon,
 .dark .select-text {
-  color: var(--tt-gray-dark-400);
+  color: var(--tt-gray-dark-600);
 }
 
 .dark .p-select:hover .select-icon,
 .dark .p-select:hover .select-text {
   color: var(--tt-gray-dark-600);
 }
-
 
 </style>

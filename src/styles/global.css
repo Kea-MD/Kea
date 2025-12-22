@@ -459,3 +459,13 @@ a {
   background: var(--tt-gray-dark-a-50) !important;
   color: var(--tt-gray-dark-600) !important;
 }
+
+/* Tab bar corner effects - no transition on theme change */
+.theme-transitioning .tab.is-active::before,
+.theme-transitioning .tab.is-active::after,
+.tab.is-active::before,
+.tab.is-active::after {
+  transition: none !important;
+  transition-property: none !important;
+  transition-duration: 0s !important;
+}

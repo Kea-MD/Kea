@@ -15,11 +15,22 @@ export function useTheme() {
 
   const applyTheme = (dark: boolean) => {
     isDark.value = dark
+    
+    // Add class to disable transitions on tab corners during theme change
+    document.documentElement.classList.add('theme-transitioning')
+    
     if (dark) {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
+    
+    // Remove the class after a frame to allow instant change
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.documentElement.classList.remove('theme-transitioning')
+      })
+    })
   }
 
   const setThemeMode = (mode: ThemeMode) => {

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { listen } from '@tauri-apps/api/event'
 import Editor from '../components/editor/Editor.vue'
 import Sidebar from '../components/sidebar/Sidebar.vue'
 import TabBar from '../components/editor/TabBar.vue'
+import EditorToolbar from '../components/editor/EditorToolbar.vue'
 import QuickSwitcher from '../components/QuickSwitcher.vue'
 import { useTheme } from '../composables/useTheme'
 import { useSidebarResize } from '../composables/useSidebarResize'
@@ -13,6 +14,10 @@ import { useWorkspaceStore } from '../stores/workspaceStore'
 // Initialize stores
 const documentStore = useDocumentStore()
 const workspaceStore = useWorkspaceStore()
+
+// Editor ref to access the TipTap editor instance
+const editorRef = ref<InstanceType<typeof Editor> | null>(null)
+const editorInstance = computed(() => editorRef.value?.editor)
 
 // Initialize theme
 useTheme()
@@ -169,14 +174,16 @@ onUnmounted(() => {
 
         <div class="mainEditor">
           <div class="editorHeader">
-            <TabBar />
-          </div>
-          <div class="editorContent">
-            <Editor
+            <TabBar :sidebar-open="sidebarOpen" />
+            <EditorToolbar
+              :editor="editorInstance"
               :sidebar-open="sidebarOpen"
               @toggle-sidebar="toggleSidebar"
               @hover-sidebar="handleSidebarHover"
             />
+          </div>
+          <div class="editorContent">
+            <Editor ref="editorRef" />
           </div>
         </div>
       </div>
@@ -280,7 +287,6 @@ onUnmounted(() => {
   flex: 1;
   border-radius: 30px;
   background: var(--tt-bg-color);
-  padding: 10px;
   overflow: hidden;
   position: relative;
 }
@@ -292,10 +298,8 @@ onUnmounted(() => {
   right: 0;
   display: flex;
   flex-direction: column;
-}
-
-.editorHeader {
-  min-height: 36px;
+  z-index: 10;
+  filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.4));
 }
 
 .editorContent {
@@ -304,6 +308,6 @@ onUnmounted(() => {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding-top: 30px;
+  padding-top: 79px; /* toolbar (42px) + tabbar (37px) */
 }
 </style>

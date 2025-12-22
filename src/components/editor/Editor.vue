@@ -15,23 +15,9 @@ import TaskItem from '@tiptap/extension-task-item'
 import Subscript from '@tiptap/extension-subscript'
 import Superscript from '@tiptap/extension-superscript'
 import { Markdown } from 'tiptap-markdown'
-import EditorToolbar from './EditorToolbar.vue'
 import { useDocumentStore } from '../../stores/documentStore'
 import { preprocessMarkdown } from '../../utils/markdown'
 import { useAutoSave } from '../../composables/useAutoSave'
-
-interface Props {
-  sidebarOpen?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  sidebarOpen: true
-})
-
-const emit = defineEmits<{
-  (e: 'toggle-sidebar'): void
-  (e: 'hover-sidebar', hovering: boolean): void
-}>()
 
 const documentStore = useDocumentStore()
 
@@ -169,17 +155,15 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown)
 })
+
+// Expose editor for parent component
+defineExpose({
+  editor
+})
 </script>
 
 <template>
   <div class="editor-container">
-    <EditorToolbar
-      :editor="editor"
-      :sidebar-open="props.sidebarOpen"
-      @toggle-sidebar="emit('toggle-sidebar')"
-      @hover-sidebar="emit('hover-sidebar', $event)"
-    />
-    
     <!-- Empty state when no file is open -->
     <Transition name="fade">
       <div v-if="!hasOpenFile" class="empty-state">
@@ -217,7 +201,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   background: var(--tt-bg-color);
-  overflow: hidden;
 }
 
 .editor-content {
@@ -416,7 +399,6 @@ onUnmounted(() => {
 .empty-state {
   position: absolute;
   inset: 0;
-  top: 42px; /* Account for toolbar */
   display: flex;
   align-items: center;
   justify-content: center;
