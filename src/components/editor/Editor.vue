@@ -15,6 +15,7 @@ import TaskItem from '@tiptap/extension-task-item'
 import Subscript from '@tiptap/extension-subscript'
 import Superscript from '@tiptap/extension-superscript'
 import { Markdown } from 'tiptap-markdown'
+import { EditorState } from '@tiptap/pm/state'
 import { useDocumentStore } from '../../stores/documentStore'
 import { preprocessMarkdown } from '../../utils/markdown'
 import { useAutoSave } from '../../composables/useAutoSave'
@@ -85,14 +86,28 @@ const editor = useEditor({
 watch(
   () => documentStore.activeDocument,
   (newDoc, oldDoc) => {
+    if (!editor.value) return
+    
     // Only update if it's a different document (not just content change)
-    if (newDoc?.id !== oldDoc?.id && editor.value) {
+    if (newDoc?.id !== oldDoc?.id) {
+      const editorInstance = editor.value
+      
+      let content = ''
       if (newDoc) {
-        const processedContent = preprocessMarkdown(newDoc.content)
-        editor.value.commands.setContent(processedContent, { emitUpdate: false })
-      } else {
-        editor.value.commands.setContent('', { emitUpdate: false })
+        content = preprocessMarkdown(newDoc.content)
       }
+      
+      // Set content without emitting update to prevent triggering save
+      editorInstance.commands.setContent(content, { emitUpdate: false })
+      
+      // Create a fresh editor state to clear undo/redo history
+      // This replaces the current state with a new one that has no history
+      const newState = EditorState.create({
+        doc: editorInstance.state.doc,
+        plugins: editorInstance.state.plugins,
+        selection: editorInstance.state.selection,
+      })
+      editorInstance.view.updateState(newState)
     }
   },
   { immediate: true }
@@ -200,7 +215,6 @@ defineExpose({
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--tt-bg-color);
 }
 
 .editor-content {
@@ -289,7 +303,7 @@ defineExpose({
 
 .editor-content :deep(.tiptap hr) {
   border: none;
-  border-top: 1px solid var(--tt-border-color);
+  border-top: 1px solid var(--tt-gray-light-a-200);
   margin: 2em 0;
 }
 
@@ -302,6 +316,8 @@ defineExpose({
 }
 
 .editor-content :deep(.tiptap a:hover),
+
+
 .editor-content :deep(.tiptap .editor-link:hover) {
   color: var(--tt-brand-color-400);
 }

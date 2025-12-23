@@ -91,7 +91,7 @@ function getTabClass(tab: OpenDocument) {
   align-items: top;
   gap: 10px;
   padding: 5px 5px 5px 15px;
-  background: var(--tt-gray-light-100);
+  background: var(--tt-gray-light-200);
   border-radius: 13px;
   cursor: pointer;
   color: var(--tt-gray-light-400);
@@ -108,8 +108,9 @@ function getTabClass(tab: OpenDocument) {
 }
 
 .tab.is-active {
-  background: var(--tt-gray-light-100);
-  color: var(--tt-gray-light-600);
+  background: var(--tt-gray-light-200);
+  color: var(--tt-brand-color-500);
+  font-weight: 600;
   height: 33px;
   border-radius: 13px 13px 0 0;
 
@@ -120,12 +121,12 @@ function getTabClass(tab: OpenDocument) {
   content: '';
   position: absolute;
   bottom: 0;
-  left: -19px;
-  width: 19px;
-  height: 19px;
-  background: transparent;
-  border-bottom-right-radius: 19px;
-  box-shadow: 5px 5px 0px 5px var(--tt-gray-light-100);
+  left: -22px;
+  width: 22px;
+  height: 22px;
+  background: var(--tt-gray-light-200);
+  clip-path: path('M 0 22 L 22 22 L 22 0 Q 22 22 0 22 Z');
+
   pointer-events: none;
 }
 
@@ -134,13 +135,13 @@ function getTabClass(tab: OpenDocument) {
   content: '';
   position: absolute;
   bottom: 0;
-  right: -19px;
-  width: 19px;
-  height: 19px;
-  background: transparent;
-  border-bottom-left-radius: 19px;
-  box-shadow: -5px 5px 0 5px var(--tt-gray-light-100);
+  right: -22px;
+  width: 22px;
+  height: 22px;
+  background: var(--tt-gray-light-200);
   pointer-events: none;
+    clip-path: path('M 22 22 L 0 22 L 0 0 Q 0 22 22 22 Z');
+
 }
 
 .tab-name {
@@ -211,7 +212,7 @@ function getTabClass(tab: OpenDocument) {
 
 .dark .tab.is-active {
   background: var(--tt-gray-dark-50);
-  color: var(--tt-gray-dark-700);
+  color: var(--tt-brand-color-500);
 }
 
 .dark .close-btn:hover {
@@ -219,10 +220,14 @@ function getTabClass(tab: OpenDocument) {
 }
 
 .dark .tab.is-active::after {
-  box-shadow: -5px 5px 0px 5px var(--tt-gray-dark-50);
+  background: var(--tt-gray-dark-50);
 }
 
 .dark .tab.is-active::before {
-  box-shadow: 5px 5px 0px 5px var(--tt-gray-dark-50);
+  background: var(--tt-gray-dark-50);
+}
+
+.dark .tab.is-active::before {
+  background: var(--tt-gray-dark-50);
 }
 </style>

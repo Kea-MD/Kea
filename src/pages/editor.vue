@@ -286,9 +286,13 @@ onUnmounted(() => {
   flex-direction: column;
   flex: 1;
   border-radius: 30px;
-  background: var(--tt-bg-color);
+  background: var(--white);
   overflow: hidden;
   position: relative;
+}
+
+.dark .mainEditor {
+  background: var(--tt-gray-dark-a-50);
 }
 
 .editorHeader {
@@ -299,12 +303,8 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   z-index: 10;
-  filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.2));
 }
 
-.dark .editorHeader {
-  filter: none;
-}
 
 .editorContent {
   flex: 1;

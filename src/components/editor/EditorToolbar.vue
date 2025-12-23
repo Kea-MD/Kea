@@ -208,7 +208,7 @@ const handleImageUpload = (event: Event) => {
       <Select v-model="currentHeading" :options="headingOptions" optionLabel="label" optionValue="value" placeholder="P"
         size="small" class="heading-select" v-tooltip.bottom="'Heading Level'">
         <template #value="slotProps">
-          <span class="select-text">{{ slotProps.value }}</span>
+          <span class="select-text">{{ headingOptions.find(o => o.value === slotProps.value)?.label ?? slotProps.value }}</span>
         </template>
         <template #option="slotProps">
           <span class="select-text">{{ slotProps.option.label }}</span>
@@ -338,7 +338,7 @@ const handleImageUpload = (event: Event) => {
   border: none;
   border-radius: 0px;
   padding: 0.5rem;
-  background: var(--tt-gray-light-100);
+  background: var(--tt-gray-light-200);
   gap: 0.25rem;
   overflow-x: auto;
   overflow-y: hidden;
@@ -412,11 +412,11 @@ const handleImageUpload = (event: Event) => {
 }
 
 .editor-toolbar :deep(.p-button.is-active .material-symbols-outlined) {
-  color: var(--tt-gray-light-600);
+  color: var(--tt-brand-color-500);
 }
 
 .dark .editor-toolbar :deep(.p-button.is-active .material-symbols-outlined) {
-  color: var(--tt-gray-dark-600);
+  color: var(--tt-brand-color-500);
 }
 
 /* Select dropdowns */

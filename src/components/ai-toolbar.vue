@@ -11,7 +11,7 @@
 <style scoped>
 .AI_Toolbar {
   display: flex;
-  padding: var(--space-3);
+  padding: 10px;
   flex-direction: column;
   align-items: flex-start;
   align-self: stretch;
@@ -28,12 +28,12 @@
 
 .AI_Toolbar_Content {
   display: flex;
-  padding: var(--space-3);
+  padding: 10px;
   flex-direction: column;
   align-items: flex-start;
   align-self: stretch;
-  border-radius: var(--radius);
-  background: var(--surface-secondary);
+  border-radius: 30px;
+  background: var(--tt-gray-light-100);
   backdrop-filter: blur(10px);
   height: 50px;
 }
