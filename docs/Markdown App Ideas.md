@@ -1,0 +1,497 @@
+# Markdown App Ideas
+
+- Last checked: 2026-02-20
+- Total names: 448
+- Available: 364
+- Taken: 84
+
+## Favourites (from original list)
+
+- **Axen.md** - Available
+- **Baseline.md** - Available
+- **Blaze.md** - Taken
+- **Cedar.md** - Available
+- **Coda.md** - Taken
+- **Deer.md** - Available
+- **Doodle.md** - Available
+- **Drafto.md** - Available
+- **Eel.md** - Available
+- **Frame.md** - Taken
+- **Gecko.md** - Available
+- **Glyph.md** - Taken
+- **Hexa.md** - Taken
+- **Inky.md** - Available
+- **Kepler.md** - Available
+- **Kudu.md** - Available
+- **Nomark.md** - Available
+- **Notea.md** - Available
+- **Nyte.md** - Available
+- **Orbit.md** - Taken
+- **Kea.md** - Taken
+- **Penguin.md** - Available
+- **Phase.md** - Available
+- **Quill.md** - Available
+- **Raven.md** - Taken
+- **Robin.md** - Available
+- **Rune.md** - Taken
+- **Sonnet.md** - Available
+- **Typer.md** - Available
+- **Typix.md** - Available
+- **Typr.md** - Available
+- **Vanta.md** - Available
+- **Writr.md** - Available
+- Altes.md
+
+## Available Names (Alphabetical)
+
+- Abyss.md
+- Adder.md
+- Adelie.md
+- Aeon.md
+- Aeris.md
+- Albatross.md
+- Alder.md
+- Alpaca.md
+- Anole.md
+- Antlion.md
+- Arcadia.md
+- Arcora.md
+- Arden.md
+- Ardin.md
+- Ashen.md
+- Ashgrove.md
+- Astero.md
+- Auk.md
+- Auklet.md
+- Auralis.md
+- Aureli.md
+- Auroracrest.md
+- **Axen.md**
+- Baboon.md
+- Backtick.md
+- Badger.md
+- Barnowl.md
+- **Baseline.md**
+- Beluga.md
+- Bison.md
+- Blackfin.md
+- Blayz.md
+- Blinka.md
+- Bluemargin.md
+- Boar.md
+- Briar.md
+- Brine.md
+- Brivio.md
+- Bulbul.md
+- Bunting.md
+- Burro.md
+- Bustard.md
+- Buzzard.md
+- Caiman.md
+- Canary.md
+- Caracal.md
+- Caret.md
+- Caribou.md
+- Cassowary.md
+- **Cedar.md**
+- Cedarfall.md
+- Cedaris.md
+- Chamois.md
+- Chinstrap.md
+- Chough.md
+- Cinder.md
+- Cindra.md
+- Civet.md
+- Cliffsong.md
+- Cobra.md
+- Coldwater.md
+- Copperridge.md
+- Cormorant.md
+- Cougar.md
+- Coyote.md
+- Crane.md
+- Curlew.md
+- Current.md
+- Cuttlefish.md
+- Dalmatian.md
+- Damselfly.md
+- Dawnridge.md
+- Deepcove.md
+- Deepdraft.md
+- **Deer.md**
+- Dhole.md
+- Dingo.md
+- **Doodle.md**
+- Dotterel.md
+- Dovekie.md
+- Drafta.md
+- Draftiq.md
+- Draftline.md
+- Draftly.md
+- **Drafto.md**
+- Driftline.md
+- Drifton.md
+- Driftwood.md
+- Duskharbor.md
+- Eagle.md
+- Echodraft.md
+- **Eel.md**
+- Egret.md
+- Embergrove.md
+- Epicgrove.md
+- Ermine.md
+- Evertide.md
+- Everwild.md
+- Ferret.md
+- Finch.md
+- Finline.md
+- Fjord.md
+- Fjorda.md
+- Flounder.md
+- Fluxa.md
+- Folden.md
+- Footnote.md
+- Friesian.md
+- Frostbloom.md
+- Frostvale.md
+- Frostveil.md
+- Galago.md
+- Gannet.md
+- Gar.md
+- Gazelle.md
+- **Gecko.md**
+- Gentoo.md
+- Ghostnote.md
+- Glacierbay.md
+- Glade.md
+- Glyphic.md
+- Gopher.md
+- Goral.md
+- Grackle.md
+- Grayling.md
+- Grison.md
+- Grouse.md
+- Grove.md
+- Guanaco.md
+- Guineafowl.md
+- Haddock.md
+- Hartebeest.md
+- Hashline.md
+- Hashora.md
+- Hawk.md
+- Hawkfjord.md
+- Heron.md
+- Hexira.md
+- Hexon.md
+- Hinter.md
+- Holstein.md
+- Hoopoe.md
+- Huchen.md
+- Hyena.md
+- Ibex.md
+- Ibis.md
+- Ibisbill.md
+- Indri.md
+- Inkfjord.md
+- Inkgrid.md
+- Inkora.md
+- Inkra.md
+- Inkwake.md
+- Inkwell.md
+- Inkwella.md
+- **Inky.md**
+- Inline.md
+- Inset.md
+- Ironbark.md
+- Ironwillow.md
+- Jacana.md
+- Jackal.md
+- Kairo.md
+- Kelp.md
+- **Kepler.md**
+- Kerna.md
+- Kestrel.md
+- Keylo.md
+- Keyra.md
+- Kittiwake.md
+- Koala.md
+- Koda.md
+- Krill.md
+- **Kudu.md**
+- Lapwing.md
+- Lemming.md
+- Lemur.md
+- Linevo.md
+- Looma.md
+- Loomer.md
+- Loris.md
+- Lucent.md
+- Luma.md
+- Lumeo.md
+- Lunet.md
+- Lyric.md
+- Mako.md
+- Markon.md
+- Markr.md
+- Marten.md
+- Merra.md
+- Minnow.md
+- Mirth.md
+- Mistfjord.md
+- Mistline.md
+- Modera.md
+- Modex.md
+- Moonbriar.md
+- Moonfall.md
+- Moonrift.md
+- Moonwake.md
+- Moose.md
+- Morrow.md
+- Mossen.md
+- Mossforge.md
+- Muskox.md
+- Mylo.md
+- Neutra.md
+- Newt.md
+- Nexael.md
+- Nightcurrent.md
+- Nighttide.md
+- **Nomark.md**
+- Northa.md
+- Northglade.md
+- Northink.md
+- Northpeak.md
+- Northwind.md
+- Notch.md
+- **Notea.md**
+- Notiona.md
+- Notra.md
+- Novae.md
+- Novrix.md
+- Noxa.md
+- Nyra.md
+- **Nyte.md**
+- Oakspire.md
+- Oakwarden.md
+- Ocelot.md
+- Omen.md
+- Orbin.md
+- Orbita.md
+- Orbyn.md
+- Oryx.md
+- Osprey.md
+- Otter.md
+- Oystercatcher.md
+- Paperwake.md
+- Pebble.md
+- **Penguin.md**
+- **Phase.md**
+- Piebalddeer.md
+- Piedcrow.md
+- Piedwagtail.md
+- Pinely.md
+- Pineward.md
+- Pinline.md
+- Podcraft.md
+- Prosea.md
+- Puffin.md
+- Quail.md
+- Quanta.md
+- Quietpod.md
+- **Quill.md**
+- Quire.md
+- Quivra.md
+- Quokka.md
+- Quorix.md
+- Quorra.md
+- Ravenwood.md
+- Ravia.md
+- Ravyn.md
+- Razorbill.md
+- Rhyme.md
+- Rifta.md
+- Riven.md
+- Riveraegis.md
+- Riverforge.md
+- Riverstone.md
+- **Robin.md**
+- Runeo.md
+- Runeva.md
+- Sagecrest.md
+- Saiga.md
+- Saltink.md
+- Scriba.md
+- Scripta.md
+- Scriptly.md
+- Scry.md
+- Seabright.md
+- Seastone.md
+- Seaword.md
+- Serval.md
+- Shoal.md
+- Shrike.md
+- Silverbrook.md
+- Silverfern.md
+- Skua.md
+- Skunk.md
+- Skycedar.md
+- Skyforge.md
+- Skyhollow.md
+- Softsonar.md
+- Softwrap.md
+- Solara.md
+- Solen.md
+- Solfern.md
+- Solstice.md
+- **Sonnet.md**
+- Squid.md
+- Stanza.md
+- Starhollow.md
+- Stoat.md
+- Stonevale.md
+- Stoneward.md
+- Stormborn.md
+- Stormhaven.md
+- Stormquill.md
+- Strata.md
+- Sunmarsh.md
+- Sylix.md
+- Sylva.md
+- Sylvan.md
+- Tapir.md
+- Tecton.md
+- Thornvale.md
+- Thornwild.md
+- Thundersage.md
+- Tickline.md
+- Tidal.md
+- Tideborn.md
+- Tidecraft.md
+- Tideline.md
+- Tideva.md
+- Timbernova.md
+- Tundra.md
+- Tundrake.md
+- Tuxedocat.md
+- **Typer.md**
+- Typho.md
+- Typiq.md
+- **Typix.md**
+- **Typr.md**
+- Typra.md
+- Tyvra.md
+- Urial.md
+- Valewind.md
+- **Vanta.md**
+- Vellora.md
+- Vellum.md
+- Velora.md
+- Verdant.md
+- Vexa.md
+- Vicuna.md
+- Viper.md
+- Voxel.md
+- Voxia.md
+- Waveform.md
+- Whale.md
+- Wildfern.md
+- Wildquartz.md
+- Windharbor.md
+- Windrift.md
+- Winterbriar.md
+- Wolfpine.md
+- Wombat.md
+- Wordflow.md
+- Wren.md
+- Writeon.md
+- **Writr.md**
+- Zeph.md
+- Zephyr.md
+- Zephyrwood.md
+
+## Taken Names (Alphabetical)
+
+- Aegis.md
+- Aether.md
+- Arbor.md
+- Astra.md
+- Axiom.md
+- Bass.md
+- Bear.md
+- Beaver.md
+- **Blaze.md**
+- Bobcat.md
+- Bongo.md
+- Bramble.md
+- Capybara.md
+- Chinchilla.md
+- Circuit.md
+- **Coda.md**
+- Condor.md
+- Dolphin.md
+- Dove.md
+- Dragonet.md
+- Drift.md
+- Dune.md
+- Echo.md
+- Eland.md
+- Elara.md
+- Ember.md
+- Fable.md
+- Falcon.md
+- Flint.md
+- Folio.md
+- Fox.md
+- **Frame.md**
+- Frost.md
+- **Glyph.md**
+- Halo.md
+- Helix.md
+- **Hexa.md**
+- Jaguar.md
+- Juniper.md
+- Kite.md
+- Lattice.md
+- Loom.md
+- Lumen.md
+- Lynx.md
+- Magpie.md
+- Manta.md
+- Margin.md
+- Matter.md
+- Meridian.md
+- Mistral.md
+- Monospace.md
+- Moss.md
+- Nimbus.md
+- Northstar.md
+- Novum.md
+- Nyx.md
+- Okapi.md
+- **Orbit.md**
+- **Kea.md**
+- Panda.md
+- Parsec.md
+- Pika.md
+- Prism.md
+- Prose.md
+- Puma.md
+- Ram.md
+- **Raven.md**
+- Redline.md
+- **Rune.md**
+- Scribe.md
+- Shark.md
+- Sonar.md
+- Sunward.md
+- Swan.md
+- Syntax.md
+- Thread.md
+- Tiger.md
+- Verse.md
+- Voxa.md
+- Wake.md
+- Willow.md
+- Wolf.md
+- Zebra.md
+- Zeno.md

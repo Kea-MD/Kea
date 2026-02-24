@@ -13,8 +13,8 @@ export default defineConfig(async () => ({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('@tiptap') || id.includes('prosemirror') || id.includes('lowlight') || id.includes('highlight.js')) {
-              return 'vendor-tiptap'
+            if (id.includes('@codemirror') || id.includes('@lezer')) {
+              return 'vendor-codemirror'
             }
             if (id.includes('primevue') || id.includes('primeicons')) {
               return 'vendor-primevue'

@@ -1,0 +1,74 @@
+name: Bug
+description: Report a defect with reproducible evidence
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Concise statement of the defect
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: requirement_ref
+    attributes:
+      label: Requirement Ref (if known)
+      placeholder: docs/requirements.md#...
+    validations:
+      required: false
+
+  - type: input
+    id: architecture_ref
+    attributes:
+      label: Architecture Ref (if known)
+      placeholder: docs/architecture.md#...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - P0 (critical)
+        - P1 (high)
+        - P2 (medium)
+        - P3 (low)
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Logs, screenshots, traces, and failing command output
+    validations:
+      required: true

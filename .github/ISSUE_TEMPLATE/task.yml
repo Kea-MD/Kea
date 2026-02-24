@@ -1,0 +1,54 @@
+name: Task
+description: Create an implementation task linked to a Story
+title: "task: "
+labels:
+  - task
+body:
+  - type: input
+    id: parent_story
+    attributes:
+      label: Parent Story
+      description: Link to parent story issue
+      placeholder: "#123"
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: Single implementation outcome for this task
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation_scope
+    attributes:
+      label: Implementation Scope
+      description: Concrete file/module scope for this task
+      placeholder: |
+        - src/components/sidebar/...
+        - src/stores/workspaceStore.ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: checks
+    attributes:
+      label: Verification
+      description: Commands and checks required before completion
+      placeholder: |
+        - [ ] npm run build
+        - [ ] Manual sanity check
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and Blockers
+      placeholder: |
+        Depends on: #...
+        Blocked by: #...
+    validations:
+      required: false

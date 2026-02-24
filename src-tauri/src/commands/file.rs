@@ -1,7 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::io::Write;
 use std::path::Path;
-use tauri::AppHandle;
+use std::sync::atomic::Ordering;
+use std::thread;
+use std::time::{Duration, SystemTime};
+use tauri::{AppHandle, Emitter, State};
+use crate::FileWatchRegistry;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileData {
@@ -30,6 +35,73 @@ pub struct FolderData {
     pub path: String,
     pub name: String,
     pub entries: Vec<FileEntry>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FileWatchEvent {
+    pub path: String,
+    pub kind: String,
+}
+
+fn atomic_write_file(path: &Path, content: &str) -> Result<(), String> {
+    let parent = path
+        .parent()
+        .ok_or("Invalid file path: missing parent directory")?;
+
+    if !parent.exists() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create parent directory: {}", e))?;
+    }
+
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("document");
+
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| format!("Failed to read system time: {}", e))?
+        .as_nanos();
+
+    let temp_path = parent.join(format!(".{}.kea.{}.tmp", file_name, timestamp));
+
+    let write_result = (|| -> Result<(), String> {
+        let mut temp_file = fs::File::create(&temp_path)
+            .map_err(|e| format!("Failed to create temp file: {}", e))?;
+
+        temp_file
+            .write_all(content.as_bytes())
+            .map_err(|e| format!("Failed to write temp file: {}", e))?;
+
+        temp_file
+            .sync_all()
+            .map_err(|e| format!("Failed to flush temp file: {}", e))?;
+
+        Ok(())
+    })();
+
+    if let Err(error) = write_result {
+        let _ = fs::remove_file(&temp_path);
+        return Err(error);
+    }
+
+    if fs::rename(&temp_path, path).is_ok() {
+        return Ok(());
+    }
+
+    if path.exists() {
+        fs::remove_file(path)
+            .map_err(|e| format!("Failed to replace existing file: {}", e))?;
+    }
+
+    fs::rename(&temp_path, path)
+        .map_err(|e| format!("Failed to move temp file into place: {}", e))?;
+
+    Ok(())
+}
+
+fn read_modified_time(path: &Path) -> Option<SystemTime> {
+    fs::metadata(path).ok()?.modified().ok()
 }
 
 /// Open a markdown file using file picker
@@ -81,8 +153,7 @@ pub async fn open_markdown_file(app: AppHandle) -> Result<FileData, String> {
 /// Save markdown content to specified file path
 #[tauri::command]
 pub async fn save_markdown_file(path: String, content: String) -> Result<(), String> {
-    fs::write(&path, content)
-        .map_err(|e| format!("Failed to save file: {}", e))?;
+    atomic_write_file(Path::new(&path), &content)?;
 
     Ok(())
 }
@@ -113,8 +184,7 @@ pub async fn save_markdown_file_as(app: AppHandle, content: String) -> Result<Sa
             }
 
             // Write content
-            fs::write(&path, content)
-                .map_err(|e| format!("Failed to save file: {}", e))?;
+            atomic_write_file(&path, &content)?;
 
             // Get file name
             let name = path
@@ -305,9 +375,8 @@ pub async fn create_file(path: String, content: Option<String>) -> Result<FileDa
     }
     
     let file_content = content.unwrap_or_default();
-    
-    fs::write(file_path, &file_content)
-        .map_err(|e| format!("Failed to create file: {}", e))?;
+
+    atomic_write_file(file_path, &file_content)?;
     
     let name = file_path
         .file_name()
@@ -428,4 +497,130 @@ pub async fn move_item(source_path: String, target_dir: String) -> Result<String
     new_path.to_str()
         .ok_or("Invalid path encoding".to_string())
         .map(|s| s.to_string())
+}
+
+/// Start watching a file for external changes.
+#[tauri::command]
+pub async fn start_file_watch(
+    app: AppHandle,
+    state: State<'_, FileWatchRegistry>,
+    path: String,
+) -> Result<(), String> {
+    if path.is_empty() {
+        return Err("Path is required".to_string());
+    }
+
+    let file_path = Path::new(&path);
+    if !file_path.exists() {
+        return Err("File does not exist".to_string());
+    }
+
+    let stop_flag = {
+        let mut watchers = state
+            .watchers
+            .lock()
+            .map_err(|_| "Failed to lock watcher registry")?;
+
+        if watchers.contains_key(&path) {
+            return Ok(());
+        }
+
+        let flag = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        watchers.insert(path.clone(), flag.clone());
+        flag
+    };
+
+    let app_handle = app.clone();
+    let watched_path = path.clone();
+
+    thread::spawn(move || {
+        let mut last_exists = Path::new(&watched_path).exists();
+        let mut last_modified = if last_exists {
+            read_modified_time(Path::new(&watched_path))
+        } else {
+            None
+        };
+
+        while !stop_flag.load(Ordering::Relaxed) {
+            let current_path = Path::new(&watched_path);
+            let exists = current_path.exists();
+
+            if !exists {
+                if last_exists {
+                    let _ = app_handle.emit(
+                        "file-watch-event",
+                        FileWatchEvent {
+                            path: watched_path.clone(),
+                            kind: "removed".to_string(),
+                        },
+                    );
+                }
+
+                last_exists = false;
+                last_modified = None;
+                thread::sleep(Duration::from_millis(400));
+                continue;
+            }
+
+            let modified = read_modified_time(current_path);
+            if last_exists {
+                if modified.is_some() && modified != last_modified {
+                    let _ = app_handle.emit(
+                        "file-watch-event",
+                        FileWatchEvent {
+                            path: watched_path.clone(),
+                            kind: "modified".to_string(),
+                        },
+                    );
+                }
+            }
+
+            last_exists = true;
+            last_modified = modified;
+            thread::sleep(Duration::from_millis(400));
+        }
+    });
+
+    Ok(())
+}
+
+/// Stop watching a single file.
+#[tauri::command]
+pub async fn stop_file_watch(
+    state: State<'_, FileWatchRegistry>,
+    path: String,
+) -> Result<(), String> {
+    let removed = {
+        let mut watchers = state
+            .watchers
+            .lock()
+            .map_err(|_| "Failed to lock watcher registry")?;
+        watchers.remove(&path)
+    };
+
+    if let Some(flag) = removed {
+        flag.store(true, Ordering::Relaxed);
+    }
+
+    Ok(())
+}
+
+/// Stop watching all files.
+#[tauri::command]
+pub async fn stop_all_file_watches(
+    state: State<'_, FileWatchRegistry>,
+) -> Result<(), String> {
+    let all_watchers = {
+        let mut watchers = state
+            .watchers
+            .lock()
+            .map_err(|_| "Failed to lock watcher registry")?;
+        watchers.drain().map(|(_, flag)| flag).collect::<Vec<_>>()
+    };
+
+    for flag in all_watchers {
+        flag.store(true, Ordering::Relaxed);
+    }
+
+    Ok(())
 }

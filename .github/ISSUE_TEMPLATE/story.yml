@@ -1,0 +1,113 @@
+name: Story
+description: Plan a sprint-deliverable implementation story
+title: "story: "
+labels:
+  - story
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: One measurable result this story must deliver
+      placeholder: User can ... and system guarantees ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing or broken and why it matters
+    validations:
+      required: true
+
+  - type: input
+    id: requirement_ref
+    attributes:
+      label: Requirement Ref
+      description: Exact reference in docs/requirements.md
+      placeholder: docs/requirements.md#3-real-time-collaboration-p2p
+    validations:
+      required: true
+
+  - type: input
+    id: architecture_ref
+    attributes:
+      label: Architecture Ref
+      description: Exact reference in docs/architecture.md
+      placeholder: docs/architecture.md#modularity-rules
+    validations:
+      required: true
+
+  - type: textarea
+    id: in_scope
+    attributes:
+      label: In Scope
+      description: Files/modules that can be changed
+      placeholder: |
+        - src/stores/documentStore.ts
+        - src/components/editor/Editor.vue
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_scope
+    attributes:
+      label: Out of Scope
+      description: Explicit exclusions for this story
+      placeholder: |
+        - No new dependencies
+        - No UI redesign
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Objective pass/fail checks
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation Commands
+      description: Commands required before merge
+      placeholder: |
+        npm run build
+        cargo test --manifest-path src-tauri/Cargo.toml
+    validations:
+      required: true
+
+  - type: textarea
+    id: manual_checks
+    attributes:
+      label: Manual Verification
+      description: Manual test steps (if any)
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks and Assumptions
+      placeholder: |
+        Risk: ...
+        Assumption: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback Plan
+      description: How to safely revert if needed
+    validations:
+      required: true
