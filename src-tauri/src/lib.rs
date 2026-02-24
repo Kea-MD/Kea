@@ -3,8 +3,23 @@ use tauri::{
     menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder, PredefinedMenuItem},
     Emitter,
 };
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicBool;
 
 mod commands;
+
+pub struct FileWatchRegistry {
+    pub watchers: Mutex<HashMap<String, Arc<AtomicBool>>>,
+}
+
+impl Default for FileWatchRegistry {
+    fn default() -> Self {
+        Self {
+            watchers: Mutex::new(HashMap::new()),
+        }
+    }
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -12,6 +27,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .manage(FileWatchRegistry::default())
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
 
@@ -96,10 +112,18 @@ pub fn run() {
             let quick_open = MenuItemBuilder::with_id("quick_open", "Quick Open")
                 .accelerator("CmdOrCtrl+P")
                 .build(handle)?;
+            let toggle_editor_mode = MenuItemBuilder::with_id(
+                "toggle_editor_mode",
+                "Toggle Source/Rendered Mode",
+            )
+                .accelerator("CmdOrCtrl+E")
+                .build(handle)?;
 
             let view_menu = SubmenuBuilder::new(handle, "View")
                 .item(&toggle_sidebar)
                 .item(&quick_open)
+                .separator()
+                .item(&toggle_editor_mode)
                 .build()?;
 
             // Window menu
@@ -116,8 +140,21 @@ pub fn run() {
 
             // Build the menu
             #[cfg(target_os = "macos")]
+            let app_menu = SubmenuBuilder::new(handle, &app.package_info().name)
+                .about(None)
+                .separator()
+                .services()
+                .separator()
+                .hide()
+                .hide_others()
+                .show_all()
+                .separator()
+                .quit()
+                .build()?;
+
+            #[cfg(target_os = "macos")]
             let menu = MenuBuilder::new(handle)
-                .item(&PredefinedMenuItem::services(handle, None)?)
+                .item(&app_menu)
                 .item(&file_menu)
                 .item(&edit_menu)
                 .item(&view_menu)
@@ -153,6 +190,9 @@ pub fn run() {
             commands::file::rename_item,
             commands::file::delete_item,
             commands::file::move_item,
+            commands::file::start_file_watch,
+            commands::file::stop_file_watch,
+            commands::file::stop_all_file_watches,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
