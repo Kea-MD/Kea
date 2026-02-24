@@ -1,6 +1,6 @@
 [package]
 name = "Kea"
-version = "0.2.0"
+version = "0.2.1"
 description = "The Better Markdown Writer"
 authors = ["Galen Green"]
 edition = "2021"

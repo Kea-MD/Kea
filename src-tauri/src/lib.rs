@@ -1,6 +1,6 @@
 use tauri::{
     Manager,
-    menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder, PredefinedMenuItem},
+    menu::{AboutMetadataBuilder, MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder},
     Emitter,
 };
 use std::collections::HashMap;
@@ -140,8 +140,16 @@ pub fn run() {
 
             // Build the menu
             #[cfg(target_os = "macos")]
+            let about_metadata = AboutMetadataBuilder::new()
+                .name(Some(app.package_info().name.clone()))
+                .version(Some(app.package_info().version.to_string()))
+                .short_version(Some(app.package_info().version.to_string()))
+                .icon(app.default_window_icon().cloned())
+                .build();
+
+            #[cfg(target_os = "macos")]
             let app_menu = SubmenuBuilder::new(handle, &app.package_info().name)
-                .about(None)
+                .about(Some(about_metadata))
                 .separator()
                 .services()
                 .separator()
