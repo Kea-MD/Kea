@@ -27,6 +27,9 @@ Agent-facing guidance for working in this repository.
   - Runs Vite on port `1420` (strict port in `vite.config.ts`).
 - Type-check + production web build: `npm run build`
   - Runs `vue-tsc --noEmit && vite build`.
+- Run frontend unit tests once: `npm run test:unit`
+- Run frontend unit tests with coverage: `npm run test:unit:coverage`
+- Run frontend unit tests in watch mode: `npm run test:unit:watch`
 - Preview built web app: `npm run preview`
 
 ## Tauri Commands
@@ -47,15 +50,17 @@ Agent-facing guidance for working in this repository.
 ## Lint / Test Reality (Important)
 
 - No dedicated JS/TS lint script is configured in `package.json`.
-- No JS unit/integration test framework is configured (no Vitest/Jest/Playwright config found).
-- Treat `npm run build` as the minimum CI-style validation for frontend changes.
+- JS/TS unit tests are run with Vitest (`vitest.config.ts`, `tests/**/*.test.ts`).
+- Coverage uses Vitest v8 provider with minimum thresholds configured in `vitest.config.ts`.
+- Treat `npm run build` + `npm run test:unit` as the minimum CI-style validation for frontend changes.
 - For backend behaviour checks, rely on targeted Rust tests when present.
 
 ## Single-Test Guidance
 
-- Frontend: no single-test command exists yet because no JS test runner is configured.
+- Frontend: run a single test file with `npm run test:unit -- tests/path/to/file.test.ts`.
+- Frontend coverage for a single test file: `npm run test:unit:coverage -- tests/path/to/file.test.ts`.
 - Rust: use `cargo test ... test_name -- --exact` as shown above.
-- If adding tests in future, also add matching npm scripts and update this file.
+- If test structure/scripts change in future, also update this file.
 
 ## Architecture and File Ownership
 
@@ -146,6 +151,8 @@ Agent-facing guidance for working in this repository.
 
 - Frontend-only change:
   - `npm run build`
+  - `npm run test:unit`
+  - `npm run test:unit:coverage`
 - Tauri/Rust command change:
   - `cargo test --manifest-path src-tauri/Cargo.toml`
   - `npm run tauri build` (or at least `npm run build` + `cargo build --manifest-path ...`)

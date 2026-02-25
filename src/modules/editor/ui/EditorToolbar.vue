@@ -84,7 +84,7 @@ function setEditorMode(mode: EditorMode) {
         @click="emit('toggle-sidebar')"
         @mouseenter="emit('hover-sidebar', true)"
         @mouseleave="emit('hover-sidebar', false)"
-        v-tooltip.bottom="sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'"
+        :title="sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'"
         class="sidebar-toggle-btn"
       >
         <template #icon>
@@ -96,12 +96,12 @@ function setEditorMode(mode: EditorMode) {
     <template #center>
       <Divider layout="vertical" />
 
-      <Button severity="secondary" text :disabled="!canEdit || !props.canUndo" @click="runCommand('undo')" v-tooltip.bottom="'Undo'">
+      <Button severity="secondary" text :disabled="!canEdit || !props.canUndo" @click="runCommand('undo')" title="Undo">
         <template #icon>
           <span class="material-symbols-outlined">undo</span>
         </template>
       </Button>
-      <Button severity="secondary" text :disabled="!canEdit || !props.canRedo" @click="runCommand('redo')" v-tooltip.bottom="'Redo'">
+      <Button severity="secondary" text :disabled="!canEdit || !props.canRedo" @click="runCommand('redo')" title="Redo">
         <template #icon>
           <span class="material-symbols-outlined">redo</span>
         </template>
@@ -112,7 +112,7 @@ function setEditorMode(mode: EditorMode) {
         :disabled="!canEdit"
         :class="{ 'is-active': props.findOpen }"
         @click="runCommand('find')"
-        v-tooltip.bottom="props.findOpen ? 'Close Find' : 'Find'"
+        :title="props.findOpen ? 'Close Find' : 'Find'"
       >
         <template #icon>
           <span class="material-symbols-outlined">search</span>
@@ -121,12 +121,12 @@ function setEditorMode(mode: EditorMode) {
 
       <Divider layout="vertical" />
 
-      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('bold')" v-tooltip.bottom="'Bold'">
+      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('bold')" title="Bold">
         <template #icon>
           <span class="material-symbols-outlined">format_bold</span>
         </template>
       </Button>
-      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('italic')" v-tooltip.bottom="'Italic'">
+      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('italic')" title="Italic">
         <template #icon>
           <span class="material-symbols-outlined">format_italic</span>
         </template>
@@ -136,13 +136,13 @@ function setEditorMode(mode: EditorMode) {
         text
         :disabled="!canEdit"
         @click="runCommand('strikethrough')"
-        v-tooltip.bottom="'Strikethrough'"
+        title="Strikethrough"
       >
         <template #icon>
           <span class="material-symbols-outlined">format_strikethrough</span>
         </template>
       </Button>
-      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('code')" v-tooltip.bottom="'Inline Code'">
+      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('code')" title="Inline Code">
         <template #icon>
           <span class="material-symbols-outlined">code</span>
         </template>
@@ -152,7 +152,7 @@ function setEditorMode(mode: EditorMode) {
         text
         :disabled="!canEdit"
         @click="runCommand('code-block')"
-        v-tooltip.bottom="'Code Block'"
+        title="Code Block"
       >
         <template #icon>
           <span class="material-symbols-outlined">data_object</span>
@@ -163,7 +163,7 @@ function setEditorMode(mode: EditorMode) {
         text
         :disabled="!canEdit"
         @click="runCommand('blockquote')"
-        v-tooltip.bottom="'Blockquote'"
+        title="Blockquote"
       >
         <template #icon>
           <span class="material-symbols-outlined">format_quote</span>
@@ -174,7 +174,7 @@ function setEditorMode(mode: EditorMode) {
         text
         :disabled="!canEdit"
         @click="runCommand('insert-hr')"
-        v-tooltip.bottom="'Horizontal Rule'"
+        title="Horizontal Rule"
       >
         <template #icon>
           <span class="material-symbols-outlined">horizontal_rule</span>
@@ -204,10 +204,10 @@ function setEditorMode(mode: EditorMode) {
         @update:modelValue="setListCommand"
       >
         <template #value="slotProps">
-          <span v-if="slotProps.value" class="material-symbols-outlined select-icon">
+          <span v-if="slotProps.value" class="material-symbols-outlined select-icon value-icon">
             {{ listOptions.find(o => o.value === slotProps.value)?.label }}
           </span>
-          <span v-else class="material-symbols-outlined select-icon">format_list_bulleted</span>
+          <span v-else class="material-symbols-outlined select-icon value-icon">format_list_bulleted</span>
         </template>
         <template #option="slotProps">
           <span class="material-symbols-outlined select-icon">{{ slotProps.option.label }}</span>
@@ -216,12 +216,12 @@ function setEditorMode(mode: EditorMode) {
 
       <Divider layout="vertical" />
 
-      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('insert-link')" v-tooltip.bottom="'Insert Link'">
+      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('insert-link')" title="Insert Link">
         <template #icon>
           <span class="material-symbols-outlined">link</span>
         </template>
       </Button>
-      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('insert-image')" v-tooltip.bottom="'Insert Image'">
+      <Button severity="secondary" text :disabled="!canEdit" @click="runCommand('insert-image')" title="Insert Image">
         <template #icon>
           <span class="material-symbols-outlined">image</span>
         </template>
@@ -231,7 +231,7 @@ function setEditorMode(mode: EditorMode) {
         text
         :disabled="!canEdit"
         @click="runCommand('insert-highlight')"
-        v-tooltip.bottom="'Highlight'"
+        title="Highlight"
       >
         <template #icon>
           <span class="material-symbols-outlined">ink_highlighter</span>
@@ -249,7 +249,7 @@ function setEditorMode(mode: EditorMode) {
           class="mode-button"
           :class="{ 'is-active': props.editorMode === 'source' }"
           @click="setEditorMode('source')"
-          v-tooltip.bottom="'Source View'"
+          title="Source View"
         >
           Source
         </Button>
@@ -260,7 +260,7 @@ function setEditorMode(mode: EditorMode) {
           class="mode-button"
           :class="{ 'is-active': props.editorMode === 'rendered' }"
           @click="setEditorMode('rendered')"
-          v-tooltip.bottom="'Rendered View'"
+          title="Rendered View"
         >
           Rendered
         </Button>
@@ -268,7 +268,7 @@ function setEditorMode(mode: EditorMode) {
 
       <Divider layout="vertical" />
 
-      <Button severity="secondary" text @click="toggleTheme" v-tooltip.bottom="isDark ? 'Light Mode' : 'Dark Mode'">
+      <Button severity="secondary" text @click="toggleTheme" :title="isDark ? 'Light Mode' : 'Dark Mode'">
         <template #icon>
           <span class="material-symbols-outlined">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
         </template>
@@ -348,7 +348,74 @@ function setEditorMode(mode: EditorMode) {
   height: 25px;
 }
 
+.editor-toolbar :deep(.p-select) {
+  border-radius: 8px;
+  border: 1px solid var(--tt-gray-light-300);
+  background: var(--tt-gray-light-100);
+  color: var(--tt-gray-light-700);
+  box-shadow: none;
+}
+
+.editor-toolbar :deep(.p-select.p-focus) {
+  border-color: var(--tt-gray-light-400);
+  box-shadow: none;
+}
+
+.editor-toolbar :deep(.p-select .p-select-label) {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.editor-toolbar :deep(.p-select .p-select-dropdown) {
+  color: var(--tt-gray-light-500);
+}
+
+.editor-toolbar :deep(.p-select.p-disabled) {
+  opacity: 1;
+  border-color: var(--tt-gray-light-300);
+  background: var(--tt-gray-light-200);
+  color: var(--tt-gray-light-500);
+}
+
+.editor-toolbar :deep(.p-select.p-disabled .p-select-dropdown) {
+  color: var(--tt-gray-light-500);
+}
+
+.dark .editor-toolbar :deep(.p-select) {
+  border-color: var(--tt-gray-dark-300);
+  background: var(--tt-gray-dark-100);
+  color: var(--tt-gray-dark-700);
+}
+
+.dark .editor-toolbar :deep(.p-select.p-focus) {
+  border-color: var(--tt-gray-dark-400);
+}
+
+.dark .editor-toolbar :deep(.p-select .p-select-dropdown) {
+  color: var(--tt-gray-dark-500);
+}
+
+.dark .editor-toolbar :deep(.p-select.p-disabled) {
+  border-color: var(--tt-gray-dark-300);
+  background: var(--tt-gray-dark-200);
+  color: var(--tt-gray-dark-500);
+}
+
+.dark .editor-toolbar :deep(.p-select.p-disabled .p-select-dropdown) {
+  color: var(--tt-gray-dark-500);
+}
+
 .select-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.2rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.value-icon {
+  transform: translateY(1px);
 }
 </style>

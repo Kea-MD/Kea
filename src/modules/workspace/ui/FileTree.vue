@@ -2,10 +2,12 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useWorkspaceStore, type FileEntry } from '../state/workspaceStore'
 import { useDocumentStore, type OpenDocument } from '../../editor/state/documentStore'
+import { useSettingsStore } from '../../settings/state/settingsStore'
 import FileTreeItem from './FileTreeItem.vue'
 
 const workspaceStore = useWorkspaceStore()
 const documentStore = useDocumentStore()
+const settingsStore = useSettingsStore()
 
 function logDragEvent(message: string, details?: Record<string, unknown>) {
   console.log('[Sidebar DnD][Tree]', message, details ?? {})
@@ -522,8 +524,10 @@ function handleDocumentClick(_event: MouseEvent) {
 
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
-  // Try to restore previous workspace
-  workspaceStore.restoreWorkspace()
+
+  if (settingsStore.restoreWorkspaceOnLaunch) {
+    workspaceStore.restoreWorkspace()
+  }
 })
 
 onUnmounted(() => {
@@ -610,18 +614,18 @@ onUnmounted(() => {
         :style="{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }"
       >
         <template v-if="contextMenu.entry?.is_dir">
-          <button @click="startCreateFile(contextMenu.entry!.path)">
+          <button @click="startCreateFile(contextMenu.entry!.path)" title="New File">
             <i class="pi pi-file"></i> New File
           </button>
-          <button @click="startCreateFolder(contextMenu.entry!.path)">
+          <button @click="startCreateFolder(contextMenu.entry!.path)" title="New Folder">
             <i class="pi pi-folder"></i> New Folder
           </button>
           <div class="separator"></div>
         </template>
-        <button @click="handleRename(contextMenu.entry!)">
+        <button @click="handleRename(contextMenu.entry!)" title="Rename">
           <i class="pi pi-pencil"></i> Rename
         </button>
-        <button class="danger" @click="handleDelete(contextMenu.entry!)">
+        <button class="danger" @click="handleDelete(contextMenu.entry!)" title="Delete">
           <i class="pi pi-trash"></i> Delete
         </button>
       </div>
@@ -698,7 +702,7 @@ onUnmounted(() => {
 }
 
 .workspace-action.has-changes:hover:not(:disabled) {
-  background: rgba(var(--tt-brand-color-rgb, 98, 41, 255), 0.2);
+  background: rgba(var(--tt-brand-color-rgb), 0.2);
 }
 
 .workspace-action .pi {
@@ -730,8 +734,8 @@ onUnmounted(() => {
 }
 
 .tree-list.is-drop-root {
-  background: rgba(var(--tt-brand-color-rgb, 98, 41, 255), 0.12);
-  box-shadow: inset 0 0 0 1px rgba(var(--tt-brand-color-rgb, 98, 41, 255), 0.55);
+  background: rgba(var(--tt-brand-color-rgb), 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--tt-brand-color-rgb), 0.55);
 }
 
 /* Context menu */
@@ -767,11 +771,11 @@ onUnmounted(() => {
 }
 
 .context-menu button.danger {
-  color: #ff6b6b;
+  color: var(--tt-brand-color-500);
 }
 
 .context-menu button.danger:hover {
-  background: rgba(255, 107, 107, 0.2);
+  background: rgba(var(--tt-brand-color-rgb), 0.2);
 }
 
 .context-menu .separator {

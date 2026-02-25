@@ -192,6 +192,7 @@ defineExpose({ startRename })
         @click="handleToggle"
         :aria-expanded="isExpanded"
         :aria-label="isExpanded ? `Collapse ${entry.name}` : `Expand ${entry.name}`"
+        :title="isExpanded ? `Collapse ${entry.name}` : `Expand ${entry.name}`"
       >
         <i class="pi" :class="isExpanded ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
       </button>
@@ -258,7 +259,16 @@ defineExpose({ startRename })
 }
 
 .tree-item.is-active {
-  background: rgba(var(--tt-brand-color-rgb, 98, 41, 255), 0.3);
+  background: rgba(var(--tt-brand-color-rgb), 0.3);
+  color: white;
+}
+
+.tree-item.is-active.is-other {
+  opacity: 1;
+}
+
+.tree-item.is-active .item-icon,
+.tree-item.is-active .item-name {
   color: white;
 }
 
@@ -271,8 +281,8 @@ defineExpose({ startRename })
 }
 
 .tree-item.is-drop-target {
-  background: rgba(var(--tt-brand-color-rgb, 98, 41, 255), 0.22);
-  box-shadow: inset 0 0 0 1px rgba(var(--tt-brand-color-rgb, 98, 41, 255), 0.7);
+  background: rgba(var(--tt-brand-color-rgb), 0.22);
+  box-shadow: inset 0 0 0 1px rgba(var(--tt-brand-color-rgb), 0.7);
 }
 
 .toggle-btn {
@@ -310,7 +320,7 @@ defineExpose({ startRename })
 }
 
 .is-dir .item-icon {
-  color: #ffd43b;
+  color: var(--tt-brand-color-500);
 }
 
 .is-markdown .item-icon {
