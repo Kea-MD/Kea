@@ -2,22 +2,13 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { listen } from '@tauri-apps/api/event'
 import { dispatchEditorCommand, type EditorCommand, type EditorMode } from '../../modules/editor/editorCommands'
 import { useDocumentStore } from '../../modules/editor/state/documentStore'
+import {
+  isShortcutAction,
+  resolveShortcutAction,
+  type ShortcutActionId,
+} from '../../modules/settings/shortcuts/shortcutRegistry'
+import { useSettingsStore } from '../../modules/settings/state/settingsStore'
 import { useWorkspaceStore } from '../../modules/workspace/state/workspaceStore'
-
-type MenuAction =
-  | 'new_file'
-  | 'open_file'
-  | 'open_folder'
-  | 'save'
-  | 'save_as'
-  | 'close_tab'
-  | 'toggle_sidebar'
-  | 'quick_open'
-  | 'undo'
-  | 'redo'
-  | 'find'
-  | 'toggle_editor_mode'
-  | 'open_settings'
 
 interface UseEditorAppActionsOptions {
   toggleSidebar: () => void
@@ -25,6 +16,7 @@ interface UseEditorAppActionsOptions {
 
 export function useEditorAppActions(options: UseEditorAppActionsOptions) {
   const documentStore = useDocumentStore()
+  const settingsStore = useSettingsStore()
   const workspaceStore = useWorkspaceStore()
 
   const showQuickSwitcher = ref(false)
@@ -40,7 +32,7 @@ export function useEditorAppActions(options: UseEditorAppActionsOptions) {
     showSettingsDialog.value = true
   }
 
-  const executeMenuAction = (action: MenuAction) => {
+  const executeShortcutAction = (action: ShortcutActionId) => {
     switch (action) {
       case 'new_file':
         documentStore.newFile()
@@ -89,7 +81,11 @@ export function useEditorAppActions(options: UseEditorAppActionsOptions) {
   }
 
   const handleMenuAction = (action: string) => {
-    executeMenuAction(action as MenuAction)
+    if (!isShortcutAction(action)) {
+      return
+    }
+
+    executeShortcutAction(action)
   }
 
   const setupMenuListener = async () => {
@@ -99,17 +95,14 @@ export function useEditorAppActions(options: UseEditorAppActionsOptions) {
   }
 
   const handleKeydown = (event: KeyboardEvent) => {
-    const isMod = event.metaKey || event.ctrlKey
-
-    if (isMod && event.key.toLowerCase() === 'p') {
-      event.preventDefault()
-      openQuickSwitcher()
+    if (settingsStore.isCapturingShortcut) {
       return
     }
 
-    if (isMod && event.key.toLowerCase() === 'e') {
+    const action = resolveShortcutAction(event, settingsStore.shortcuts)
+    if (action) {
       event.preventDefault()
-      documentStore.toggleEditorMode()
+      executeShortcutAction(action)
     }
   }
 

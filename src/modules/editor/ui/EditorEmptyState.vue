@@ -1,9 +1,22 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useDocumentStore } from '../state/documentStore'
+import { formatShortcutForDisplay } from '../../settings/shortcuts/shortcutRegistry'
+import { useSettingsStore } from '../../settings/state/settingsStore'
 import { useWorkspaceStore } from '../../workspace/state/workspaceStore'
 
 const documentStore = useDocumentStore()
+const settingsStore = useSettingsStore()
 const workspaceStore = useWorkspaceStore()
+
+const isMacPlatform =
+  typeof navigator !== 'undefined' && navigator.platform.toUpperCase().includes('MAC')
+
+const shortcutHints = computed(() => ({
+  openFolder: formatShortcutForDisplay(settingsStore.shortcuts.open_folder, isMacPlatform),
+  openFile: formatShortcutForDisplay(settingsStore.shortcuts.open_file, isMacPlatform),
+  newFile: formatShortcutForDisplay(settingsStore.shortcuts.new_file, isMacPlatform),
+}))
 </script>
 
 <template>
@@ -37,9 +50,9 @@ const workspaceStore = useWorkspaceStore()
       </div>
 
       <div class="shortcut-row">
-        <span class="shortcut-item"><kbd>⌘⇧O</kbd> Folder</span>
-        <span class="shortcut-item"><kbd>⌘O</kbd> File</span>
-        <span class="shortcut-item"><kbd>⌘N</kbd> New</span>
+        <span class="shortcut-item"><kbd>{{ shortcutHints.openFolder }}</kbd> Folder</span>
+        <span class="shortcut-item"><kbd>{{ shortcutHints.openFile }}</kbd> File</span>
+        <span class="shortcut-item"><kbd>{{ shortcutHints.newFile }}</kbd> New</span>
       </div>
     </div>
   </div>

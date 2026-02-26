@@ -1,6 +1,32 @@
 # Kea Post-Migration TODO
 
-Last updated: 2026-02-25
+Last updated: 2026-02-26
+
+## Current Task: Tab drag/reorder diagnostics
+
+- [x] Add structured debug logging for tab drag lifecycle in `EditorTabs.vue`
+- [x] Add structured debug logging for `documentStore.reorderTabs` requests/results
+- [x] Reproduce drag in app and capture one full log trace (`dragstart -> dragover -> reorder -> dragend`)
+- [x] Replace native HTML5 drag handling with pointer-based drag tracking for tab reorder reliability in desktop webview
+- [x] Re-run focused unit tests and `npm run build`
+
+## Current Task: Cross-editor cursor + scroll sync
+
+- [x] Add a central viewport sync coordinator for source/rendered modes
+- [x] Wire CodeMirror to publish and restore cursor/scroll snapshots
+- [x] Wire Milkdown to publish and restore cursor/scroll snapshots
+- [x] Run `npm run build`
+- [ ] Manually verify mode switching parity in app (`source <-> rendered`) across long documents
+
+## Current Task: Test-suite hardening sprint (strong coverage)
+
+- [x] Add missing unit tests for runtime/composable modules (`useEditorAppActions`, `useEditorUiState`, `useSidebarInteraction`, `useSidebarResize`, `useAutoSave`, `useExternalFileSync`)
+- [x] Add missing unit tests for key UI modules (`QuickOpenDialog`, `SettingsDialog`, `ExternalChangeBanner`, `EditorEmptyState`)
+- [x] Add missing unit tests for shared/editor plumbing (`editorCommands`, `reconcilePipeline`, Tauri `fileWatch` port)
+- [x] Replace weak assertions and tautology tests with behavioural assertions
+- [x] Raise and enforce stronger Vitest coverage thresholds
+- [x] Add Rust unit tests for filesystem command helpers in `src-tauri/src/commands/file.rs`
+- [x] Run `npm run test:unit`, `npm run test:unit:coverage`, `npm run build`, and `cargo test --manifest-path src-tauri/Cargo.toml`
 
 ## Current Task: Editor reset to blank canvas (pre-Crepe)
 
@@ -237,3 +263,4 @@ Ship a stable v0.1 post-migration build with strong local editing, external sync
 - [x] Added `FileTree` drag/drop and lifecycle tests (valid drop path, movement threshold guard, non-left drag ignore, outside-click/rename menu closure, unmount listener cleanup), raising frontend unit coverage to ~68% statements / ~72% functions and lifting `FileTree.vue` to ~77% line coverage.
 - [x] Added `documentStore` edge-case tests (confirm cancel paths, `saveAllFiles` partial failure, open dialog sentinel handling, external-change guards, save-as error state reset, tab cycling), raising frontend unit coverage to ~72% statements / ~75% functions and lifting `documentStore.ts` to ~72% line coverage.
 - [x] Expanded tests across state, UI drag/drop, and platform adapters to reach ~90.27% statement coverage (`102` tests across `16` files), with all validation commands passing.
+- [x] Completed a second hardening pass: expanded to `163` passing frontend tests across `29` files with coverage at `93.27%` statements / `85.48%` branches / `95.52%` functions / `94.25%` lines, tightened enforced coverage thresholds to `90/90/90/85` (lines/functions/statements/branches), deepened shortcut/dialog/quick-open/composable branch coverage, and kept all validation commands green.

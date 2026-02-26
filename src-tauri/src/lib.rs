@@ -48,22 +48,16 @@ pub fn run() {
             
             // File menu items
             let new_file = MenuItemBuilder::with_id("new_file", "New File")
-                .accelerator("CmdOrCtrl+N")
                 .build(handle)?;
             let open_file = MenuItemBuilder::with_id("open_file", "Open...")
-                .accelerator("CmdOrCtrl+O")
                 .build(handle)?;
             let open_folder = MenuItemBuilder::with_id("open_folder", "Open Folder...")
-                .accelerator("CmdOrCtrl+Shift+O")
                 .build(handle)?;
             let save = MenuItemBuilder::with_id("save", "Save")
-                .accelerator("CmdOrCtrl+S")
                 .build(handle)?;
             let save_as = MenuItemBuilder::with_id("save_as", "Save As...")
-                .accelerator("CmdOrCtrl+Shift+S")
                 .build(handle)?;
             let close_tab = MenuItemBuilder::with_id("close_tab", "Close Tab")
-                .accelerator("CmdOrCtrl+W")
                 .build(handle)?;
 
             let file_menu = SubmenuBuilder::new(handle, "File")
@@ -80,20 +74,16 @@ pub fn run() {
 
             // Edit menu
             let undo = MenuItemBuilder::with_id("undo", "Undo")
-                .accelerator("CmdOrCtrl+Z")
                 .build(handle)?;
             let redo = MenuItemBuilder::with_id("redo", "Redo")
-                .accelerator("CmdOrCtrl+Shift+Z")
                 .build(handle)?;
             let cut = PredefinedMenuItem::cut(handle, Some("Cut"))?;
             let copy = PredefinedMenuItem::copy(handle, Some("Copy"))?;
             let paste = PredefinedMenuItem::paste(handle, Some("Paste"))?;
             let select_all = PredefinedMenuItem::select_all(handle, Some("Select All"))?;
             let find = MenuItemBuilder::with_id("find", "Find...")
-                .accelerator("CmdOrCtrl+F")
                 .build(handle)?;
             let open_settings = MenuItemBuilder::with_id("open_settings", "Settings...")
-                .accelerator("CmdOrCtrl+,")
                 .build(handle)?;
 
             #[cfg(target_os = "macos")]
@@ -126,16 +116,13 @@ pub fn run() {
 
             // View menu
             let toggle_sidebar = MenuItemBuilder::with_id("toggle_sidebar", "Toggle Sidebar")
-                .accelerator("CmdOrCtrl+\\")
                 .build(handle)?;
             let quick_open = MenuItemBuilder::with_id("quick_open", "Quick Open")
-                .accelerator("CmdOrCtrl+P")
                 .build(handle)?;
             let toggle_editor_mode = MenuItemBuilder::with_id(
                 "toggle_editor_mode",
                 "Toggle Source/Rendered Mode",
             )
-                .accelerator("CmdOrCtrl+E")
                 .build(handle)?;
 
             let view_menu = SubmenuBuilder::new(handle, "View")

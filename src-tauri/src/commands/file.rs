@@ -624,3 +624,87 @@ pub async fn stop_all_file_watches(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{atomic_write_file, is_markdown_file, read_dir_entries};
+    use std::fs;
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn make_temp_dir(test_name: &str) -> PathBuf {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system time should be after unix epoch")
+            .as_nanos();
+
+        let dir = std::env::temp_dir().join(format!("kea-tests-{}-{}", test_name, unique));
+        fs::create_dir_all(&dir).expect("failed to create temporary test directory");
+        dir
+    }
+
+    #[test]
+    fn atomic_write_file_creates_parents_and_replaces_existing_content() {
+        let root = make_temp_dir("atomic-write");
+        let file_path = root.join("nested").join("note.md");
+
+        atomic_write_file(&file_path, "first").expect("first write should succeed");
+        let first = fs::read_to_string(&file_path).expect("file should be readable after first write");
+        assert_eq!(first, "first");
+
+        atomic_write_file(&file_path, "second").expect("second write should succeed");
+        let second = fs::read_to_string(&file_path).expect("file should be readable after second write");
+        assert_eq!(second, "second");
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn markdown_extension_detection_matches_supported_variants() {
+        assert!(is_markdown_file(PathBuf::from("note.md").as_path()));
+        assert!(is_markdown_file(PathBuf::from("note.markdown").as_path()));
+        assert!(is_markdown_file(PathBuf::from("note.mdown").as_path()));
+        assert!(is_markdown_file(PathBuf::from("note.mkd").as_path()));
+        assert!(!is_markdown_file(PathBuf::from("note.txt").as_path()));
+        assert!(!is_markdown_file(PathBuf::from("note").as_path()));
+    }
+
+    #[test]
+    fn read_dir_entries_skips_hidden_items_and_sorts_directories_first() {
+        let root = make_temp_dir("read-dir-sort");
+        fs::create_dir_all(root.join("b-folder")).expect("failed to create b-folder");
+        fs::create_dir_all(root.join("a-folder")).expect("failed to create a-folder");
+        fs::write(root.join("z.md"), "# markdown").expect("failed to write markdown file");
+        fs::write(root.join("a.txt"), "plain").expect("failed to write text file");
+        fs::write(root.join(".hidden.md"), "hidden").expect("failed to write hidden file");
+
+        let entries = read_dir_entries(&root, 0, 1).expect("read_dir_entries should succeed");
+        let names: Vec<&str> = entries.iter().map(|entry| entry.name.as_str()).collect();
+
+        assert_eq!(names, vec!["a-folder", "b-folder", "a.txt", "z.md"]);
+        assert!(entries.iter().all(|entry| !entry.name.starts_with('.')));
+
+        let markdown_entry = entries.iter().find(|entry| entry.name == "z.md").expect("z.md should exist");
+        assert!(markdown_entry.is_markdown);
+
+        let text_entry = entries.iter().find(|entry| entry.name == "a.txt").expect("a.txt should exist");
+        assert!(!text_entry.is_markdown);
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn read_dir_entries_uses_empty_children_at_max_depth_for_directories() {
+        let root = make_temp_dir("read-dir-depth");
+        fs::create_dir_all(root.join("folder")).expect("failed to create folder");
+        fs::write(root.join("folder").join("child.md"), "child").expect("failed to write child file");
+
+        let entries = read_dir_entries(&root, 0, 0).expect("read_dir_entries should succeed");
+        let folder = entries.iter().find(|entry| entry.name == "folder").expect("folder should exist");
+
+        assert!(folder.is_dir);
+        assert_eq!(folder.children.as_ref().map(|children| children.len()), Some(0));
+
+        let _ = fs::remove_dir_all(root);
+    }
+}
