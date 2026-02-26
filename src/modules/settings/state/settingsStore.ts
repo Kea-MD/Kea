@@ -7,16 +7,23 @@ interface SettingsStorageV1 {
   workspace: {
     restoreWorkspaceOnLaunch: boolean
   }
+  effects: {
+    edgeGlowEnabled: boolean
+  }
 }
 
 interface SettingsState {
   restoreWorkspaceOnLaunch: boolean
+  edgeGlowEnabled: boolean
 }
 
 const defaultSettings: SettingsStorageV1 = {
   version: 1,
   workspace: {
     restoreWorkspaceOnLaunch: true,
+  },
+  effects: {
+    edgeGlowEnabled: true,
   },
 }
 
@@ -29,6 +36,7 @@ function readStoredSettings(): SettingsStorageV1 {
   try {
     const parsed = JSON.parse(rawValue) as Partial<SettingsStorageV1>
     const restoreWorkspaceOnLaunch = parsed.workspace?.restoreWorkspaceOnLaunch
+    const edgeGlowEnabled = parsed.effects?.edgeGlowEnabled
 
     return {
       version: 1,
@@ -37,6 +45,12 @@ function readStoredSettings(): SettingsStorageV1 {
           typeof restoreWorkspaceOnLaunch === 'boolean'
             ? restoreWorkspaceOnLaunch
             : defaultSettings.workspace.restoreWorkspaceOnLaunch,
+      },
+      effects: {
+        edgeGlowEnabled:
+          typeof edgeGlowEnabled === 'boolean'
+            ? edgeGlowEnabled
+            : defaultSettings.effects.edgeGlowEnabled,
       },
     }
   } catch (error) {
@@ -51,6 +65,7 @@ export const useSettingsStore = defineStore('settings', {
 
     return {
       restoreWorkspaceOnLaunch: stored.workspace.restoreWorkspaceOnLaunch,
+      edgeGlowEnabled: stored.effects.edgeGlowEnabled,
     }
   },
 
@@ -60,6 +75,9 @@ export const useSettingsStore = defineStore('settings', {
         version: 1,
         workspace: {
           restoreWorkspaceOnLaunch: this.restoreWorkspaceOnLaunch,
+        },
+        effects: {
+          edgeGlowEnabled: this.edgeGlowEnabled,
         },
       }
 
@@ -72,6 +90,11 @@ export const useSettingsStore = defineStore('settings', {
 
     setRestoreWorkspaceOnLaunch(value: boolean): void {
       this.restoreWorkspaceOnLaunch = value
+      this.persistSettings()
+    },
+
+    setEdgeGlowEnabled(value: boolean): void {
+      this.edgeGlowEnabled = value
       this.persistSettings()
     },
   },

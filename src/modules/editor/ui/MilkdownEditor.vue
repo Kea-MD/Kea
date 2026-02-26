@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
-import { Editor, defaultValueCtx, editorViewCtx, rootCtx } from "@milkdown/kit/core";
+import {
+    Editor,
+    defaultValueCtx,
+    editorViewCtx,
+    rootCtx,
+} from "@milkdown/kit/core";
+import { clipboard } from "@milkdown/kit/plugin/clipboard";
 import { history } from "@milkdown/kit/plugin/history";
 import { listener, listenerCtx } from "@milkdown/kit/plugin/listener";
 import { commonmark } from "@milkdown/kit/preset/commonmark";
+import { gfm } from "@milkdown/kit/preset/gfm";
 import { nord } from "@milkdown/theme-nord";
 import { useDocumentStore } from "../state/documentStore";
 import "@milkdown/theme-nord/style.css";
@@ -39,6 +46,8 @@ const createMilkdownEditor = async () => {
                 );
             })
             .use(commonmark)
+            .use(gfm)
+            .use(clipboard)
             .use(history)
             .use(listener)
             .create();
@@ -97,8 +106,7 @@ onUnmounted(() => {
     height: 100%;
     min-height: 0;
     overflow: auto;
-    padding-left: 50px;
-    padding-right: 50px;
+    padding: 10px 100px 10px 100px;
 }
 
 .milkdown-status {

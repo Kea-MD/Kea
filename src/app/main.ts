@@ -21,6 +21,7 @@ app.use(pinia);
 
 // Configure PrimeVue with Aura theme and dark mode support
 app.use(PrimeVue, {
+  appendTo: "self",
   theme: {
     preset: Aura,
     options: {

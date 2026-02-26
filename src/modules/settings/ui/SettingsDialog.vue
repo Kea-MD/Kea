@@ -41,6 +41,13 @@ const restoreWorkspaceOnLaunch = computed<boolean>({
   },
 })
 
+const edgeGlowEnabled = computed<boolean>({
+  get: () => settingsStore.edgeGlowEnabled,
+  set: (value) => {
+    settingsStore.setEdgeGlowEnabled(value)
+  },
+})
+
 function handleVisibleUpdate(nextVisible: boolean): void {
   if (!nextVisible) {
     emit('close')
@@ -71,6 +78,18 @@ function handleVisibleUpdate(nextVisible: boolean): void {
             optionLabel="label"
             optionValue="value"
             class="setting-select"
+          />
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy">
+            <p class="setting-label">Edge glow effect</p>
+            <p class="setting-description">Show the mouse glow trail around the window edge.</p>
+          </div>
+          <ToggleSwitch
+            v-model="edgeGlowEnabled"
+            input-id="edge-glow-enabled"
+            aria-label="Toggle edge glow effect"
+            class="setting-toggle"
           />
         </div>
       </section>
@@ -145,6 +164,10 @@ function handleVisibleUpdate(nextVisible: boolean): void {
   align-items: center;
   gap: 12px;
   justify-content: space-between;
+}
+
+.setting-row + .setting-row {
+  margin-top: 10px;
 }
 
 .setting-copy {

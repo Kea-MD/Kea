@@ -1,46 +1,51 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import EditorSurface from '../modules/editor/ui/EditorSurface.vue'
-import Sidebar from '../modules/workspace/ui/Sidebar.vue'
-import EditorTabs from '../modules/editor/ui/EditorTabs.vue'
-import EditorToolbar from '../modules/editor/ui/EditorToolbar.vue'
-import ExternalChangeBanner from '../modules/editor/ui/ExternalChangeBanner.vue'
-import QuickOpenDialog from '../modules/workspace/ui/QuickOpenDialog.vue'
-import SettingsDialog from '../modules/settings/ui/SettingsDialog.vue'
-import { useTheme } from '../shared/composables/useTheme'
-import { useSidebarResize } from '../modules/workspace/runtime/useSidebarResize'
-import { useExternalFileSync } from '../modules/workspace/runtime/useExternalFileSync'
-import { useSidebarInteraction } from '../modules/workspace/runtime/useSidebarInteraction'
-import { useDocumentStore } from '../modules/editor/state/documentStore'
-import { useEditorUiState } from './runtime/useEditorUiState'
-import { useEditorAppActions } from './runtime/useEditorAppActions'
+import { computed, ref } from "vue";
+import EditorSurface from "../modules/editor/ui/EditorSurface.vue";
+import Sidebar from "../modules/workspace/ui/Sidebar.vue";
+import EditorTabs from "../modules/editor/ui/EditorTabs.vue";
+import EditorToolbar from "../modules/editor/ui/EditorToolbar.vue";
+import ExternalChangeBanner from "../modules/editor/ui/ExternalChangeBanner.vue";
+import QuickOpenDialog from "../modules/workspace/ui/QuickOpenDialog.vue";
+import SettingsDialog from "../modules/settings/ui/SettingsDialog.vue";
+import { useSettingsStore } from "../modules/settings/state/settingsStore";
+import MouseRingGlow from "./ui/MouseRingGlow.vue";
+import { useTheme } from "../shared/composables/useTheme";
+import { useSidebarResize } from "../modules/workspace/runtime/useSidebarResize";
+import { useExternalFileSync } from "../modules/workspace/runtime/useExternalFileSync";
+import { useSidebarInteraction } from "../modules/workspace/runtime/useSidebarInteraction";
+import { useDocumentStore } from "../modules/editor/state/documentStore";
+import { useEditorUiState } from "./runtime/useEditorUiState";
+import { useEditorAppActions } from "./runtime/useEditorAppActions";
 
-const documentStore = useDocumentStore()
-const hasOpenFile = computed(() => documentStore.activeDocument !== null)
-const editorMode = computed(() => documentStore.editorMode)
+const documentStore = useDocumentStore();
+const settingsStore = useSettingsStore();
+const hasOpenFile = computed(() => documentStore.activeDocument !== null);
+const editorMode = computed(() => documentStore.editorMode);
+const pageElement = ref<HTMLElement | null>(null);
 
-useTheme()
-useExternalFileSync()
+useTheme();
+useExternalFileSync();
 
-const { sidebarWidth, isResizing, startResize } = useSidebarResize()
+const { sidebarWidth, isResizing, startResize } = useSidebarResize();
 const { sidebarOpen, sidebarHovering, toggleSidebar, handleSidebarHover } =
-  useSidebarInteraction()
-const { isFindOpen, canUndo, canRedo } = useEditorUiState()
+    useSidebarInteraction();
+const { isFindOpen, canUndo, canRedo } = useEditorUiState();
 const {
-  showQuickSwitcher,
-  showSettingsDialog,
-  closeQuickSwitcher,
-  closeSettings,
-  handleNewRequest,
-  handleFeedback,
-  handleSettings,
-  handleEditorCommand,
-  handleEditorMode,
-} = useEditorAppActions({ toggleSidebar })
+    showQuickSwitcher,
+    showSettingsDialog,
+    closeQuickSwitcher,
+    closeSettings,
+    handleNewRequest,
+    handleFeedback,
+    handleSettings,
+    handleEditorCommand,
+    handleEditorMode,
+} = useEditorAppActions({ toggleSidebar });
 </script>
 
 <template>
-    <div class="page">
+    <div ref="pageElement" class="page">
+        <MouseRingGlow v-if="settingsStore.edgeGlowEnabled" :host-element="pageElement" />
         <div class="topDragRegion" data-tauri-drag-region></div>
         <div class="pageContainer">
             <div
@@ -97,29 +102,28 @@ const {
         </div>
 
         <!-- Quick Switcher Modal -->
-        <QuickOpenDialog
-            v-if="showQuickSwitcher"
-            @close="closeQuickSwitcher"
-        />
+        <QuickOpenDialog v-if="showQuickSwitcher" @close="closeQuickSwitcher" />
 
-        <SettingsDialog
-            :visible="showSettingsDialog"
-            @close="closeSettings"
-        />
+        <SettingsDialog :visible="showSettingsDialog" @close="closeSettings" />
     </div>
 </template>
 
 <style scoped>
 /* Page Layout */
 .page {
+    --window-radius: 45px;
+    --window-inset: 7.5px;
     position: relative;
     display: flex;
     width: 100vw;
     height: 100vh;
-    padding: 7.5px;
+    padding: var(--window-inset);
     overflow: hidden;
-    border-radius: 37.5px;
+    border-radius: var(--window-radius);
+    clip-path: inset(0 round var(--window-radius));
+    contain: paint;
     overscroll-behavior: none;
+    isolation: isolate;
 }
 
 .topDragRegion {
@@ -131,12 +135,14 @@ const {
 }
 
 .pageContainer {
+    position: relative;
+    z-index: 1;
     width: 100%;
     display: flex;
-    padding: 7.5px;
+    padding: var(--window-inset);
     flex: 1;
     background: rgba(10, 10, 10, 0.8);
-    border-radius: 37.5px;
+    border-radius: calc(var(--window-radius) - var(--window-inset));
     overscroll-behavior: none;
 }
 
