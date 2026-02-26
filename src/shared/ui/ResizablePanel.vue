@@ -109,6 +109,7 @@ watch(isDragging, (newValue) => {
       :data-resize-from="resizeFrom"
       @mousedown="handleMouseDown"
       aria-label="Resize panel"
+      title="Resize panel"
       tabindex="-1"
     ></button>
   </div>
@@ -145,4 +146,3 @@ watch(isDragging, (newValue) => {
   left: 0;
 }
 </style>
-

@@ -45,4 +45,5 @@ next-env.d.ts
 
 # local scratch / archival assets
 test.md
+/test.html
 src/assets/Logo/Old Orca Logo/

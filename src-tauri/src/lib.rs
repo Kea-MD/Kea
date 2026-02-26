@@ -92,7 +92,11 @@ pub fn run() {
             let find = MenuItemBuilder::with_id("find", "Find...")
                 .accelerator("CmdOrCtrl+F")
                 .build(handle)?;
+            let open_settings = MenuItemBuilder::with_id("open_settings", "Settings...")
+                .accelerator("CmdOrCtrl+,")
+                .build(handle)?;
 
+            #[cfg(target_os = "macos")]
             let edit_menu = SubmenuBuilder::new(handle, "Edit")
                 .item(&undo)
                 .item(&redo)
@@ -103,6 +107,21 @@ pub fn run() {
                 .item(&select_all)
                 .separator()
                 .item(&find)
+                .build()?;
+
+            #[cfg(not(target_os = "macos"))]
+            let edit_menu = SubmenuBuilder::new(handle, "Edit")
+                .item(&undo)
+                .item(&redo)
+                .separator()
+                .item(&cut)
+                .item(&copy)
+                .item(&paste)
+                .item(&select_all)
+                .separator()
+                .item(&find)
+                .separator()
+                .item(&open_settings)
                 .build()?;
 
             // View menu
@@ -150,6 +169,8 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             let app_menu = SubmenuBuilder::new(handle, &app.package_info().name)
                 .about(Some(about_metadata))
+                .separator()
+                .item(&open_settings)
                 .separator()
                 .services()
                 .separator()

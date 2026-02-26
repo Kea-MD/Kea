@@ -17,3 +17,29 @@
 - When the user asks for ruthless simplification, prioritise coarse-grained architecture cuts (for example document-level rendering instead of block-level) before micro-optimising existing complexity.
 - Make simplification intent explicit by removing optional feature paths and extension dependencies together, so the codebase and dependency graph get smaller at the same time.
 - For large frontend repos, move by domain first (module folders), then by layer (`ui`, `runtime`, `state`) to reduce cross-folder import churn and make ownership obvious.
+- When visual polish is followed by a theming request, move style ownership out of component CSS into a user-managed theme directory with a safe default fallback so future styling does not require code edits.
+- When a user asks to relocate theme assets in-repo, remove temporary app-data plumbing and keep the source-of-truth theme files under `src/styles/themes` to simplify iteration.
+- For shadow-root markdown previews, do not rely on `:host-context(.dark)` for theme switching in desktop webviews; pass dark mode explicitly and toggle a host class (for example `:host(.is-dark)`) instead.
+- When layering default theme CSS with user theme CSS, ensure layout-critical properties (for example `max-width`, `padding`, `margin`) are fully overridden, not partially, or stale spacing from defaults will remain.
+- If users want theme-only rendering, remove all fallback CSS from the renderer extension entirely; even "safe defaults" can conflict with explicit theming requirements.
+- Never hard-import a specific theme asset if users may delete/rename it; use `import.meta.glob` for optional theme discovery so missing files degrade gracefully to unstyled output.
+- Theme-only rendering also requires removing rendered-mode container styles outside the shadow theme (for example `cm-content`/`cm-scroller` font or colour rules), not just fallback CSS inside the renderer.
+- After removing theme files, verify there are zero rendered-mode specific CSS overrides left in container components (`.is-rendered-mode` rules), otherwise users still perceive non-theme styling.
+- For third-party themes authored against Typora export DOM, mirror expected wrapper classes (`typora-export`, `typora-export-content`, `#write`) in the rendered preview structure so selectors resolve as intended.
+- For broad theme compatibility, normalise `:root` to `:host` in shadow CSS and propagate dark marker classes (`dark`, `dark-mode`, `is-dark`) into rendered wrappers so non-uniform dark selectors still activate.
+- In dark variants of imported themes, avoid hard-coding document background on `#write` unless explicitly wanted; default to `transparent` so the app surface can show through.
+- In file-tree rows, selected-state readability should explicitly override per-type icon colours and low-opacity variants so active file/folder text and icons stay white.
+- For sidebar icon consistency, avoid PrimeVue severity-driven button colours when matching custom toolbar actions; use a native button (or explicit deep override) so icon colour matches neighbouring action buttons.
+- In settings UI, prefer a true toggle switch component for boolean preferences instead of a checkbox + text state, to match desktop settings conventions and improve at-a-glance clarity.
+- In empty-state action panels, keep keyboard shortcut hints laid out in the same column/grid structure as their corresponding buttons; inline bullet text tends to look misaligned and cramped.
+- PrimeVue select controls can retain theme accent (blue) even when disabled; explicitly style disabled/focus/select label states in toolbars to keep neutral grey UI when no file is open.
+- CodeMirror can show a default dotted focus outline from base styles; add an explicit `.cm-editor.cm-focused { outline: none; }` override in editor host styles when the app uses its own focus treatment.
+- PrimeVue ToggleSwitch off-state colour may need explicit non-checked selectors (and occasionally `!important`) to override theme defaults that otherwise keep a blue tint.
+- After neutralising ToggleSwitch off-state from brand tint, verify contrast target with the user and be ready to step it up one token (`light-300/400`, `dark-400/500`) if they ask for a darker track.
+- For CodeMirror layout spacing, avoid wrapper `padding-top` that shifts the whole editor frame; place vertical spacing on `.cm-content` so it belongs to line content (first line) instead.
+- For CodeMirror text selection theming, style both `.cm-selectionBackground` and native `::selection` inside `.cm-content` to ensure the brand highlight appears consistently across focused and native selection paths.
+
+## 2026-02-25
+
+- When the user pivots from migration to a clean-slate reset, remove the existing runtime end-to-end first (UI host + runtime modules) before adding replacement abstractions.
+- During large dependency/runtimes changes, run build validation immediately and treat unrelated test-environment failures as a separate track instead of conflating them with feature-scope changes.

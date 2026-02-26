@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import Button from 'primevue/button'
-
 interface Props {
   userName?: string
 }
@@ -21,18 +19,15 @@ const emit = defineEmits<{
       <div class="avatar"></div>
       <span class="name">{{ userName }}</span>
     </div>
-    <Button
-      severity="secondary"
-      text
-      rounded
+    <button
+      type="button"
       aria-label="Settings"
+      title="Settings"
       class="footer-btn"
       @click="emit('settings')"
     >
-      <template #icon>
-        <span class="material-symbols-outlined">settings</span>
-      </template>
-    </Button>
+      <span class="material-symbols-outlined settings-icon">settings</span>
+    </button>
   </footer>
 </template>
 
@@ -62,6 +57,31 @@ const emit = defineEmits<{
 
 .name {
   color: rgba(255, 255, 255, 0.8);
+}
+
+.footer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.footer-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.settings-icon {
+  font-size: 1.125rem;
+  color: inherit;
 }
 
 </style>

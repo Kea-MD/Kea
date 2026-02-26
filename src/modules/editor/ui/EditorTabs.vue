@@ -101,7 +101,7 @@ function getTabClass(tab: OpenDocument) {
   background: var(--tt-gray-light-200);
   border-radius: 13px;
   cursor: pointer;
-  color: var(--tt-gray-light-400);
+  color: var(--tt-gray-light-600);
   font-size: 0.8125rem;
   white-space: nowrap;
   max-width: 180px;
@@ -154,6 +154,7 @@ function getTabClass(tab: OpenDocument) {
 .tab-name {
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 500;
 }
 
 .dirty-indicator {
@@ -163,6 +164,7 @@ function getTabClass(tab: OpenDocument) {
   border-radius: 50%;
   flex-shrink: 0;
   margin: 4px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 
 .close-btn {
@@ -184,7 +186,7 @@ function getTabClass(tab: OpenDocument) {
 
 .tab:hover .close-btn,
 .tab.is-active .close-btn {
-  opacity: 0.6;
+  opacity: 0.78;
 }
 
 .close-btn:hover {
@@ -205,7 +207,7 @@ function getTabClass(tab: OpenDocument) {
   border: none;
   border-radius: 13px;
   background: var(--tt-gray-light-200);
-  color: var(--tt-gray-light-400);
+  color: var(--tt-gray-light-600);
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.1s, color 0.1s;
@@ -234,7 +236,7 @@ function getTabClass(tab: OpenDocument) {
 
 .dark .tab {
   background: var(--tt-gray-dark-50);
-  color: var(--tt-gray-dark-300);
+  color: var(--tt-gray-dark-600);
 }
 
 .dark .tab:hover {
@@ -253,7 +255,7 @@ function getTabClass(tab: OpenDocument) {
 
 .dark .new-tab-btn {
   background: var(--tt-gray-dark-50);
-  color: var(--tt-gray-dark-300);
+  color: var(--tt-gray-dark-600);
 }
 
 .dark .new-tab-btn:hover {
@@ -262,10 +264,6 @@ function getTabClass(tab: OpenDocument) {
 }
 
 .dark .tab.is-active::after {
-  background: var(--tt-gray-dark-50);
-}
-
-.dark .tab.is-active::before {
   background: var(--tt-gray-dark-50);
 }
 

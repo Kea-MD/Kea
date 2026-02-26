@@ -74,12 +74,17 @@ export const useWorkspaceStore = defineStore('workspace', {
       }
     },
 
-    async loadDirectory(path: string): Promise<FileEntry[]> {
+    async loadDirectory(path: string, throwOnError = false): Promise<FileEntry[]> {
       try {
         const entries = await workspacePort.readDirectory(path)
         return entries
       } catch (error) {
         console.error('Failed to load directory:', error)
+
+        if (throwOnError) {
+          throw error
+        }
+
         return []
       }
     },
@@ -477,7 +482,7 @@ export const useWorkspaceStore = defineStore('workspace', {
       
       try {
         this.isLoading = true
-        const entries = await this.loadDirectory(savedPath)
+        const entries = await this.loadDirectory(savedPath, true)
         
         this.rootPath = savedPath
         this.rootName = savedPath.split('/').pop() || 'Workspace'

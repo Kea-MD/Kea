@@ -269,7 +269,7 @@ onMounted(async () => {
 }
 
 .result-item.is-selected {
-  background: rgba(var(--tt-brand-color-rgb, 98, 41, 255), 0.3);
+  background: rgba(var(--tt-brand-color-rgb), 0.3);
 }
 
 .result-icon {
