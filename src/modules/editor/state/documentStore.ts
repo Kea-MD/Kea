@@ -33,6 +33,14 @@ function runDocumentCommand<TResult>(command: DocumentCommand, apply: () => TRes
   })
 }
 
+function logTabReorder(message: string, details: Record<string, unknown>) {
+  if (!import.meta.env.DEV) {
+    return
+  }
+
+  console.debug('[documentStore][reorderTabs]', message, details)
+}
+
 const documentStoragePort = tauriDocumentStoragePort
 
 export const useDocumentStore = defineStore('document', {
@@ -40,7 +48,7 @@ export const useDocumentStore = defineStore('document', {
     openDocuments: [] as OpenDocument[],
     activeDocumentId: null as string | null,
     recentFiles: [] as RecentFile[],
-    editorMode: 'source' as EditorMode,
+    editorMode: 'rendered' as EditorMode,
     externalChange: null as ExternalChangeAlert | null,
     ignoredExternalChanges: {} as Record<string, string>,
     isSaving: false,
@@ -739,8 +747,44 @@ export const useDocumentStore = defineStore('document', {
      * Reorder tabs (for drag and drop)
      */
     reorderTabs(fromIndex: number, toIndex: number): void {
+      const beforeOrder = this.openDocuments.map(doc => doc.id)
+
+      if (
+        fromIndex === toIndex
+        || fromIndex < 0
+        || toIndex < 0
+        || fromIndex >= this.openDocuments.length
+        || toIndex >= this.openDocuments.length
+      ) {
+        logTabReorder('ignored invalid reorder request', {
+          fromIndex,
+          toIndex,
+          tabCount: this.openDocuments.length,
+          beforeOrder,
+        })
+        return
+      }
+
       const doc = this.openDocuments.splice(fromIndex, 1)[0]
+
+      if (!doc) {
+        logTabReorder('no document found at fromIndex', {
+          fromIndex,
+          toIndex,
+          beforeOrder,
+        })
+        return
+      }
+
       this.openDocuments.splice(toIndex, 0, doc)
+
+      logTabReorder('tab reordered', {
+        fromIndex,
+        toIndex,
+        movedTabId: doc.id,
+        beforeOrder,
+        afterOrder: this.openDocuments.map(openDoc => openDoc.id),
+      })
     },
 
     /**
@@ -777,7 +821,7 @@ export const useDocumentStore = defineStore('document', {
     reset(): void {
       this.openDocuments = []
       this.activeDocumentId = null
-      this.editorMode = 'source'
+      this.editorMode = 'rendered'
       this.externalChange = null
       this.ignoredExternalChanges = {}
       this.isSaving = false

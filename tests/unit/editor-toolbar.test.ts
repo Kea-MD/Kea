@@ -25,7 +25,7 @@ describe('EditorToolbar', () => {
     await sidebarButton.trigger('click')
 
     await wrapper.get('button[title="Undo"]').trigger('click')
-    await wrapper.get('button[title="Source View"]').trigger('click')
+    await wrapper.get('input#editor-mode-toggle').setValue(true)
 
     expect(wrapper.emitted('hover-sidebar')).toEqual([[true], [false]])
     expect(wrapper.emitted('toggle-sidebar')).toHaveLength(1)

@@ -345,7 +345,7 @@ describe('documentStore edge cases', () => {
     documentStore.reset()
     expect(documentStore.openDocuments).toEqual([])
     expect(documentStore.activeDocumentId).toBeNull()
-    expect(documentStore.editorMode).toBe('source')
+    expect(documentStore.editorMode).toBe('rendered')
   })
 
   it('reorders tabs and resolves tab indexes', () => {
@@ -362,6 +362,12 @@ describe('documentStore edge cases', () => {
 
     expect(documentStore.openDocuments.map(doc => doc.id)).toEqual(['doc-3', 'doc-1', 'doc-2'])
     expect(documentStore.getDocumentIndex('doc-3')).toBe(0)
+
+    documentStore.reorderTabs(-1, 1)
+    documentStore.reorderTabs(0, 5)
+    documentStore.reorderTabs(1, 1)
+
+    expect(documentStore.openDocuments.map(doc => doc.id)).toEqual(['doc-3', 'doc-1', 'doc-2'])
   })
 
   it('deduplicates recent files when rename causes path collisions', () => {
@@ -396,7 +402,7 @@ describe('documentStore edge cases', () => {
   it('logs errors when saving recent files fails', () => {
     const documentStore = useDocumentStore()
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    const setItemSpy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
       throw new Error('quota exceeded')
     })
 

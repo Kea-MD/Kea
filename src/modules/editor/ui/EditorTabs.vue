@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useDocumentStore, type OpenDocument } from '../state/documentStore'
 
 interface Props {
@@ -7,15 +7,413 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  sidebarOpen: true
+  sidebarOpen: true,
 })
 
-const documentStore = useDocumentStore()
+const DRAG_THRESHOLD_PX = 4
+const DRAG_FOLLOW_LERP = 0.28
 
+const documentStore = useDocumentStore()
 const tabs = computed(() => documentStore.openTabs)
 const activeId = computed(() => documentStore.activeDocumentId)
 
+const tabsContainerRef = ref<HTMLElement | null>(null)
+
+const suppressNextClick = ref(false)
+
+const pointerDragTabId = ref<string | null>(null)
+const pointerDragStartX = ref(0)
+const pointerDragStartY = ref(0)
+const pointerDragHasMoved = ref(false)
+
+const draggedTabId = ref<string | null>(null)
+const pendingDropIndex = ref<number | null>(null)
+
+const dragTranslateX = ref(0)
+const dragTranslateTargetX = ref(0)
+const dragFollowFrameId = ref<number | null>(null)
+
+const dragOverlayLeft = ref(0)
+const dragOverlayTop = ref(0)
+const dragOverlayWidth = ref(0)
+
+const dropIndicatorX = ref<number | null>(null)
+
+const isDraggingTabs = computed(() => draggedTabId.value !== null)
+const draggedTab = computed(
+  () => tabs.value.find((tab) => tab.id === draggedTabId.value) ?? null,
+)
+const hasDragOverlay = computed(
+  () =>
+    pointerDragHasMoved.value
+    && draggedTab.value !== null
+    && dragOverlayWidth.value > 0,
+)
+const showDropIndicator = computed(
+  () => isDraggingTabs.value && dropIndicatorX.value !== null,
+)
+
+function getTabsList(): HTMLElement | null {
+  return tabsContainerRef.value?.querySelector<HTMLElement>('.tabs-list') ?? null
+}
+
+function getTabElements(): HTMLElement[] {
+  const tabsList = getTabsList()
+  if (!tabsList) {
+    return []
+  }
+
+  return Array.from(tabsList.querySelectorAll<HTMLElement>('[data-tab-id]'))
+}
+
+function clearPointerDragListeners() {
+  document.removeEventListener('mousemove', handlePointerDragMove)
+  document.removeEventListener('mouseup', handlePointerDragEnd)
+}
+
+function stopDragFollowLoop() {
+  if (dragFollowFrameId.value !== null) {
+    window.cancelAnimationFrame(dragFollowFrameId.value)
+    dragFollowFrameId.value = null
+  }
+}
+
+function clearPendingDropTarget() {
+  pendingDropIndex.value = null
+  dropIndicatorX.value = null
+}
+
+function resetDragOverlayPosition() {
+  stopDragFollowLoop()
+  dragTranslateX.value = 0
+  dragTranslateTargetX.value = 0
+  dragOverlayLeft.value = 0
+  dragOverlayTop.value = 0
+  dragOverlayWidth.value = 0
+}
+
+function resetPointerDragState() {
+  pointerDragTabId.value = null
+  pointerDragStartX.value = 0
+  pointerDragStartY.value = 0
+  pointerDragHasMoved.value = false
+  draggedTabId.value = null
+  clearPendingDropTarget()
+  resetDragOverlayPosition()
+}
+
+function getTabsContainerRect(): DOMRect | null {
+  return tabsContainerRef.value?.getBoundingClientRect() ?? null
+}
+
+function clampClientXToTabBar(clientX: number): number {
+  const tabsContainerRect = getTabsContainerRect()
+  if (!tabsContainerRect || tabsContainerRect.width <= 0) {
+    return clientX
+  }
+
+  if (clientX < tabsContainerRect.left) {
+    return tabsContainerRect.left
+  }
+
+  if (clientX > tabsContainerRect.right) {
+    return tabsContainerRect.right
+  }
+
+  return clientX
+}
+
+function getClampedDragTranslate(clientX: number): number {
+  const rawTranslate = clientX - pointerDragStartX.value
+  const tabsContainerRect = getTabsContainerRect()
+
+  if (!tabsContainerRect || tabsContainerRect.width <= 0 || dragOverlayWidth.value <= 0) {
+    return rawTranslate
+  }
+
+  const minTranslate = tabsContainerRect.left - dragOverlayLeft.value
+  const maxTranslate = tabsContainerRect.right - dragOverlayLeft.value - dragOverlayWidth.value
+
+  if (maxTranslate <= minTranslate) {
+    return minTranslate
+  }
+
+  if (rawTranslate < minTranslate) {
+    return minTranslate
+  }
+
+  if (rawTranslate > maxTranslate) {
+    return maxTranslate
+  }
+
+  return rawTranslate
+}
+
+function runDragFollowFrame() {
+  if (!draggedTabId.value) {
+    stopDragFollowLoop()
+    return
+  }
+
+  const nextTranslateX = dragTranslateX.value
+    + ((dragTranslateTargetX.value - dragTranslateX.value) * DRAG_FOLLOW_LERP)
+
+  dragTranslateX.value = nextTranslateX
+
+  dragFollowFrameId.value = window.requestAnimationFrame(runDragFollowFrame)
+}
+
+function startDragFollowLoop() {
+  stopDragFollowLoop()
+  dragFollowFrameId.value = window.requestAnimationFrame(runDragFollowFrame)
+}
+
+function captureDraggedTabRect(id: string) {
+  const tabElement = getTabElements().find((element) => element.dataset.tabId === id)
+  if (!tabElement) {
+    return
+  }
+
+  const rect = tabElement.getBoundingClientRect()
+  dragOverlayLeft.value = rect.left
+  dragOverlayTop.value = rect.top
+  dragOverlayWidth.value = rect.width
+}
+
+function updateDropIndicatorPosition(insertionIndex: number) {
+  const tabElements = getTabElements()
+  if (tabElements.length === 0) {
+    dropIndicatorX.value = null
+    return
+  }
+
+  if (insertionIndex <= 0) {
+    dropIndicatorX.value = tabElements[0].offsetLeft
+    return
+  }
+
+  if (insertionIndex >= tabElements.length) {
+    const lastTab = tabElements[tabElements.length - 1]
+    dropIndicatorX.value = lastTab.offsetLeft + lastTab.offsetWidth
+    return
+  }
+
+  const previousTab = tabElements[insertionIndex - 1]
+  const nextTab = tabElements[insertionIndex]
+  const previousRight = previousTab.offsetLeft + previousTab.offsetWidth
+  dropIndicatorX.value = (previousRight + nextTab.offsetLeft) / 2
+}
+
+function resolveTabIdAtPointer(clientX: number): string | null {
+  const tabsList = getTabsList()
+  if (!tabsList) {
+    return null
+  }
+
+  const tabsListRect = tabsList.getBoundingClientRect()
+  const probeY = tabsListRect.top + (tabsListRect.height / 2)
+  const element = document.elementFromPoint(clientX, probeY)
+
+  if (!(element instanceof Element)) {
+    return null
+  }
+
+  const tabElement = element.closest<HTMLElement>('[data-tab-id]')
+  return tabElement?.dataset.tabId ?? null
+}
+
+function resolveNearestInsertionIndex(clientX: number, tabRects: DOMRect[]): number {
+  let insertionIndex = 0
+  let closestDistance = Math.abs(clientX - tabRects[0].left)
+
+  for (let index = 1; index < tabRects.length; index += 1) {
+    const boundaryX = (tabRects[index - 1].right + tabRects[index].left) / 2
+    const distance = Math.abs(clientX - boundaryX)
+
+    if (distance < closestDistance) {
+      closestDistance = distance
+      insertionIndex = index
+    }
+  }
+
+  const rightBoundaryDistance = Math.abs(clientX - tabRects[tabRects.length - 1].right)
+  if (rightBoundaryDistance < closestDistance) {
+    insertionIndex = tabRects.length
+  }
+
+  return insertionIndex
+}
+
+function applyPendingInsertionIndex(insertionIndex: number, fromIndex: number) {
+  let nextDropIndex = insertionIndex > fromIndex ? insertionIndex - 1 : insertionIndex
+
+  const maxDropIndex = tabs.value.length - 1
+  if (nextDropIndex < 0) {
+    nextDropIndex = 0
+  }
+  if (nextDropIndex > maxDropIndex) {
+    nextDropIndex = maxDropIndex
+  }
+
+  if (nextDropIndex === fromIndex) {
+    clearPendingDropTarget()
+    return
+  }
+
+  pendingDropIndex.value = nextDropIndex
+  updateDropIndicatorPosition(insertionIndex)
+}
+
+function beginPointerDrag(id: string, event: MouseEvent) {
+  pointerDragTabId.value = id
+  pointerDragStartX.value = event.clientX
+  pointerDragStartY.value = event.clientY
+  pointerDragHasMoved.value = false
+  draggedTabId.value = null
+  clearPendingDropTarget()
+  resetDragOverlayPosition()
+
+  clearPointerDragListeners()
+  document.addEventListener('mousemove', handlePointerDragMove)
+  document.addEventListener('mouseup', handlePointerDragEnd)
+}
+
+function updatePointerDragTarget(clientX: number) {
+  if (!draggedTabId.value) {
+    return
+  }
+
+  const fromIndex = documentStore.getDocumentIndex(draggedTabId.value)
+  if (fromIndex < 0) {
+    return
+  }
+
+  const tabElements = getTabElements()
+  if (tabElements.length === 0) {
+    clearPendingDropTarget()
+    return
+  }
+
+  const tabRects = tabElements.map((element) => element.getBoundingClientRect())
+  const hasMeasuredGeometry = tabRects.some((rect) => rect.width > 0 || rect.left !== rect.right)
+
+  if (hasMeasuredGeometry) {
+    const insertionIndex = resolveNearestInsertionIndex(clientX, tabRects)
+    applyPendingInsertionIndex(insertionIndex, fromIndex)
+    return
+  }
+
+  const overTabId = resolveTabIdAtPointer(clientX)
+  if (!overTabId) {
+    clearPendingDropTarget()
+    return
+  }
+
+  const toIndex = documentStore.getDocumentIndex(overTabId)
+  if (toIndex < 0 || toIndex === fromIndex) {
+    clearPendingDropTarget()
+    return
+  }
+
+  const fallbackInsertionIndex = toIndex > fromIndex ? toIndex + 1 : toIndex
+  applyPendingInsertionIndex(fallbackInsertionIndex, fromIndex)
+}
+
+function handlePointerDragMove(event: MouseEvent) {
+  if (!pointerDragTabId.value) {
+    return
+  }
+
+  const distanceX = Math.abs(event.clientX - pointerDragStartX.value)
+  const distanceY = Math.abs(event.clientY - pointerDragStartY.value)
+
+  if (!pointerDragHasMoved.value) {
+    if (distanceX < DRAG_THRESHOLD_PX && distanceY < DRAG_THRESHOLD_PX) {
+      return
+    }
+
+    pointerDragHasMoved.value = true
+    draggedTabId.value = pointerDragTabId.value
+    captureDraggedTabRect(pointerDragTabId.value)
+    dragTranslateTargetX.value = getClampedDragTranslate(event.clientX)
+    dragTranslateX.value = dragTranslateTargetX.value
+    startDragFollowLoop()
+  }
+
+  event.preventDefault()
+
+  const clampedClientX = clampClientXToTabBar(event.clientX)
+  dragTranslateTargetX.value = getClampedDragTranslate(clampedClientX)
+  updatePointerDragTarget(clampedClientX)
+}
+
+function applyPendingReorder(): boolean {
+  if (!draggedTabId.value) {
+    return false
+  }
+
+  const fromIndex = documentStore.getDocumentIndex(draggedTabId.value)
+  const toIndex = pendingDropIndex.value
+
+  if (fromIndex < 0 || toIndex === null || fromIndex === toIndex) {
+    return false
+  }
+
+  documentStore.reorderTabs(fromIndex, toIndex)
+  return true
+}
+
+function handlePointerDragEnd(event: MouseEvent) {
+  clearPointerDragListeners()
+
+  if (!pointerDragTabId.value) {
+    resetPointerDragState()
+    return
+  }
+
+  if (!pointerDragHasMoved.value) {
+    resetPointerDragState()
+    return
+  }
+
+  event.preventDefault()
+
+  const reordered = applyPendingReorder()
+  if (reordered) {
+    suppressNextClick.value = true
+    window.setTimeout(() => {
+      suppressNextClick.value = false
+    }, 0)
+  }
+
+  resetPointerDragState()
+}
+
+function handleTabMouseDown(event: MouseEvent, id: string) {
+  if (event.button === 1) {
+    event.preventDefault()
+    documentStore.closeDocument(id)
+    return
+  }
+
+  if (event.button !== 0) {
+    return
+  }
+
+  if (event.target instanceof Element && event.target.closest('.close-btn')) {
+    return
+  }
+
+  event.preventDefault()
+  beginPointerDrag(id, event)
+}
+
 function selectTab(id: string) {
+  if (suppressNextClick.value) {
+    suppressNextClick.value = false
+    return
+  }
+
   documentStore.setActiveDocument(id)
 }
 
@@ -24,39 +422,120 @@ function closeTab(event: MouseEvent, id: string) {
   documentStore.closeDocument(id)
 }
 
-function handleMiddleClick(event: MouseEvent, id: string) {
-  if (event.button === 1) {
-    event.preventDefault()
-    documentStore.closeDocument(id)
-  }
-}
-
 function createNewDocument() {
   documentStore.newFile()
 }
 
-function getTabClass(tab: OpenDocument) {
+function getTabStyle(tabId: string): Record<string, string> | undefined {
+  if (!hasDragOverlay.value || tabId !== draggedTabId.value) {
+    return undefined
+  }
+
   return {
-    'tab': true,
-    'is-active': tab.id === activeId.value,
-    'is-dirty': tab.isDirty,
+    width: `${dragOverlayWidth.value}px`,
+    left: `${dragOverlayLeft.value}px`,
+    top: `${dragOverlayTop.value}px`,
+    transform: `translate3d(${dragTranslateX.value}px, 0, 0)`,
   }
 }
+
+function getDropIndicatorStyle(): Record<string, string> | undefined {
+  if (!showDropIndicator.value || dropIndicatorX.value === null) {
+    return undefined
+  }
+
+  return {
+    transform: `translate3d(${dropIndicatorX.value}px, 0, 0)`,
+  }
+}
+
+function getTabClass(tab: OpenDocument) {
+  return {
+    tab: true,
+    'is-active': tab.id === activeId.value,
+    'is-dirty': tab.isDirty,
+    'is-drag-ghost': tab.id === draggedTabId.value,
+  }
+}
+
+function getDragOverlayClass(tab: OpenDocument) {
+  return {
+    tab: true,
+    'is-active': tab.id === activeId.value,
+    'is-dirty': tab.isDirty,
+    'is-dragging': true,
+  }
+}
+
+onBeforeUnmount(() => {
+  clearPointerDragListeners()
+  stopDragFollowLoop()
+})
 </script>
 
 <template>
   <div class="tab-bar" :class="{ 'sidebar-closed': !props.sidebarOpen }">
-    <div class="tabs-container">
-      <div v-for="tab in tabs" :key="tab.id" :class="getTabClass(tab)" @click="selectTab(tab.id)"
-        @mousedown="handleMiddleClick($event, tab.id)">
-        <span class="tab-name">{{ tab.name }}</span>
-        <span v-if="tab.isDirty" class="dirty-indicator" title="Unsaved changes"></span>
-        <button class="close-btn" @click="closeTab($event, tab.id)" title="Close">
-          <i class="pi pi-times"></i>
-        </button>
+    <div
+      ref="tabsContainerRef"
+      class="tabs-container"
+      :class="{ 'is-dragging-tabs': isDraggingTabs }"
+    >
+      <div class="tabs-list">
+        <div
+          v-if="showDropIndicator"
+          class="drop-indicator"
+          :style="getDropIndicatorStyle()"
+        ></div>
+        <div
+          v-for="tab in tabs"
+          :key="tab.id"
+          :class="getTabClass(tab)"
+          :data-tab-id="tab.id"
+          @click="selectTab(tab.id)"
+          @mousedown="handleTabMouseDown($event, tab.id)"
+        >
+          <span class="tab-name">{{ tab.name }}</span>
+          <span
+            v-if="tab.isDirty"
+            class="dirty-indicator"
+            title="Unsaved changes"
+          ></span>
+          <button
+            class="close-btn"
+            @click="closeTab($event, tab.id)"
+            title="Close"
+          >
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
       </div>
-      <button class="new-tab-btn" @click="createNewDocument" title="New document" aria-label="New document">
+      <button
+        class="new-tab-btn"
+        @click="createNewDocument"
+        title="New document"
+        aria-label="New document"
+      >
         <i class="pi pi-plus"></i>
+      </button>
+    </div>
+    <div
+      v-if="draggedTab && hasDragOverlay"
+      :class="getDragOverlayClass(draggedTab)"
+      :style="getTabStyle(draggedTab.id)"
+    >
+      <span class="tab-name">{{ draggedTab.name }}</span>
+      <span
+        v-if="draggedTab.isDirty"
+        class="dirty-indicator"
+        title="Unsaved changes"
+      ></span>
+      <button
+        class="close-btn"
+        title="Close"
+        aria-hidden="true"
+        tabindex="-1"
+      >
+        <i class="pi pi-times"></i>
       </button>
     </div>
   </div>
@@ -76,23 +555,41 @@ function getTabClass(tab: OpenDocument) {
   padding-left: 90px;
 }
 
-
 .tabs-container {
   display: flex;
-  gap: 7px;
+  align-items: flex-start;
   overflow-x: visible;
-  overflow-y: auto;
+  overflow-y: visible;
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding: 0 16px;
   margin: 0 -16px;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .tabs-container::-webkit-scrollbar {
   display: none;
 }
 
-/* Light mode (default) */
+.tabs-list {
+  display: flex;
+  gap: 7px;
+  position: relative;
+}
+
+.drop-indicator {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 2px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--tt-brand-color-500);
+  pointer-events: none;
+  z-index: 6;
+}
+
 .tab {
   display: flex;
   align-items: top;
@@ -110,8 +607,8 @@ function getTabClass(tab: OpenDocument) {
 }
 
 .tab:hover {
-  background: var(--tt-gray-light-300);
-  color: var(--tt-gray-light-700);
+  background: var(--tt-gray-light-200);
+  color: var(--tt-gray-light-600);
 }
 
 .tab.is-active {
@@ -120,10 +617,8 @@ function getTabClass(tab: OpenDocument) {
   font-weight: 600;
   height: 33px;
   border-radius: 13px 13px 0 0;
-
 }
 
-/* Inverse radius effect - left side */
 .tab.is-active::before {
   content: '';
   position: absolute;
@@ -133,11 +628,9 @@ function getTabClass(tab: OpenDocument) {
   height: 22px;
   background: var(--tt-gray-light-200);
   clip-path: path('M 0 22 L 22 22 L 22 0 Q 22 22 0 22 Z');
-
   pointer-events: none;
 }
 
-/* Inverse radius effect - right side */
 .tab.is-active::after {
   content: '';
   position: absolute;
@@ -146,9 +639,54 @@ function getTabClass(tab: OpenDocument) {
   width: 22px;
   height: 22px;
   background: var(--tt-gray-light-200);
+  clip-path: path('M 22 22 L 0 22 L 0 0 Q 0 22 22 22 Z');
   pointer-events: none;
-    clip-path: path('M 22 22 L 0 22 L 0 0 Q 0 22 22 22 Z');
+}
 
+.tab.is-drag-ghost {
+  opacity: 0.45;
+  box-shadow: inset 0 0 0 1px var(--tt-gray-light-400);
+}
+
+.tab.is-drag-ghost .close-btn {
+  opacity: 0 !important;
+}
+
+.tab.is-dragging {
+  position: fixed;
+  margin: 0;
+  z-index: 10;
+  opacity: 1;
+  height: 26px;
+  border-radius: 13px;
+  box-shadow: inset 0 0 0 1px var(--tt-brand-color-500);
+  background: var(--tt-gray-light-200);
+  color: var(--tt-gray-light-600);
+  font-weight: 500;
+  cursor: grabbing;
+  pointer-events: none;
+}
+
+.tab.is-active.is-drag-ghost,
+.tab.is-active.is-dragging {
+  height: 26px;
+  border-radius: 13px;
+}
+
+.tab.is-active.is-dragging {
+  color: var(--tt-brand-color-500);
+  font-weight: 600;
+}
+
+.tab.is-active.is-drag-ghost::before,
+.tab.is-active.is-drag-ghost::after,
+.tab.is-active.is-dragging::before,
+.tab.is-active.is-dragging::after,
+.tab.is-drag-ghost::before,
+.tab.is-drag-ghost::after,
+.tab.is-dragging::before,
+.tab.is-dragging::after {
+  display: none;
 }
 
 .tab-name {
@@ -180,7 +718,6 @@ function getTabClass(tab: OpenDocument) {
   cursor: pointer;
   border-radius: 3px;
   opacity: 0;
-  transition: opacity 0.1s, background 0.1s;
   flex-shrink: 0;
 }
 
@@ -192,6 +729,10 @@ function getTabClass(tab: OpenDocument) {
 .close-btn:hover {
   opacity: 1 !important;
   background: var(--tt-gray-light-a-200);
+}
+
+.tabs-container.is-dragging-tabs .close-btn:hover {
+  background: none;
 }
 
 .close-btn .pi {
@@ -210,7 +751,6 @@ function getTabClass(tab: OpenDocument) {
   color: var(--tt-gray-light-600);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.1s, color 0.1s;
   margin-left: 2px;
 }
 
@@ -223,7 +763,6 @@ function getTabClass(tab: OpenDocument) {
   font-size: 0.625rem;
 }
 
-/* When dirty, show indicator instead of close on hover */
 .tab.is-dirty:not(:hover) .close-btn {
   display: none;
 }
@@ -232,20 +771,32 @@ function getTabClass(tab: OpenDocument) {
   display: none;
 }
 
-/* Dark mode styles (unscoped to access .dark on html) */
-
 .dark .tab {
   background: var(--tt-gray-dark-50);
   color: var(--tt-gray-dark-600);
 }
 
 .dark .tab:hover {
-  background: var(--tt-gray-dark-200);
-  color: var(--tt-gray-dark-700);
+  background: var(--tt-gray-dark-50);
+  color: var(--tt-gray-dark-600);
 }
 
 .dark .tab.is-active {
   background: var(--tt-gray-dark-50);
+  color: var(--tt-brand-color-500);
+}
+
+.dark .tab.is-active::before,
+.dark .tab.is-active::after {
+  background: var(--tt-gray-dark-50);
+}
+
+.dark .tab.is-dragging {
+  background: var(--tt-gray-dark-50);
+  color: var(--tt-gray-dark-600);
+}
+
+.dark .tab.is-active.is-dragging {
   color: var(--tt-brand-color-500);
 }
 
@@ -261,13 +812,5 @@ function getTabClass(tab: OpenDocument) {
 .dark .new-tab-btn:hover {
   background: var(--tt-gray-dark-200);
   color: var(--tt-gray-dark-700);
-}
-
-.dark .tab.is-active::after {
-  background: var(--tt-gray-dark-50);
-}
-
-.dark .tab.is-active::before {
-  background: var(--tt-gray-dark-50);
 }
 </style>

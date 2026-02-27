@@ -7,6 +7,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 }))
 
 import { tauriDocumentStoragePort } from '../../src/platform/tauri/documentStorage'
+import { tauriFileWatchPort } from '../../src/platform/tauri/fileWatch'
 import { tauriWorkspacePort } from '../../src/platform/tauri/workspaceFs'
 
 describe('tauri ports', () => {
@@ -63,5 +64,19 @@ describe('tauri ports', () => {
       sourcePath: '/workspace/source/file.md',
       targetDir: '/workspace/target',
     })
+  })
+
+  it('calls invoke with file watch commands', async () => {
+    invokeMock.mockResolvedValueOnce(undefined)
+    await tauriFileWatchPort.startFileWatch('/workspace/note.md')
+    expect(invokeMock).toHaveBeenCalledWith('start_file_watch', { path: '/workspace/note.md' })
+
+    invokeMock.mockResolvedValueOnce(undefined)
+    await tauriFileWatchPort.stopFileWatch('/workspace/note.md')
+    expect(invokeMock).toHaveBeenCalledWith('stop_file_watch', { path: '/workspace/note.md' })
+
+    invokeMock.mockResolvedValueOnce(undefined)
+    await tauriFileWatchPort.stopAllFileWatches()
+    expect(invokeMock).toHaveBeenCalledWith('stop_all_file_watches')
   })
 })

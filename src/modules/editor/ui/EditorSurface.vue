@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useAutoSave } from "../runtime/useAutoSave";
 import { useDocumentStore } from "../state/documentStore";
 import EditorEmptyState from "./EditorEmptyState.vue";
+import CodeMirrorEditor from "./CodeMirrorEditor.vue";
 import MilkdownEditor from "./MilkdownEditor.vue";
 
 const documentStore = useDocumentStore();
@@ -10,6 +11,7 @@ const documentStore = useDocumentStore();
 useAutoSave(2000);
 
 const hasOpenFile = computed(() => documentStore.currentFile !== null);
+const isSourceMode = computed(() => documentStore.editorMode === "source");
 </script>
 
 <template>
@@ -19,8 +21,13 @@ const hasOpenFile = computed(() => documentStore.currentFile !== null);
         </Transition>
 
         <div v-if="hasOpenFile" class="editor-layout">
+            <CodeMirrorEditor
+                v-if="isSourceMode"
+                :key="`source-${documentStore.activeDocumentId ?? 'none'}`"
+            />
             <MilkdownEditor
-                :key="documentStore.activeDocumentId ?? 'milkdown'"
+                v-else
+                :key="`rendered-${documentStore.activeDocumentId ?? 'none'}`"
             />
         </div>
     </div>

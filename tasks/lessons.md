@@ -43,3 +43,21 @@
 
 - When the user pivots from migration to a clean-slate reset, remove the existing runtime end-to-end first (UI host + runtime modules) before adding replacement abstractions.
 - During large dependency/runtimes changes, run build validation immediately and treat unrelated test-environment failures as a separate track instead of conflating them with feature-scope changes.
+
+## 2026-02-26
+
+- When changing editor mode UX, update both the control component (toolbar UI) and the canonical default in `documentStore` so startup/reset behaviour matches the visible toggle state.
+- If a PrimeVue control swap affects unit tests (for example button -> toggle switch), update shared PrimeVue stubs at the same time to keep component tests aligned with runtime markup.
+- When the user provides a visual reference, match control geometry and colour first, then mirror label placement exactly (for example moving the mode label to the opposite side) before further refinements.
+- For cross-editor cursor sync, avoid ad-hoc text-node traversal that drops block separators; use ProseMirror `textBetween(..., "\n", "\n")` consistently for both full text and position mapping so plain-text offsets remain stable across paragraphs.
+- For cross-editor scroll sync, do not assume the editor root is the real scroll container; resolve and observe the active scrollable element (`.milkdown`, `.editor`, `.ProseMirror`, or root) and retry restore over multiple animation frames until the layout settles.
+- For editor remount flows, apply focus with `preventScroll` (or focus before restoring viewport) because default focus behaviour can override restored scroll and snap back to the start.
+- When sync behaviour remains ambiguous after two fixes, add structured debug logs in both adapters and the central coordinator with stable tags so capture-vs-restore mismatches can be diagnosed from one reproduction trace.
+- Never publish viewport snapshots from `onUnmounted` when DOM may already be detached; this can overwrite valid scroll data with zero and poison the next restore. Prefer preserving last known metrics captured during active scroll events.
+- For cursor drift debugging, keep logs compact but comparative: log both final pre-switch cursor and post-restore cursor with a short text preview window so offset deltas can be verified against nearby content.
+- Guard snapshot publishing during programmatic restore. Selection/scroll events triggered by restore should not overwrite anchors, or small mapping errors compound on every mode switch.
+- If token-anchor restores are stable but systematically offset, replace token-only anchoring with deterministic cross-representation mapping (plain-text <-> markdown boundary map) and use snapshot recency to choose which mode owns the truth at switch time.
+- Composables with module-level shared refs (for example `useSidebarResize`) can leak state between tests; reset via controlled mount/setup paths rather than assuming a clean instance per test.
+- For Tauri-runtime composables under Vitest, prefer mocking runtime ports/listeners and stubbing `console.error` in targeted tests to avoid noise from expected no-op `invoke` paths.
+- For drag-and-drop UI features, always add temporary structured logs at both UI-event and store-mutation layers before iterating on fixes; this quickly separates "events not firing" from "state not mutating" failures.
+- In desktop webviews, native HTML5 drag events can emit `dragstart/dragend` without reliable `dragover` on sibling tabs; prefer pointer-tracked reorder (`mousedown/mousemove/mouseup` + `elementFromPoint`) for robust tab dragging.

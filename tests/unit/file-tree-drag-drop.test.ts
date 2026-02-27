@@ -254,6 +254,9 @@ describe('FileTree drag and menu behaviour', () => {
     const vm = wrapper.vm as unknown as {
       dragState: {
         sourcePath: string | null
+        dropTargetPath: string | null
+        isOverRoot: boolean
+        hasMoved: boolean
       }
     }
     vm.dragState.sourcePath = null
@@ -261,7 +264,10 @@ describe('FileTree drag and menu behaviour', () => {
     document.dispatchEvent(new MouseEvent('mousemove', { clientX: 10, clientY: 10 }))
     document.dispatchEvent(new MouseEvent('mouseup', { clientX: 10, clientY: 10 }))
 
-    expect(true).toBe(true)
+    expect(vm.dragState.sourcePath).toBeNull()
+    expect(vm.dragState.dropTargetPath).toBeNull()
+    expect(vm.dragState.isOverRoot).toBe(false)
+    expect(vm.dragState.hasMoved).toBe(false)
   })
 
   it('handles folder drop when workspace move returns null', async () => {

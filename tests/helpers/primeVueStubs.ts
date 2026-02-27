@@ -80,9 +80,40 @@ const SelectStub = defineComponent({
   },
 })
 
+const ToggleSwitchStub = defineComponent({
+  name: 'ToggleSwitchStub',
+  inheritAttrs: false,
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false,
+    },
+    inputId: {
+      type: String,
+      default: undefined,
+    },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit, attrs }) {
+    return () => h('input', {
+      ...attrs,
+      id: props.inputId,
+      type: 'checkbox',
+      role: 'switch',
+      checked: props.modelValue,
+      disabled: isDisabledAttribute(attrs.disabled),
+      onChange: (event: Event) => {
+        const target = event.target as HTMLInputElement
+        emit('update:modelValue', target.checked)
+      },
+    })
+  },
+})
+
 export const primeVueStubs = {
   Toolbar: ToolbarStub,
   Button: ButtonStub,
   Divider: DividerStub,
   Select: SelectStub,
+  ToggleSwitch: ToggleSwitchStub,
 }

@@ -77,4 +77,35 @@ describe('useTheme', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(false)
     expect(localStorage.getItem('kea-theme-preference')).toBe('light')
   })
+
+  it('toggles from system mode into explicit preference', async () => {
+    createMatchMediaMock(false)
+    const wrapper = mount(ThemeHarness)
+    await nextTick()
+
+    ;(wrapper.vm as unknown as { toggleTheme: () => void }).toggleTheme()
+    await nextTick()
+
+    expect(localStorage.getItem('kea-theme-preference')).toBe('dark')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+  })
+
+  it('clears temporary theme-transitioning class after animation frames', async () => {
+    const rafSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+      callback(0)
+      return 0
+    })
+
+    createMatchMediaMock(false)
+    const wrapper = mount(ThemeHarness)
+    await nextTick()
+
+    ;(wrapper.vm as unknown as { setThemeMode: (mode: 'light' | 'dark' | 'system') => void }).setThemeMode('dark')
+    await nextTick()
+
+    expect(rafSpy).toHaveBeenCalled()
+    expect(document.documentElement.classList.contains('theme-transitioning')).toBe(false)
+
+    rafSpy.mockRestore()
+  })
 })
