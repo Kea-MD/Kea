@@ -1,7 +1,7 @@
 import { onUnmounted, ref } from 'vue'
 
 export function useSidebarInteraction() {
-  const sidebarOpen = ref(true)
+  const sidebarOpen = ref(false)
   const sidebarHovering = ref(false)
   const hoverDisabled = ref(false)
 
