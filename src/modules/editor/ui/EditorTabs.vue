@@ -751,7 +751,7 @@ onBeforeUnmount(() => {
   color: var(--tt-gray-light-600);
   cursor: pointer;
   flex-shrink: 0;
-  margin-left: 2px;
+  margin-left: 7px;
 }
 
 .new-tab-btn:hover {

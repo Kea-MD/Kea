@@ -28,23 +28,6 @@ npm run tauri dev
 npm run build
 ```
 
-## Documentation
-
-- [Development Progress](docs/progress.md) - Current status and completed features
-- [Architecture](docs/architecture.md) - System design and technical overview
-- [Roadmap](docs/roadmap.md) - Development phases and milestones
-- [Requirements](docs/requirements.md) - Feature specifications and priorities
-
-## Project Status
-
-**Current Version**: 0.1.0 (Phase 1 - In Progress)
-
-✅ **Completed**: Foundation editor with markdown support, file management, multi-tab support
-🚧 **In Progress**: File browser sidebar, folder operations, quick switcher
-⏳ **Planned**: P2P collaboration, syntax highlighting, advanced editor features
-
-See [Development Progress](docs/progress.md) for details on what's been built.
-
 ## License
 
 [MIT License](LICENSE)
