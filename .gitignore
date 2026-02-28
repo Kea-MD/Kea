@@ -47,3 +47,5 @@ next-env.d.ts
 test.md
 /test.html
 src/assets/Logo/Old Orca Logo/
+/references/
+/classic-books-markdown/

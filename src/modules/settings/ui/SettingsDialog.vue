@@ -4,6 +4,7 @@ import Dialog from "primevue/dialog";
 import Select from "primevue/select";
 import ToggleSwitch from "primevue/toggleswitch";
 import { useTheme } from "../../../shared/composables/useTheme";
+import { isMacPlatform } from "../../../shared/platform/runtime";
 import {
     formatShortcutForDisplay,
     shortcutDefinitions,
@@ -29,9 +30,7 @@ const { themeMode, setThemeMode } = useTheme();
 const editingShortcutId = ref<ShortcutActionId | null>(null);
 const shortcutErrorMessage = ref("");
 
-const isMacPlatform =
-    typeof navigator !== "undefined" &&
-    navigator.platform.toUpperCase().includes("MAC");
+const isMac = isMacPlatform();
 
 const themeOptions: Array<{ label: string; value: ThemeModeOption }> = [
     { label: "System", value: "system" },
@@ -72,7 +71,7 @@ const shortcutGroups = computed(() => {
 function shortcutText(actionId: ShortcutActionId): string {
     return formatShortcutForDisplay(
         settingsStore.shortcuts[actionId],
-        isMacPlatform,
+        isMac,
     );
 }
 

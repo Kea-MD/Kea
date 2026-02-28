@@ -1,3 +1,5 @@
+import { isMacPlatform } from '../../../shared/platform/runtime'
+
 export type ShortcutActionId =
   | 'new_file'
   | 'open_file'
@@ -282,11 +284,7 @@ export function resolveShortcutAction(event: KeyboardEvent, shortcuts: ShortcutM
   return null
 }
 
-function isMacOperatingSystem(): boolean {
-  return typeof navigator !== 'undefined' && navigator.platform.toUpperCase().includes('MAC')
-}
-
-export function formatShortcutForDisplay(binding: string, isMac = isMacOperatingSystem()): string {
+export function formatShortcutForDisplay(binding: string, isMac = isMacPlatform()): string {
   const normalised = normaliseShortcutBinding(binding)
   if (normalised === null || normalised === '') {
     return 'Unassigned'

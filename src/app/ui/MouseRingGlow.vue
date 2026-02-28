@@ -17,6 +17,7 @@ const MOTION_FALL_TIME_MS = 380
 const MIN_POINT_STRENGTH = 0.05
 const MIN_VISIBLE_ALPHA = 0.001
 const MAX_POINTS = 600
+const STARTUP_GEOMETRY_SYNC_FRAMES = 10
 
 const props = withDefaults(
   defineProps<{
@@ -46,6 +47,8 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 let host: HTMLElement | null = null
 let ctx: CanvasRenderingContext2D | null = null
 let raf = 0
+let geometryRaf = 0
+let geometrySettleRaf = 0
 let width = 1
 let height = 1
 let hostLeft = 0
@@ -59,6 +62,8 @@ let lastY = 0
 let lastT = 0
 let speedEma = 0
 let motionLevel = 0
+let resizeObserver: ResizeObserver | null = null
+let observedCutoutElement: HTMLElement | null = null
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
@@ -92,10 +97,18 @@ const createRoundedRectPath = (x: number, y: number, w: number, h: number, r: nu
   return path
 }
 
+const getCutoutElement = () => host?.querySelector<HTMLElement>('.pageContainer') ?? null
+
+const syncObservedCutoutElement = (nextCutoutElement: HTMLElement | null) => {
+  if (!resizeObserver || nextCutoutElement === observedCutoutElement) return
+  if (observedCutoutElement) resizeObserver.unobserve(observedCutoutElement)
+  observedCutoutElement = nextCutoutElement
+  if (observedCutoutElement) resizeObserver.observe(observedCutoutElement)
+}
+
 // Builds the inner cutout mask so glow is only visible around edges.
 // The cutout matches `.pageContainer` geometry to keep the center clear.
-const syncCutoutPath = (hostRect: DOMRect) => {
-  const hole = host?.querySelector<HTMLElement>('.pageContainer')
+const syncCutoutPath = (hostRect: DOMRect, hole: HTMLElement | null) => {
   if (!hole) {
     cutoutPath = null
     edgeClipPath = null
@@ -122,6 +135,7 @@ const syncCutoutPath = (hostRect: DOMRect) => {
 const syncGeometry = () => {
   if (!canvas.value || !host) return
   const hostRect = host.getBoundingClientRect()
+  const cutoutElement = getCutoutElement()
   const dpr = window.devicePixelRatio || 1
   hostLeft = hostRect.left
   hostTop = hostRect.top
@@ -133,7 +147,36 @@ const syncGeometry = () => {
   canvas.value.style.height = `${height}px`
   ctx = canvas.value.getContext('2d')
   ctx?.setTransform(dpr, 0, 0, dpr, 0, 0)
-  syncCutoutPath(hostRect)
+  syncCutoutPath(hostRect, cutoutElement)
+  syncObservedCutoutElement(cutoutElement)
+}
+
+const scheduleGeometrySync = () => {
+  if (geometryRaf) return
+  geometryRaf = requestAnimationFrame(() => {
+    geometryRaf = 0
+    syncGeometry()
+  })
+}
+
+const runStartupGeometrySync = (frames = STARTUP_GEOMETRY_SYNC_FRAMES) => {
+  if (geometrySettleRaf) {
+    cancelAnimationFrame(geometrySettleRaf)
+    geometrySettleRaf = 0
+  }
+
+  let remaining = Math.max(1, frames)
+  const tick = () => {
+    syncGeometry()
+    remaining -= 1
+    if (remaining > 0) {
+      geometrySettleRaf = requestAnimationFrame(tick)
+      return
+    }
+    geometrySettleRaf = 0
+  }
+
+  geometrySettleRaf = requestAnimationFrame(tick)
 }
 
 // Draw one frame: render only in the edge band clip.
@@ -176,6 +219,7 @@ const draw = () => {
 // 2) motionLevel uses slower rise/fall for a softer visual response
 const onMove = (event: PointerEvent) => {
   if (!host) return
+  if (!edgeClipPath) scheduleGeometrySync()
 
   const now = performance.now()
   const x = clamp(event.clientX - hostLeft, 0, width)
@@ -220,31 +264,61 @@ const resetState = () => {
     cancelAnimationFrame(raf)
     raf = 0
   }
+  if (geometryRaf) {
+    cancelAnimationFrame(geometryRaf)
+    geometryRaf = 0
+  }
+  if (geometrySettleRaf) {
+    cancelAnimationFrame(geometrySettleRaf)
+    geometrySettleRaf = 0
+  }
 }
 
 // Rebind whenever host changes so listeners and geometry always stay correct.
 const bindHost = () => {
   if (host) host.removeEventListener('pointermove', onMove)
+  if (resizeObserver && host) resizeObserver.unobserve(host)
+  if (resizeObserver && observedCutoutElement) {
+    resizeObserver.unobserve(observedCutoutElement)
+    observedCutoutElement = null
+  }
+
   host = props.hostElement
   resetState()
   if (!host) return
+
   host.addEventListener('pointermove', onMove, { passive: true })
+  if (resizeObserver) resizeObserver.observe(host)
   syncGlowColor()
   syncGeometry()
+  runStartupGeometrySync()
 }
 
 watch(() => props.hostElement, bindHost, { immediate: true })
 watch(() => props.glowColorRgb, syncGlowColor)
 
 onMounted(() => {
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => {
+      scheduleGeometrySync()
+    })
+    if (host) resizeObserver.observe(host)
+  }
+
   syncGlowColor()
   syncGeometry()
-  window.addEventListener('resize', syncGeometry)
+  runStartupGeometrySync()
+  window.addEventListener('resize', scheduleGeometrySync)
 })
 
 onUnmounted(() => {
   if (host) host.removeEventListener('pointermove', onMove)
-  window.removeEventListener('resize', syncGeometry)
+  window.removeEventListener('resize', scheduleGeometrySync)
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+  observedCutoutElement = null
   resetState()
 })
 </script>
