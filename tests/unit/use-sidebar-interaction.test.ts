@@ -29,6 +29,9 @@ describe('useSidebarInteraction', () => {
     expect(vm.sidebarHovering).toBe(true)
 
     vm.toggleSidebar()
+    expect(vm.sidebarOpen).toBe(true)
+
+    vm.toggleSidebar()
     expect(vm.sidebarOpen).toBe(false)
     expect(vm.sidebarHovering).toBe(false)
 
