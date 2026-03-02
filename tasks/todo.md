@@ -1,6 +1,35 @@
 # Kea Post-Migration TODO
 
-Last updated: 2026-02-26
+Last updated: 2026-02-27
+
+## Current Task: Scrollable editor tab bar overflow
+
+- [x] Audit `EditorTabs.vue` structure/styles to identify safest overflow scroll strategy
+- [x] Implement horizontal scrolling behaviour for crowded tab sets while preserving drag/reorder
+- [x] Run focused validation (`npm run test:unit -- tests/unit/editor-tabs.test.ts` and `npm run build`)
+- [x] Document implementation notes in review section
+
+## Current Task: Tab strip edge-fade gradients on scroll
+
+- [x] Add overflow state tracking for left/right tab-strip edges
+- [x] Add gradient fade affordances that appear only when hidden tabs exist off-screen
+- [x] Keep drag/reorder and wheel-scroll behaviour intact with focused tests
+- [x] Run focused validation (`npm run test:unit -- tests/unit/editor-tabs.test.ts` and `npm run build`)
+
+## Current Task: Runtime/platform context centralisation
+
+- [x] Add shared runtime helpers for Tauri, web, macOS, and mobile viewport checks
+- [x] Add reusable `useRuntimeContext` composable with fullscreen + mobile + traffic-light inset state
+- [x] Migrate duplicated platform checks in app bootstrap, external file sync, settings shortcuts, and empty state UI
+- [x] Gate tab-bar 90px inset behind runtime context (`tauri + macOS + not fullscreen + not mobile + sidebar closed`)
+- [x] Run focused unit tests + `npm run build`
+
+## Current Task: Edge glow startup mask geometry fix
+
+- [x] Trace edge-glow geometry/mask initialisation path on app startup
+- [x] Implement a robust geometry resync strategy for startup/layout-settle timing
+- [x] Validate with `npm run build`
+- [x] Document root cause and verification notes in review section
 
 ## Current Task: Tab drag/reorder diagnostics
 
@@ -217,6 +246,7 @@ Ship a stable v0.1 post-migration build with strong local editing, external sync
 
 ## Review Notes
 
+- [x] Runtime/platform detection is now centralised in `src/shared/platform/runtime.ts` and `src/shared/composables/useRuntimeContext.ts`; tab-bar traffic-light inset now responds to Tauri/mac/fullscreen/mobile state instead of static CSS.
 - [x] Brand colour consistency pass completed: removed legacy purple accent fallbacks, added canonical brand tokens, and aligned non-monochrome app accents to brand-driven styling across app/workspace surfaces.
 - [x] Previous migration checklist completed.
 - [ ] Post-migration hardening pass started.
@@ -264,3 +294,13 @@ Ship a stable v0.1 post-migration build with strong local editing, external sync
 - [x] Added `documentStore` edge-case tests (confirm cancel paths, `saveAllFiles` partial failure, open dialog sentinel handling, external-change guards, save-as error state reset, tab cycling), raising frontend unit coverage to ~72% statements / ~75% functions and lifting `documentStore.ts` to ~72% line coverage.
 - [x] Expanded tests across state, UI drag/drop, and platform adapters to reach ~90.27% statement coverage (`102` tests across `16` files), with all validation commands passing.
 - [x] Completed a second hardening pass: expanded to `163` passing frontend tests across `29` files with coverage at `93.27%` statements / `85.48%` branches / `95.52%` functions / `94.25%` lines, tightened enforced coverage thresholds to `90/90/90/85` (lines/functions/statements/branches), deepened shortcut/dialog/quick-open/composable branch coverage, and kept all validation commands green.
+- [x] Edge glow startup mask issue traced to geometry/cutout sync running before layout was fully settled (or before `.pageContainer` was reliably measurable), with no guaranteed follow-up sync; fixed by adding startup frame resyncs plus `ResizeObserver`-driven geometry updates so mask size/position self-corrects deterministically after mount.
+- [x] Editor tab overflow now scrolls horizontally via a dedicated `.tabs-scroll` viewport in `EditorTabs.vue`, keeping the new-tab action visible and preserving pointer drag/reorder behaviour.
+- [x] Added left/right gradient edge fades for the tab strip in `EditorTabs.vue`, driven by live overflow state (`scrollLeft`, `clientWidth`, `scrollWidth`) with resize + scroll updates so fades appear only when there are hidden tabs off-screen.
+- [x] Fixed dark-mode tab-strip fade colour mismatch by introducing explicit fade-colour tokens in `EditorTabs.vue` (`--tt-gray-light-50` / `--tt-gray-dark-100`) instead of a light-only semantic token.
+- [x] Updated tab-strip edge treatment to fade content to transparent via CSS masking (`mask-image` / `-webkit-mask-image`) rather than drawing colour overlays, so transparent backgrounds render correctly in both light and dark themes.
+- [x] Improved tab-strip scroll feel by remapping only pure vertical wheel deltas (mouse wheel path) and leaving horizontal/mixed trackpad deltas to native scroll handling to avoid sticky scroll behaviour.
+- [x] Replaced CSS `@property`-based mask transitions with JS-driven RAF interpolation for tab edge-mask values so fade-in/out animation is smooth and reliable in the Tauri webview.
+- [x] Restored new-tab button placement inside the tab flow (`tabs-list`) so it sits beside the last tab and appears on the left when there are no open tabs, matching previous behaviour expectations.
+- [x] Prevented active tab edge clipping in the scrollable strip by adding conditional horizontal padding to `tabs-list` when tabs exist, preserving overhanging active-tab corners at both ends.
+- [x] Corrected `tabs-list` padding scope so edge-preserving padding only applies when tabs exist (`.tabs-scroll-wrap.has-tabs .tabs-list`), keeping the no-tabs new-button position flush left.

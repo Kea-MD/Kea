@@ -4,18 +4,18 @@ import { useDocumentStore } from '../state/documentStore'
 import { formatShortcutForDisplay } from '../../settings/shortcuts/shortcutRegistry'
 import { useSettingsStore } from '../../settings/state/settingsStore'
 import { useWorkspaceStore } from '../../workspace/state/workspaceStore'
+import { isMacPlatform } from '../../../shared/platform/runtime'
 
 const documentStore = useDocumentStore()
 const settingsStore = useSettingsStore()
 const workspaceStore = useWorkspaceStore()
 
-const isMacPlatform =
-  typeof navigator !== 'undefined' && navigator.platform.toUpperCase().includes('MAC')
+const isMac = isMacPlatform()
 
 const shortcutHints = computed(() => ({
-  openFolder: formatShortcutForDisplay(settingsStore.shortcuts.open_folder, isMacPlatform),
-  openFile: formatShortcutForDisplay(settingsStore.shortcuts.open_file, isMacPlatform),
-  newFile: formatShortcutForDisplay(settingsStore.shortcuts.new_file, isMacPlatform),
+  openFolder: formatShortcutForDisplay(settingsStore.shortcuts.open_folder, isMac),
+  openFile: formatShortcutForDisplay(settingsStore.shortcuts.open_file, isMac),
+  newFile: formatShortcutForDisplay(settingsStore.shortcuts.new_file, isMac),
 }))
 </script>
 

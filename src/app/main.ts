@@ -5,11 +5,12 @@ import PrimeVue from "primevue/config";
 import Tooltip from "primevue/tooltip";
 import Aura from "@primevue/themes/aura";
 import EditorApp from "./EditorApp.vue";
+import { isTauriRuntime } from "../shared/platform/runtime";
 import "../styles/global.css";
 import "primeicons/primeicons.css";
 
 // Apply web-platform class if not running in Tauri
-if (!(window as any).__TAURI_INTERNALS__) {
+if (!isTauriRuntime()) {
   document.body.classList.add("web-platform");
 }
 

@@ -2,6 +2,7 @@ import { onMounted, onUnmounted, watch } from 'vue'
 import { listen } from '@tauri-apps/api/event'
 import { useDocumentStore } from '../../editor/state/documentStore'
 import { tauriFileWatchPort } from '../../../platform/tauri/fileWatch'
+import { isTauriRuntime } from '../../../shared/platform/runtime'
 
 interface FileWatchEventPayload {
   path: string
@@ -9,7 +10,7 @@ interface FileWatchEventPayload {
 }
 
 export function useExternalFileSync() {
-  const isTauriRuntime = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+  const isTauri = isTauriRuntime()
   const documentStore = useDocumentStore()
   let unlistenFileWatch: (() => void) | null = null
   let stopActivePathWatch: (() => void) | null = null
@@ -36,7 +37,7 @@ export function useExternalFileSync() {
   }
 
   onMounted(() => {
-    if (!isTauriRuntime) {
+    if (!isTauri) {
       return
     }
 
@@ -69,7 +70,7 @@ export function useExternalFileSync() {
   })
 
   onUnmounted(() => {
-    if (!isTauriRuntime) {
+    if (!isTauri) {
       return
     }
 

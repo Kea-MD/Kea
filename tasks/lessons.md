@@ -61,3 +61,16 @@
 - For Tauri-runtime composables under Vitest, prefer mocking runtime ports/listeners and stubbing `console.error` in targeted tests to avoid noise from expected no-op `invoke` paths.
 - For drag-and-drop UI features, always add temporary structured logs at both UI-event and store-mutation layers before iterating on fixes; this quickly separates "events not firing" from "state not mutating" failures.
 - In desktop webviews, native HTML5 drag events can emit `dragstart/dragend` without reliable `dragover` on sibling tabs; prefer pointer-tracked reorder (`mousedown/mousemove/mouseup` + `elementFromPoint`) for robust tab dragging.
+
+## 2026-02-27
+
+- Platform/runtime checks drift quickly when duplicated inline; centralise Tauri/web/macOS/mobile detection in one shared helper/composable and consume it everywhere to keep UI behaviour consistent (for example traffic-light offsets).
+- For scroll-edge gradient overlays, do not rely on generic semantic background tokens unless dark-mode overrides are confirmed; set explicit light/dark fade colour tokens so overlays match the actual surface in both themes.
+- If a scroll container sits on a transparent background, use alpha masking (`mask-image`/`-webkit-mask-image`) to fade content to nothing instead of colour overlays, which can look wrong in dark mode.
+- For horizontal-wheel UX in tab strips, only remap pure vertical wheel input (`deltaX` ~= 0) and leave mixed/horizontal trackpad deltas to native scrolling, or scrolling can feel sticky/janky.
+- When edge fades are driven by CSS masks, animate the mask stop lengths (`--tabs-mask-left/right`) via `@property` + `transition` to avoid abrupt on/off fades at overflow boundaries.
+- Do not rely on CSS `@property` support inside desktop webviews for critical polish; for consistent mask transitions, animate mask-stop variables via JS (`requestAnimationFrame`) and bind them inline.
+- When making tab bars scrollable, keep the new-tab button in the same content flow as tabs (after the last tab) unless the user explicitly asks for a pinned action button.
+- Active-tab decorative overhangs (`::before`/`::after`) can be clipped by scroll containers; add internal left/right padding to the scroll content when tabs exist so edge shapes remain fully visible.
+- When adding conditional spacing for tab overflow, ensure the CSS actually stays conditional (`.has-tabs .tabs-list`) rather than accidentally applying the padding globally to all states.
+- For DOM listeners in Vue/TS (`window.addEventListener`, template `@scroll`), prefer thin event-shaped wrappers (`handleWindowResize(event: UIEvent)`) instead of passing business-logic functions with custom parameters.

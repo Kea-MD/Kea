@@ -358,6 +358,62 @@ describe('EditorTabs', () => {
     expect(reorderSpy).toHaveBeenCalledWith(0, 1)
   })
 
+  it('maps vertical wheel movement to horizontal tab scrolling', async () => {
+    const documentStore = useDocumentStore()
+    documentStore.openDocuments = [makeTab('tab-1', 'first.md'), makeTab('tab-2', 'second.md')]
+    documentStore.activeDocumentId = 'tab-1'
+
+    const wrapper = mount(EditorTabs)
+    const tabsScroller = wrapper.get('.tabs-scroll').element as HTMLElement
+    const tabsScrollWrap = wrapper.get('.tabs-scroll-wrap')
+
+    Object.defineProperty(tabsScroller, 'scrollWidth', {
+      configurable: true,
+      get: () => 500,
+    })
+    Object.defineProperty(tabsScroller, 'clientWidth', {
+      configurable: true,
+      get: () => 200,
+    })
+
+    tabsScroller.scrollLeft = 0
+    await wrapper.get('.tabs-scroll').trigger('wheel', { deltaY: 40, deltaX: 0 })
+    await wrapper.get('.tabs-scroll').trigger('scroll')
+
+    expect(tabsScroller.scrollLeft).toBe(40)
+    expect(tabsScrollWrap.classes()).toContain('has-left-fade')
+    expect(tabsScrollWrap.classes()).toContain('has-right-fade')
+
+    tabsScroller.scrollLeft = 300
+    await wrapper.get('.tabs-scroll').trigger('scroll')
+
+    expect(tabsScrollWrap.classes()).toContain('has-left-fade')
+    expect(tabsScrollWrap.classes()).not.toContain('has-right-fade')
+  })
+
+  it('does not remap wheel events that already include horizontal delta', async () => {
+    const documentStore = useDocumentStore()
+    documentStore.openDocuments = [makeTab('tab-1', 'first.md'), makeTab('tab-2', 'second.md')]
+    documentStore.activeDocumentId = 'tab-1'
+
+    const wrapper = mount(EditorTabs)
+    const tabsScroller = wrapper.get('.tabs-scroll').element as HTMLElement
+
+    Object.defineProperty(tabsScroller, 'scrollWidth', {
+      configurable: true,
+      get: () => 500,
+    })
+    Object.defineProperty(tabsScroller, 'clientWidth', {
+      configurable: true,
+      get: () => 200,
+    })
+
+    tabsScroller.scrollLeft = 120
+    await wrapper.get('.tabs-scroll').trigger('wheel', { deltaY: 40, deltaX: 18 })
+
+    expect(tabsScroller.scrollLeft).toBe(120)
+  })
+
   it('returns undefined drag styles when no drag UI is active', () => {
     const documentStore = useDocumentStore()
     documentStore.openDocuments = [makeTab('tab-1', 'first.md')]
