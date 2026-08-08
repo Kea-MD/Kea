@@ -2,10 +2,10 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
-import FileTree from '../../src/modules/workspace/ui/FileTree.vue'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
-import { useSettingsStore } from '../../src/modules/settings/state/settingsStore'
-import { useWorkspaceStore } from '../../src/modules/workspace/state/workspaceStore'
+import FileTree from '../../legacy/src/modules/workspace/ui/FileTree.vue'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
+import { useSettingsStore } from '../../legacy/src/modules/settings/state/settingsStore'
+import { useWorkspaceStore } from '../../legacy/src/modules/workspace/state/workspaceStore'
 
 const FileTreeItemStub = defineComponent({
   name: 'FileTreeItemStub',

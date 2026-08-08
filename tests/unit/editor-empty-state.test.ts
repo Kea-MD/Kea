@@ -2,10 +2,10 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { formatShortcutForDisplay } from '../../src/modules/settings/shortcuts/shortcutRegistry'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
-import { useSettingsStore } from '../../src/modules/settings/state/settingsStore'
-import { useWorkspaceStore } from '../../src/modules/workspace/state/workspaceStore'
-import EditorEmptyState from '../../src/modules/editor/ui/EditorEmptyState.vue'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
+import { useSettingsStore } from '../../legacy/src/modules/settings/state/settingsStore'
+import { useWorkspaceStore } from '../../legacy/src/modules/workspace/state/workspaceStore'
+import EditorEmptyState from '../../legacy/src/modules/editor/ui/EditorEmptyState.vue'
 
 describe('EditorEmptyState', () => {
   beforeEach(() => {

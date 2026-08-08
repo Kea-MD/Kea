@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { runReconcilePipeline } from '../../src/modules/editor/state/reconcilePipeline'
+import { runReconcilePipeline } from '../../legacy/src/modules/editor/state/reconcilePipeline'
 
 describe('runReconcilePipeline', () => {
   it('runs stages in order with the same command context', () => {

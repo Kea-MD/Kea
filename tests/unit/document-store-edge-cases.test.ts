@@ -12,8 +12,8 @@ vi.mock('../../src/platform/tauri/documentStorage', () => ({
   tauriDocumentStoragePort: documentStoragePortMock,
 }))
 
-import type { OpenDocument } from '../../src/modules/editor/state/documentStore'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
+import type { OpenDocument } from '../../legacy/src/modules/editor/state/documentStore'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
 
 function makeDocument(overrides: Partial<OpenDocument> = {}): OpenDocument {
   return {

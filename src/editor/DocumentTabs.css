@@ -1,0 +1,198 @@
+/* The tab mask and active-tab geometry need selectors and pseudo-elements. */
+.react-tabs-scroll {
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        #000 var(--tabs-mask-left),
+        #000 calc(100% - var(--tabs-mask-right)),
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        #000 var(--tabs-mask-left),
+        #000 calc(100% - var(--tabs-mask-right)),
+        transparent 100%
+    );
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.react-tabs-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.react-tab,
+.react-new-tab {
+    border-color: var(--react-border);
+    border-style: solid;
+    border-width: 1px 1px 0;
+}
+
+.react-tab {
+    transition: transform 560ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+}
+
+.react-tab:not(.is-active),
+.react-new-tab {
+    border-bottom-width: 1px;
+}
+
+.react-tab.is-active {
+    background: var(--react-tab-active-background);
+}
+
+.react-tab.is-active::before,
+.react-tab.is-active::after {
+    position: absolute;
+    bottom: 0;
+    width: 26px;
+    height: 26px;
+    background: var(--react-tab-active-background);
+    content: "";
+    pointer-events: none;
+}
+
+.react-tab-corner {
+    position: absolute;
+    bottom: 0;
+    z-index: 1;
+    width: 26px;
+    height: 26px;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.react-tab-corner-left {
+    left: -26px;
+    -webkit-mask-image: linear-gradient(
+        to bottom left,
+        transparent 0,
+        #000 6px,
+        #000 calc(100% - 6px),
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to bottom left,
+        transparent 0,
+        #000 6px,
+        #000 calc(100% - 6px),
+        transparent 100%
+    );
+}
+
+.react-tab-corner-right {
+    right: -26px;
+    -webkit-mask-image: linear-gradient(
+        to bottom right,
+        transparent 0,
+        #000 6px,
+        #000 calc(100% - 6px),
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to bottom right,
+        transparent 0,
+        #000 6px,
+        #000 calc(100% - 6px),
+        transparent 100%
+    );
+}
+
+.react-tab-corner path {
+    fill: none;
+    stroke: var(--react-border);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.react-tab.is-active::before {
+    left: -26px;
+    clip-path: path("M 0 26 L 26 26 L 26 0 Q 26 26 0 26 Z");
+}
+
+.react-tab.is-active::after {
+    right: -26px;
+    clip-path: path("M 26 26 L 0 26 L 0 0 Q 0 26 26 26 Z");
+}
+
+.react-tab.is-active > span,
+.react-tab.is-active > button {
+    transform: translateY(-4px);
+}
+
+.react-tab:hover button,
+.react-tab.is-active button {
+    opacity: 0.78;
+}
+
+.react-tab button:hover {
+    opacity: 1;
+}
+
+.react-tab.is-dirty:not(:hover) button {
+    display: none;
+}
+
+.react-tab.is-dirty:hover span[title="Unsaved changes"] {
+    display: none;
+}
+
+.react-tab.is-drag-ghost {
+    height: 26px;
+    border-radius: 13px;
+    visibility: hidden;
+    opacity: 0;
+    box-shadow: none;
+}
+
+.react-tab.is-drag-ghost::before,
+.react-tab.is-drag-ghost::after,
+.react-tab.is-drag-ghost .react-tab-corner {
+    display: none;
+}
+
+.react-tab.is-drag-ghost button {
+    opacity: 0 !important;
+}
+
+.react-tab.is-active.is-drag-ghost > span,
+.react-tab.is-active.is-drag-ghost > button {
+    transform: none;
+}
+
+.react-tab-drag-overlay {
+    position: fixed;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    height: 26px !important;
+    padding: 5px 5px 5px 15px;
+    border-radius: 13px !important;
+    background: var(--react-tab-background);
+    color: var(--react-tab-text);
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0.98;
+    box-shadow: 0 8px 18px rgba(32, 35, 42, 0.18);
+    cursor: grabbing;
+    pointer-events: none;
+    transition: none !important;
+}
+
+.react-tab-drag-overlay button {
+    display: flex;
+    height: 16px;
+    width: 16px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    opacity: 0.78;
+}

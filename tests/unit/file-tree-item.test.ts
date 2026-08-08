@@ -2,10 +2,10 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
-import type { FileEntry } from '../../src/modules/workspace/state/workspaceStore'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
-import FileTreeItem from '../../src/modules/workspace/ui/FileTreeItem.vue'
-import { useWorkspaceStore } from '../../src/modules/workspace/state/workspaceStore'
+import type { FileEntry } from '../../legacy/src/modules/workspace/state/workspaceStore'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
+import FileTreeItem from '../../legacy/src/modules/workspace/ui/FileTreeItem.vue'
+import { useWorkspaceStore } from '../../legacy/src/modules/workspace/state/workspaceStore'
 
 function makeEntry(overrides: Partial<FileEntry> = {}): FileEntry {
   return {

@@ -1,10 +1,10 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { FileEntry } from '../../src/modules/workspace/state/workspaceStore'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
-import { useWorkspaceStore } from '../../src/modules/workspace/state/workspaceStore'
-import QuickOpenDialog from '../../src/modules/workspace/ui/QuickOpenDialog.vue'
+import type { FileEntry } from '../../legacy/src/modules/workspace/state/workspaceStore'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
+import { useWorkspaceStore } from '../../legacy/src/modules/workspace/state/workspaceStore'
+import QuickOpenDialog from '../../legacy/src/modules/workspace/ui/QuickOpenDialog.vue'
 
 function makeFile(path: string, name: string): FileEntry {
   return {

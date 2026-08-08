@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useTheme } from '../../src/shared/composables/useTheme'
+import { useTheme } from '../../legacy/src/shared/composables/useTheme'
 
 function createMatchMediaMock(matches: boolean) {
   let changeHandler: ((event: MediaQueryListEvent) => void) | null = null

@@ -13,7 +13,7 @@ vi.mock('@tauri-apps/api/window', () => ({
   getCurrentWindow: getCurrentWindowMock,
 }))
 
-import { useRuntimeContext } from '../../src/shared/composables/useRuntimeContext'
+import { useRuntimeContext } from '../../legacy/src/shared/composables/useRuntimeContext'
 
 const RuntimeContextHarness = defineComponent({
   setup() {

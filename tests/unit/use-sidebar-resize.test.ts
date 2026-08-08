@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useSidebarResize } from '../../src/modules/workspace/runtime/useSidebarResize'
+import { useSidebarResize } from '../../legacy/src/modules/workspace/runtime/useSidebarResize'
 
 const Harness = defineComponent({
   setup() {

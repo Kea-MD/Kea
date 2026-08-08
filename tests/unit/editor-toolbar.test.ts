@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import EditorToolbar from '../../src/modules/editor/ui/EditorToolbar.vue'
+import EditorToolbar from '../../legacy/src/modules/editor/ui/EditorToolbar.vue'
 import { primeVueStubs } from '../helpers/primeVueStubs'
 
 describe('EditorToolbar', () => {

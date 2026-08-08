@@ -15,6 +15,8 @@
 
 # production
 /dist
+/dist-react
+/dist-legacy
 
 # misc
 .DS_Store
@@ -40,12 +42,16 @@ next-env.d.ts
 .kilocode/mcp.json
 .kilocodemodes
 
+# agent and analysis artifacts
+/.pi-subagents
+/graphify-out
+
 # plans
 /plans
 
 # local scratch / archival assets
 test.md
 /test.html
-src/assets/Logo/Old Orca Logo/
+legacy/src/assets/Logo/Old Orca Logo/
 /references/
 /classic-books-markdown/

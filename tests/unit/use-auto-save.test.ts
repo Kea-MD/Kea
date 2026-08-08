@@ -14,8 +14,8 @@ vi.mock('../../src/platform/tauri/documentStorage', () => ({
   tauriDocumentStoragePort: documentStoragePortMock,
 }))
 
-import { useAutoSave } from '../../src/modules/editor/runtime/useAutoSave'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
+import { useAutoSave } from '../../legacy/src/modules/editor/runtime/useAutoSave'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
 
 const Harness = defineComponent({
   props: {

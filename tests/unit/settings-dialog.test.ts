@@ -3,8 +3,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, h } from 'vue'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { getDefaultShortcutMap } from '../../src/modules/settings/shortcuts/shortcutRegistry'
-import { useSettingsStore } from '../../src/modules/settings/state/settingsStore'
-import SettingsDialog from '../../src/modules/settings/ui/SettingsDialog.vue'
+import { useSettingsStore } from '../../legacy/src/modules/settings/state/settingsStore'
+import SettingsDialog from '../../legacy/src/modules/settings/ui/SettingsDialog.vue'
 
 const DialogStub = defineComponent({
   name: 'Dialog',

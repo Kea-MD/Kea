@@ -4,10 +4,10 @@ Agent-facing guidance for working in this repository.
 
 ## Project Snapshot
 
-- App type: Tauri v2 desktop app with Vue 3 + Vite frontend and Rust backend.
-- Frontend state: Pinia stores in `src/stores/`.
-- Editor stack: TipTap + ProseMirror + markdown bridge.
-- UI kit: PrimeVue (Aura theme) + custom CSS variables in `src/styles/global.css`.
+- App type: Tauri v2 desktop app with React 19 + Vite frontend and Rust backend; legacy Vue modules remain during migration.
+- Frontend state: React state in `src/`; legacy Pinia stores remain in `legacy/src/modules/*/state/`.
+- Editor stack: React owns the default shell with CodeMirror source editing plus Milkdown rendered editing during the current migration; the planned direction is a single CodeMirror-backed Markdown surface with rich widgets.
+- Legacy UI kit: PrimeVue (Aura theme) + custom CSS variables in `legacy/src/styles/global.css`.
 - Package manager: npm (`package-lock.json` is committed).
 - Language policy: use NZ English for user-facing copy (for example, "Minimise").
 
@@ -24,9 +24,13 @@ Agent-facing guidance for working in this repository.
 
 - Install deps: `npm install`
 - Dev server only: `npm run dev`
-  - Runs Vite on port `1420` (strict port in `vite.config.ts`).
+  - Runs the default React app on port `1420` (strict port in `vite.config.ts`).
+- Legacy Vue dev server: `npm run dev:legacy`
+  - Uses `legacy/vite.config.ts`.
 - Type-check + production web build: `npm run build`
-  - Runs `vue-tsc --noEmit && vite build`.
+  - Runs `tsc --noEmit && vite build` for the default React app.
+- Build the legacy Vue app: `npm run build:legacy`
+  - Runs `vue-tsc` against `tsconfig.legacy.json` and builds from `legacy/`.
 - Run frontend unit tests once: `npm run test:unit`
 - Run frontend unit tests with coverage: `npm run test:unit:coverage`
 - Run frontend unit tests in watch mode: `npm run test:unit:watch`
@@ -64,16 +68,18 @@ Agent-facing guidance for working in this repository.
 
 ## Architecture and File Ownership
 
-- Frontend entry: `src/main.ts`.
-- Main page shell: `src/pages/editor.vue`.
-- Editor components: `src/components/editor/`.
-- Sidebar/workspace components: `src/components/sidebar/`.
-- Composables: `src/composables/`.
-- Frontend state: `src/stores/documentStore.ts`, `src/stores/workspaceStore.ts`.
+- Frontend entry: `index.html` → `src/main.tsx`.
+- Legacy entry: `legacy/index.html` → `legacy/src/main.ts`.
+- Default Vite config: `vite.config.ts` (React); legacy Vue config: `legacy/vite.config.ts`.
+- Main app shell: `src/App.tsx`.
+- Shared contracts: `src/core/`.
+- Runtime adapters: `src/adapters/` and `src/platform/`.
+- Framework-neutral editor/shortcut helpers: `src/modules/`.
+- Legacy app runtime/UI: `legacy/src/app/`, `legacy/src/modules/`, and `legacy/src/shared/`.
 - Tauri command surface: `src-tauri/src/commands/file.rs`.
 - Tauri bootstrap/menu setup: `src-tauri/src/lib.rs`.
 
-## Vue + TypeScript Conventions
+## Legacy Vue + TypeScript Conventions
 
 - Use Vue 3 Composition API with `<script setup lang="ts">` for SFCs.
 - Keep SFC block order: `<script setup>`, `<template>`, `<style scoped>`.
@@ -94,7 +100,7 @@ Agent-facing guidance for working in this repository.
 ## Formatting Conventions
 
 - Use 2-space indentation in TS/Vue/CSS.
-- In most Vue/TS source files under `src/`, style is single quotes and no semicolons.
+- In most Vue/TS source files under `legacy/src/`, style is single quotes and no semicolons.
 - Some config/entry files currently use double quotes and semicolons.
 - Follow the dominant style of the file you edit instead of reformatting whole files.
 - Keep lines readable; avoid dense one-liners for complex logic.
@@ -128,7 +134,7 @@ Agent-facing guidance for working in this repository.
 
 ## Styling and Theme Guidelines
 
-- Reuse CSS custom properties from `src/styles/global.css`.
+- Reuse CSS custom properties from `legacy/src/styles/global.css` when working on the legacy UI; React styles live in `src/styles.css`.
 - Dark mode is class-based (`.dark`), configured via PrimeVue `darkModeSelector`.
 - Prefer extending design tokens over hardcoded colours.
 - Preserve existing visual language unless asked for a redesign.

@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultShortcutMap } from '../../src/modules/settings/shortcuts/shortcutRegistry'
-import { useSettingsStore } from '../../src/modules/settings/state/settingsStore'
+import { useSettingsStore } from '../../legacy/src/modules/settings/state/settingsStore'
 
 describe('settingsStore', () => {
   const storage = new Map<string, string>()

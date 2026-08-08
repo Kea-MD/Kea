@@ -1,0 +1,587 @@
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: Roboto, ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+    color-scheme: light;
+    font-family: Roboto, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+html,
+body,
+#react-spike-root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: transparent;
+}
+
+body.web-platform {
+    background-color: #000;
+}
+
+button,
+select {
+    font: inherit;
+}
+
+button:focus-visible,
+select:focus-visible {
+    outline: 2px solid rgb(var(--react-brand-rgb));
+    outline-offset: 2px;
+}
+
+.react-spike-shell {
+    --react-radius: 45px;
+    --react-inset: 7.5px;
+    --react-brand-rgb: 0, 150, 0;
+    --react-light-50: rgba(255, 255, 255, 1);
+    --react-light-100: rgba(245, 245, 245, 1);
+    --react-light-200: rgba(225, 225, 225, 1);
+    --react-light-300: rgba(213, 214, 215, 1);
+    --react-light-400: rgba(166, 167, 171, 1);
+    --react-light-500: rgba(125, 127, 130, 1);
+    --react-light-600: rgba(83, 86, 90, 1);
+    --react-light-700: rgba(64, 65, 69, 1);
+    /* Light mode is the explicit default; .dark below swaps these semantic tones. */
+    --react-dark-50: var(--react-light-50);
+    --react-dark-100: var(--react-light-100);
+    --react-dark-200: var(--react-light-200);
+    --react-dark-300: var(--react-light-300);
+    --react-dark-400: var(--react-light-400);
+    --react-dark-500: var(--react-light-500);
+    --react-dark-600: var(--react-light-600);
+    --react-dark-700: var(--react-light-700);
+    --react-shell-background: transparent;
+    --react-page-background: rgba(0, 0, 0, 0.5);
+    --react-panel-background: var(--react-light-50);
+    --react-hover-background: rgba(37, 39, 45, 0.1);
+    --react-border: rgb(216, 216, 216);
+    --react-sidebar-background: transparent;
+    --react-toolbar-background: var(--react-light-100);
+    --react-tab-background: var(--react-toolbar-background);
+    --react-tab-active-background: var(--react-light-100);
+    --react-tab-text: var(--react-dark-500);
+    --react-tab-active-text: rgb(var(--react-brand-rgb));
+}
+
+.dark {
+    color-scheme: dark;
+}
+
+.dark .react-spike-shell {
+    --react-panel-background: rgba(255, 255, 255, 0.07);
+    --react-border: rgb(50, 50, 50);
+    --react-sidebar-background: transparent;
+    --react-toolbar-background: rgb(0, 0, 0);
+    --react-tab-background: var(--react-toolbar-background);
+    --react-tab-active-background: rgb(0, 0, 0);
+    --react-tab-text: var(--react-dark-500);
+    --react-tab-active-text: rgb(var(--react-brand-rgb));
+}
+
+.material-symbols-outlined {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* The sidebar reveal uses a delayed hover corridor, which is not expressible as utilities. */
+.react-sidebar-host.is-open,
+.react-sidebar-host.is-hovering,
+.react-sidebar-host:has(.react-sidebar:hover),
+.react-sidebar-host:has(.react-safety-triangle:hover) {
+    pointer-events: auto;
+}
+
+.react-sidebar-host:not(.is-open).is-hovering,
+.react-sidebar-host:not(.is-open):has(.react-sidebar:hover),
+.react-sidebar-host:not(.is-open):has(.react-safety-triangle:hover) {
+    z-index: 400;
+}
+
+.react-safety-triangle {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    z-index: 10;
+    width: 250px;
+    height: 50px;
+    pointer-events: none;
+    clip-path: polygon(20px 30px, 40px 30px, 250px 50px, 10px 50px);
+}
+
+.react-safety-triangle.is-active,
+.react-sidebar-host:not(.is-open):has(.react-sidebar:hover)
+    .react-safety-triangle,
+.react-sidebar-host:not(.is-open) .react-safety-triangle:hover {
+    pointer-events: auto;
+}
+
+.react-sidebar-host.is-open .react-sidebar {
+    top: 33px;
+    height: calc(100% - 33px);
+}
+
+.react-sidebar-host.is-open .react-sidebar,
+.react-sidebar-host:not(.is-open).is-hovering .react-sidebar,
+.react-sidebar-host:not(.is-open):has(.react-sidebar:hover) .react-sidebar,
+.react-sidebar-host:not(.is-open):has(.react-safety-triangle:hover)
+    .react-sidebar {
+    opacity: 1;
+    transform: translateX(0);
+    translate: 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition-timing-function: cubic-bezier(0, 0, 0.58, 1);
+}
+
+.react-sidebar-host.is-open .react-sidebar {
+    border-color: transparent;
+    background: var(--react-sidebar-background);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.react-sidebar-host:not(.is-open).is-hovering .react-sidebar,
+.react-sidebar-host:not(.is-open):has(.react-sidebar:hover) .react-sidebar,
+.react-sidebar-host:not(.is-open):has(.react-safety-triangle:hover)
+    .react-sidebar {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(15px) saturate(180%);
+    -webkit-backdrop-filter: blur(15px) saturate(180%);
+}
+
+.react-editor-surface,
+.code-mirror-shell,
+.code-mirror-editor,
+.milkdown-editor-shell,
+.milkdown-editor {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+.react-settings-overlay {
+    --settings-dialog-background: #f7f7f7;
+    --settings-section-background: #ffffff;
+    --settings-control-background: #f1f1f1;
+    --settings-border: #dedede;
+    --settings-text: #1a1a1a;
+    --settings-muted: #707070;
+    --settings-subtle: #969696;
+    --settings-accent: #1a1a1a;
+    --settings-accent-soft: rgba(26, 26, 26, 0.08);
+    --settings-toggle-off: #c8c8c8;
+    --settings-overlay: rgba(0, 0, 0, 0.28);
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--settings-overlay);
+    backdrop-filter: blur(8px) saturate(115%);
+    -webkit-backdrop-filter: blur(8px) saturate(115%);
+}
+
+.dark .react-settings-overlay {
+    --settings-dialog-background: #171717;
+    --settings-section-background: #202020;
+    --settings-control-background: #111111;
+    --settings-border: rgba(255, 255, 255, 0.13);
+    --settings-text: #f3f3f3;
+    --settings-muted: #b0b0b0;
+    --settings-subtle: #898989;
+    --settings-accent: #f3f3f3;
+    --settings-accent-soft: rgba(255, 255, 255, 0.1);
+    --settings-toggle-off: #484848;
+    --settings-overlay: rgba(0, 0, 0, 0.72);
+}
+
+.react-settings-dialog {
+    width: min(760px, 100%);
+    max-height: min(820px, calc(100vh - 40px));
+    overflow: hidden;
+    border: 1px solid var(--settings-border);
+    border-radius: 20px;
+    background: var(--settings-dialog-background);
+    color: var(--settings-text);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.react-settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 24px 18px;
+    border-bottom: 1px solid var(--settings-border);
+}
+
+.react-settings-header h2,
+.react-settings-section h3,
+.react-settings-shortcut-group h4,
+.react-settings-dialog p {
+    margin: 0;
+}
+
+.react-settings-header h2 {
+    color: var(--settings-text);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.react-settings-close {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--settings-muted);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.react-settings-close:hover {
+    background: var(--settings-accent-soft);
+    color: var(--settings-accent);
+}
+
+.react-settings-content {
+    display: flex;
+    max-height: calc(min(820px, 100vh - 40px) - 70px);
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    padding: 18px 24px 24px;
+}
+
+.react-settings-section {
+    padding: 14px 16px;
+    border: 1px solid var(--settings-border);
+    border-radius: 14px;
+    background: var(--settings-section-background);
+}
+
+.react-settings-section h3 {
+    margin-bottom: 2px;
+    color: var(--settings-text);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.react-settings-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+
+.react-settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 0;
+}
+
+.react-settings-row + .react-settings-row {
+    margin-top: 0;
+    border-top: 1px solid var(--settings-border);
+}
+
+.react-settings-copy {
+    min-width: 0;
+}
+
+.react-settings-label {
+    color: var(--settings-text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.react-settings-description {
+    margin-top: 4px !important;
+    color: var(--settings-muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.react-settings-select {
+    width: 138px;
+    flex: none;
+    padding: 8px 10px;
+    border: 1px solid var(--settings-border);
+    border-radius: 8px;
+    background: var(--settings-control-background);
+    color: var(--settings-text);
+    font-size: 12px;
+}
+
+.react-settings-select:hover,
+.react-settings-shortcut-chip:hover {
+    border-color: color-mix(in srgb, var(--settings-accent) 52%, var(--settings-border));
+}
+
+.react-settings-toggle {
+    position: relative;
+    width: 36px;
+    height: 21px;
+    flex: none;
+    padding: 2px;
+    border: 1px solid var(--settings-toggle-off);
+    border-radius: 999px;
+    background: var(--settings-toggle-off);
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+.react-settings-toggle span {
+    display: block;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: transform 120ms ease;
+}
+
+.react-settings-toggle.is-checked {
+    border-color: transparent;
+    background: var(--settings-accent);
+}
+
+.react-settings-toggle.is-checked span {
+    transform: translateX(15px);
+}
+
+.dark .react-settings-toggle.is-checked span {
+    background: #1a1a1a;
+}
+
+.react-settings-link {
+    padding: 5px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--settings-accent);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.react-settings-link:hover {
+    background: var(--settings-accent-soft);
+}
+
+.react-settings-shortcut-group + .react-settings-shortcut-group {
+    margin-top: 12px;
+}
+
+.react-settings-shortcut-group h4 {
+    margin-bottom: 2px;
+    color: var(--settings-subtle);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.react-settings-shortcut-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.react-settings-shortcut-controls {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.react-settings-shortcut-chip {
+    min-width: 112px;
+    padding: 7px 10px;
+    border: 1px solid var(--settings-border);
+    border-radius: 8px;
+    background: var(--settings-control-background);
+    color: var(--settings-text);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+}
+
+.react-settings-shortcut-chip.is-capturing {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--settings-accent) 30%, transparent);
+    background: var(--settings-accent-soft);
+}
+
+.react-settings-error {
+    margin-top: 8px !important;
+    color: #c43d39;
+    font-size: 12px;
+}
+
+.code-mirror-shell {
+    position: relative;
+}
+
+.code-mirror-editor .cm-editor {
+    height: 100%;
+    background: transparent;
+}
+
+.code-mirror-editor .cm-editor.cm-focused {
+    outline: none;
+}
+
+.code-mirror-editor .cm-scroller {
+    font-family: "SF Mono", "Monaco", "Cascadia Mono", "Roboto Mono", monospace;
+    line-height: 1.5;
+}
+
+.code-mirror-editor .cm-content {
+    padding: 18px 20px 28px;
+}
+
+.code-mirror-editor .cm-gutters {
+    border-right: 1px solid var(--react-border);
+    background: transparent;
+}
+
+.code-mirror-status {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    background: var(--react-light-100);
+    color: var(--react-light-700);
+}
+
+.code-mirror-status.is-error {
+    background: rgba(207, 34, 46, 0.12);
+    color: #b42318;
+}
+
+.milkdown-editor-shell {
+    position: relative;
+}
+
+.milkdown-editor {
+    overflow: auto;
+    padding: 10px 100px;
+}
+
+.milkdown-editor .milkdown,
+.milkdown-editor .milkdown .editor {
+    min-height: 100%;
+}
+
+.milkdown-status {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    background: var(--react-light-100);
+    color: var(--react-light-700);
+}
+
+.milkdown-status.is-error {
+    background: rgba(207, 34, 46, 0.12);
+    color: #b42318;
+}
+
+.dark .milkdown-status {
+    background: var(--react-dark-100);
+    color: var(--react-dark-700);
+}
+
+.dark .code-mirror-status {
+    background: var(--react-dark-100);
+    color: var(--react-dark-700);
+}
+
+@media (max-width: 768px) {
+    .react-settings-overlay {
+        align-items: flex-end;
+        padding: 12px;
+    }
+
+    .react-settings-dialog {
+        max-height: calc(100vh - 24px);
+        border-radius: 18px;
+    }
+
+    .react-settings-header {
+        padding: 18px 18px 16px;
+    }
+
+    .react-settings-content {
+        max-height: calc(100vh - 94px);
+        padding: 14px 14px 18px;
+    }
+
+    .react-settings-shortcut-row {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .react-settings-shortcut-controls {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .react-sidebar-host {
+        position: absolute;
+        inset: 0 auto 0 0;
+        z-index: 20;
+    }
+
+    .react-sidebar-host.is-open,
+    .react-sidebar-host.is-hovering,
+    .react-sidebar-host:has(.react-sidebar:hover) {
+        width: 0;
+    }
+
+    .react-sidebar {
+        position: fixed;
+        top: 0;
+        left: 5px;
+        display: block;
+        width: min(260px, calc(100% - 24px));
+        height: 100vh;
+        padding-top: 10px;
+        border-radius: 0;
+        z-index: 100;
+        box-shadow: 8px 0 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .react-sidebar-content {
+        border-radius: 0;
+    }
+}

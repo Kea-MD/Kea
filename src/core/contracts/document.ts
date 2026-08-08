@@ -1,0 +1,28 @@
+export type DocumentId = string
+
+export interface OpenedDocumentData {
+  path: string
+  content: string
+  name: string
+}
+
+export interface SaveDocumentAsResult {
+  path: string
+  name: string
+}
+
+export interface DocumentSnapshot {
+  id: DocumentId
+  path: string
+  name: string
+  content: string
+  savedContent: string
+  isDirty: boolean
+}
+
+export interface DocumentStoragePort {
+  readFile: (path: string) => Promise<OpenedDocumentData>
+  openMarkdownFile: () => Promise<OpenedDocumentData>
+  saveMarkdownFile: (path: string, content: string) => Promise<void>
+  saveMarkdownFileAs: (content: string) => Promise<SaveDocumentAsResult>
+}

@@ -12,7 +12,7 @@ vi.mock('../../src/platform/tauri/documentStorage', () => ({
   tauriDocumentStoragePort: documentStoragePortMock,
 }))
 
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
 
 describe('documentStore actions', () => {
   beforeEach(() => {

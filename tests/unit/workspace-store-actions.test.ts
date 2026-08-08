@@ -15,7 +15,7 @@ vi.mock('../../src/platform/tauri/workspaceFs', () => ({
   tauriWorkspacePort: workspacePortMock,
 }))
 
-import { useWorkspaceStore, type FileEntry } from '../../src/modules/workspace/state/workspaceStore'
+import { useWorkspaceStore, type FileEntry } from '../../legacy/src/modules/workspace/state/workspaceStore'
 
 function makeDir(name: string, path: string, children: FileEntry[] = []): FileEntry {
   return {

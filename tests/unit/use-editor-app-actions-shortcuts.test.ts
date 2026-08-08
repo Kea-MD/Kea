@@ -2,10 +2,10 @@ import { createPinia, setActivePinia } from 'pinia'
 import { mount } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useEditorAppActions } from '../../src/app/runtime/useEditorAppActions'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
-import { useSettingsStore } from '../../src/modules/settings/state/settingsStore'
-import { useWorkspaceStore } from '../../src/modules/workspace/state/workspaceStore'
+import { useEditorAppActions } from '../../legacy/src/app/runtime/useEditorAppActions'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
+import { useSettingsStore } from '../../legacy/src/modules/settings/state/settingsStore'
+import { useWorkspaceStore } from '../../legacy/src/modules/workspace/state/workspaceStore'
 
 const listenMock = vi.hoisted(() => vi.fn())
 

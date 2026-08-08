@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { FileEntry } from '../../src/modules/workspace/state/workspaceStore'
-import { useWorkspaceStore } from '../../src/modules/workspace/state/workspaceStore'
+import type { FileEntry } from '../../legacy/src/modules/workspace/state/workspaceStore'
+import { useWorkspaceStore } from '../../legacy/src/modules/workspace/state/workspaceStore'
 
 describe('workspaceStore helpers', () => {
   beforeEach(() => {

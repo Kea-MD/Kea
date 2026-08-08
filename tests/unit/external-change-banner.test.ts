@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
-import ExternalChangeBanner from '../../src/modules/editor/ui/ExternalChangeBanner.vue'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
+import ExternalChangeBanner from '../../legacy/src/modules/editor/ui/ExternalChangeBanner.vue'
 
 describe('ExternalChangeBanner', () => {
   beforeEach(() => {

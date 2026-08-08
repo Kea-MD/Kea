@@ -1,6 +1,6 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
 
 describe('documentStore', () => {
   beforeEach(() => {

@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useSidebarInteraction } from '../../src/modules/workspace/runtime/useSidebarInteraction'
+import { useSidebarInteraction } from '../../legacy/src/modules/workspace/runtime/useSidebarInteraction'
 
 const Harness = defineComponent({
   setup() {

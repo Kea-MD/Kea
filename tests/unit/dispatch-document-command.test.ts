@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { dispatchDocumentCommand } from '../../src/modules/editor/state/dispatchDocumentCommand'
+import { dispatchDocumentCommand } from '../../legacy/src/modules/editor/state/dispatchDocumentCommand'
 
 describe('dispatchDocumentCommand', () => {
   it('runs apply between normalise and reconcile stages and returns apply result', () => {

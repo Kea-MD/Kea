@@ -18,8 +18,8 @@ vi.mock('../../src/platform/tauri/fileWatch', () => ({
   tauriFileWatchPort: fileWatchPortMock,
 }))
 
-import { useExternalFileSync } from '../../src/modules/workspace/runtime/useExternalFileSync'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
+import { useExternalFileSync } from '../../legacy/src/modules/workspace/runtime/useExternalFileSync'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
 
 const Harness = defineComponent({
   setup() {

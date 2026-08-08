@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
 import { describe, expect, it } from 'vitest'
 import { dispatchEditorUiState } from '../../src/modules/editor/editorCommands'
-import { useEditorUiState } from '../../src/app/runtime/useEditorUiState'
+import { useEditorUiState } from '../../legacy/src/app/runtime/useEditorUiState'
 
 const Harness = defineComponent({
   setup() {

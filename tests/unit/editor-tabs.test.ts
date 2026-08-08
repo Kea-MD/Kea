@@ -1,9 +1,9 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { OpenDocument } from '../../src/modules/editor/state/documentStore'
-import { useDocumentStore } from '../../src/modules/editor/state/documentStore'
-import EditorTabs from '../../src/modules/editor/ui/EditorTabs.vue'
+import type { OpenDocument } from '../../legacy/src/modules/editor/state/documentStore'
+import { useDocumentStore } from '../../legacy/src/modules/editor/state/documentStore'
+import EditorTabs from '../../legacy/src/modules/editor/ui/EditorTabs.vue'
 
 function makeTab(id: string, name: string): OpenDocument {
   return {

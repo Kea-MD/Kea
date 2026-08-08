@@ -8,6 +8,12 @@
 - This document defines architecture shape and implementation constraints.
 - If there is any mismatch, `docs/requirements.md` is the source of truth.
 
+## Current Implementation Status
+
+The repository is in an incremental migration toward the architecture described below. The default shell is React with typed Tauri adapters under `src/platform/tauri/`, framework-neutral contracts under `src/core/`, CodeMirror source editing, and Milkdown rendered editing. The previous Vue + Pinia shell remains runnable under `legacy/` while the target direction is a single CodeMirror-backed Markdown surface with source-preserving rich widgets.
+
+The framework-agnostic core, unified reconcile pipeline, metadata store, collaboration adapters, and browser runtime adapters are architectural targets rather than complete implementations today. New work must avoid deepening the current boundaries' limitations and should add explicit contracts as migration seams are introduced.
+
 ## Architecture Invariants
 
 1. Markdown (`.md`) is the canonical document format.
@@ -20,14 +26,14 @@
 
 ## Layered Model
 
-- **App Shell**: Vue + Pinia UI state, command dispatch, and runtime wiring.
+- **App Shell**: React UI state, command dispatch, and runtime wiring. The retired Vue + Pinia shell is isolated under `legacy/`.
 - **Core Engine**: framework-agnostic document/workspace/collaboration orchestration.
 - **Port Contracts**: stable interfaces for runtime and subsystem capabilities.
 - **Adapters**: concrete implementations (Tauri/web runtime, editor bridge, CRDT provider, parser, renderer, storage).
 
 ```mermaid
 graph TB
-    Shell["App Shell<br/>Vue + Pinia"] --> Core["Core Engine<br/>Commands + Reconcile + Policies"]
+    Shell["App Shell<br/>React"] --> Core["Core Engine<br/>Commands + Reconcile + Policies"]
     Core --> Ports["Port Contracts<br/>Runtime | Storage | Sync | Parse | Render"]
     Ports --> Adapters["Adapters<br/>Tauri/Web Runtime | FS | Yjs | Markdown | Pagination"]
 ```
@@ -126,7 +132,7 @@ sequenceDiagram
 
 ### ADR Index
 
-- `docs/adr/README.md`
+- ADRs will be added under `docs/adr/` as boundary-impacting decisions are made. The directory is not yet populated.
 
 ## Security and Privacy Boundaries
 
