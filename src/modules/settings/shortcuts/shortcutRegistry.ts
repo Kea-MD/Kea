@@ -104,7 +104,7 @@ export const shortcutDefinitions: ShortcutDefinition[] = [
   {
     id: 'toggle_editor_mode',
     label: 'Toggle editor mode',
-    description: 'Switch between source and rendered modes in the legacy editor.',
+    description: 'Switch between source and rendered editor modes.',
     category: 'View',
     defaultBinding: 'Mod+E',
   },

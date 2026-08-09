@@ -5,9 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:legacy": "vite --config legacy/vite.config.ts",
     "build": "tsc --noEmit && vite build",
-    "build:legacy": "vue-tsc --project tsconfig.legacy.json && vite build --config legacy/vite.config.ts",
     "test:unit": "vitest run --config vitest.config.ts",
     "test:unit:coverage": "vitest run --config vitest.config.ts --coverage",
     "test:unit:watch": "vitest --config vitest.config.ts",
