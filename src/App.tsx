@@ -16,6 +16,7 @@ import { useReactAutoSave } from './editor/useReactAutoSave'
 import type { DocumentStoragePort } from './core/contracts/document'
 import type { WorkspacePort } from './core/contracts/workspace'
 import { resolveShortcutAction } from './modules/settings/shortcuts/shortcutRegistry'
+import { scheduleAutoUpdateCheck } from './settings/updatesClient'
 
 const toolbarGroups: Array<Array<{ icon: string; label: string }>> = [
   [
@@ -195,6 +196,8 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
   const { sidebarWidth, isResizing, startResize } = useSidebarResize()
   const { isDark, toggleTheme, themeMode, setThemeMode } = useReactTheme()
   const { hasTrafficLightsInset, isTauri } = useRuntimeContext()
+
+  useEffect(() => scheduleAutoUpdateCheck(), [isTauri])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

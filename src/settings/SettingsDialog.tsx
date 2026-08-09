@@ -8,6 +8,7 @@ import {
 import { isMacPlatform } from '../shared/platform/runtime'
 import type { ThemeMode } from '../theme'
 import type { ReactSettings } from './useSettings'
+import { useUpdatesSettingsController } from './updatesClient'
 
 export interface SettingsDialogProps {
   settings: ReactSettings
@@ -41,6 +42,39 @@ function SettingRow({ label, description, children, className = '' }: { label: s
     </div>
     {children}
   </div>
+}
+
+function UpdatesSection(): React.JSX.Element {
+  const { state, check, install } = useUpdatesSettingsController()
+  const description = state.status === 'available'
+    ? `Version ${state.availableVersion} is ready to install.`
+    : state.status === 'current'
+      ? 'Kea is up to date.'
+      : state.status === 'checking'
+        ? 'Checking for a newer version…'
+        : state.status === 'downloading'
+          ? `Downloading update${state.progress === undefined ? '…' : ` (${Math.round(state.progress)}%)`}`
+          : state.status === 'installing'
+            ? 'Installing the update. Kea will restart shortly.'
+            : state.status === 'error' || state.status === 'unavailable'
+              ? (state.message ?? 'Update checks are unavailable.')
+              : 'Check for a newer version of Kea.'
+
+  const busy = state.status === 'checking' || state.status === 'downloading' || state.status === 'installing'
+  return <section className="react-settings-section" aria-labelledby="react-updates-settings-title">
+    <h3 id="react-updates-settings-title">Updates</h3>
+    <SettingRow label={`Version ${state.currentVersion}`} description={description}>
+      {state.status === 'available' ? (
+        <button type="button" className="react-settings-link" onClick={() => void install()}>
+          Install and restart
+        </button>
+      ) : (
+        <button type="button" className="react-settings-link" disabled={busy} onClick={() => void check()}>
+          {state.status === 'checking' ? 'Checking…' : 'Check for updates'}
+        </button>
+      )}
+    </SettingRow>
+  </section>
 }
 
 export function SettingsDialog({ settings, themeMode, onThemeModeChange, onRestoreWorkspaceChange, onEdgeGlowChange, onSetShortcut, onResetShortcut, onResetAllShortcuts, onClose }: SettingsDialogProps) {
@@ -100,6 +134,7 @@ export function SettingsDialog({ settings, themeMode, onThemeModeChange, onResto
       </header>
 
       <div className="react-settings-content">
+        <UpdatesSection />
         <section className="react-settings-section" aria-labelledby="react-appearance-settings-title">
           <h3 id="react-appearance-settings-title">Appearance</h3>
           <SettingRow label="Theme" description="Choose light, dark, or follow your system theme.">
