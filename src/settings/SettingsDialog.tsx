@@ -164,7 +164,7 @@ export function SettingsDialog({ settings, themeMode, onThemeModeChange, onResto
           </div>
           {(['File', 'Edit', 'View'] as const).map(category => <div className="react-settings-shortcut-group" key={category}>
             <h4>{category}</h4>
-            {shortcutDefinitions.filter(shortcut => shortcut.category === category).map(shortcut => <SettingRow key={shortcut.id} className="react-settings-shortcut-row" label={shortcut.label} description={shortcut.description}>
+            {shortcutDefinitions.filter(shortcut => shortcut.category === category && shortcut.id !== 'toggle_editor_mode').map(shortcut => <SettingRow key={shortcut.id} className="react-settings-shortcut-row" label={shortcut.label} description={shortcut.description}>
               <div className="react-settings-shortcut-controls">
                 <button type="button" className={`react-settings-shortcut-chip${editingShortcutId === shortcut.id ? ' is-capturing' : ''}`} title={editingShortcutId === shortcut.id ? 'Press a key combination' : 'Edit shortcut'} onClick={() => startEditing(shortcut.id)} onKeyDown={event => handleCapture(shortcut.id, event)}>
                   {editingShortcutId === shortcut.id ? 'Press keys…' : formatShortcutForDisplay(settings.shortcuts[shortcut.id], isMac)}

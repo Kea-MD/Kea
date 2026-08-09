@@ -1,12 +1,12 @@
-# AGENTS.md
+# [AGENTS.md](http://AGENTS.md)
 
 Agent-facing guidance for working in this repository.
 
 ## Project Snapshot
 
-- App type: Tauri v2 desktop app with React 19 + Vite frontend and Rust backend; legacy Vue modules remain during migration.
-- Frontend state: React state in `src/`; legacy Pinia stores remain in `legacy/src/modules/*/state/`.
-- Editor stack: React owns the default shell with CodeMirror source editing plus Milkdown rendered editing during the current migration; the planned direction is a single CodeMirror-backed Markdown surface with rich widgets.
+__- App type: Tauri v2 desktop app with React 19 + Vite frontend and Rust backend; legacy Vue modules remain during migration.
+__- Frontend state: React state in `src/`; legacy Pinia stores remain in `legacy/src/modules/*/state/`.
+- Editor stack: React owns the default shell with an official `@prosemark/*` CodeMirror-backed Markdown surface; Kea extensions add Mermaid diagrams, GFM table previews, and local relative-image resolution. Legacy Vue still uses Milkdown.
 - Legacy UI kit: PrimeVue (Aura theme) + custom CSS variables in `legacy/src/styles/global.css`.
 - Package manager: npm (`package-lock.json` is committed).
 - Language policy: use NZ English for user-facing copy (for example, "Minimise").
@@ -91,9 +91,9 @@ Agent-facing guidance for working in this repository.
 ## Import Conventions
 
 - Group imports in this order:
-  1) framework/external packages (`vue`, `pinia`, `@tauri-apps/*`, etc.)
-  2) internal modules/components/composables/stores
-  3) styles/assets
+  1. framework/external packages (`vue`, `pinia`, `@tauri-apps/*`, etc.)
+  2. internal modules/components/composables/stores
+  3. styles/assets
 - Keep import paths consistent with nearby files (mostly relative imports in `src/`).
 - In large edits, avoid import churn that is unrelated to the task.
 
@@ -111,7 +111,7 @@ Agent-facing guidance for working in this repository.
 - Variables/functions/composables/stores: camelCase.
 - CSS classes: kebab-case.
 - Store IDs: lowercase strings (for example `'document'`, `'workspace'`).
-- Keep Tauri command names snake_case to match existing invoke usage.
+- Keep Tauri command names snake\_case to match existing invoke usage.
 
 ## Error Handling Guidelines
 
@@ -146,7 +146,7 @@ Agent-facing guidance for working in this repository.
 - Use standard Rust formatting and idioms (`cargo fmt` compatible).
 - Avoid panics in command paths; return structured errors instead.
 
-## Agent Workflow Expectations
+Agent Workflow Expectations
 
 - Make minimal, targeted changes; avoid broad refactors unless requested.
 - Do not add new dependencies unless necessary and justified.

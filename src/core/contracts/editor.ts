@@ -5,7 +5,7 @@ export type EditorCommand =
   | 'bold' | 'italic' | 'strikethrough' | 'code'
   | 'code-block' | 'blockquote' | 'bullet-list' | 'ordered-list' | 'task-list'
   | 'insert-link' | 'insert-image' | 'insert-hr' | 'insert-highlight'
-  | 'insert-mermaid' | 'insert-math'
+  | 'insert-mermaid' | 'insert-math' | 'insert-table'
   | 'heading-paragraph' | 'heading-1' | 'heading-2' | 'heading-3' | 'heading-4'
   | 'heading-5' | 'heading-6'
 
@@ -33,7 +33,9 @@ export interface EditorCapabilities {
 export interface EditorController {
   execute: (command: EditorCommand) => boolean
   getCapabilities: () => EditorCapabilities
+  getContent: () => string
   getSelection: () => EditorSelection | null
+  revealPosition: (position: number) => void
   focus: () => void
   destroy: () => void
 }

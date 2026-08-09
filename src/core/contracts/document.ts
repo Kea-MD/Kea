@@ -20,6 +20,14 @@ export interface DocumentSnapshot {
   isDirty: boolean
 }
 
+export interface ExternalDocumentChange {
+  documentId: DocumentId
+  path: string
+  kind: 'modified' | 'removed'
+  diskContent?: string
+  detectedAt: number
+}
+
 export interface DocumentStoragePort {
   readFile: (path: string) => Promise<OpenedDocumentData>
   openMarkdownFile: () => Promise<OpenedDocumentData>

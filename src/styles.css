@@ -159,10 +159,8 @@ select:focus-visible {
 }
 
 .react-editor-surface,
-.code-mirror-shell,
-.code-mirror-editor,
-.milkdown-editor-shell,
-.milkdown-editor {
+.prosemark-editor-shell,
+.prosemark-editor-mount {
     width: 100%;
     height: 100%;
     min-height: 0;
@@ -440,87 +438,238 @@ select:focus-visible {
     font-size: 12px;
 }
 
-.code-mirror-shell {
+.prosemark-editor-shell {
+    --pm-header-mark-color: var(--react-dark-400);
+    --pm-link-color: rgb(var(--react-brand-rgb));
+    --pm-muted-color: var(--react-dark-500);
+    --pm-code-background-color: #f1f1f3;
+    --pm-code-font: "SF Mono", "Monaco", "Cascadia Mono", "Roboto Mono", monospace;
+    --pm-code-btn-background-color: rgba(0, 0, 0, 0.06);
+    --pm-code-btn-hover-background-color: rgba(0, 0, 0, 0.11);
+    --pm-blockquote-vertical-line-background-color: rgb(var(--react-brand-rgb));
+    --pm-cursor-color: rgb(var(--react-brand-rgb));
+    --pm-latex-math-formula-color: var(--react-dark-700);
+    --pm-latex-math-error-color: #b42318;
+    --pm-latex-math-error-background-color: rgba(180, 35, 24, 0.08);
+    --text-primary: var(--react-dark-700);
+    --text-muted: var(--react-dark-500);
+    --link-color: rgb(var(--react-brand-rgb));
+    --border-color: var(--react-border);
+    --surface-subtle: color-mix(in srgb, var(--react-dark-200) 55%, transparent);
+    --surface-card: var(--react-light-50);
+    --bg-base: var(--react-light-50);
+    --fg-base: var(--react-dark-700);
+    --text-secondary: var(--react-dark-500);
+    --text-error: #b42318;
+    --accent: rgb(var(--react-brand-rgb));
     position: relative;
+    overflow: hidden;
 }
 
-.code-mirror-editor .cm-editor {
+.prosemark-editor-mount .cm-editor {
     height: 100%;
     background: transparent;
-}
-
-.code-mirror-editor .cm-editor.cm-focused {
-    outline: none;
-}
-
-.code-mirror-editor .cm-scroller {
-    font-family: "SF Mono", "Monaco", "Cascadia Mono", "Roboto Mono", monospace;
-    line-height: 1.5;
-}
-
-.code-mirror-editor .cm-content {
-    padding: 18px 20px 28px;
-}
-
-.code-mirror-editor .cm-gutters {
-    border-right: 1px solid var(--react-border);
-    background: transparent;
-}
-
-.code-mirror-status {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    z-index: 2;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 12px;
-    background: var(--react-light-100);
-    color: var(--react-light-700);
-}
-
-.code-mirror-status.is-error {
-    background: rgba(207, 34, 46, 0.12);
-    color: #b42318;
-}
-
-.milkdown-editor-shell {
-    position: relative;
-}
-
-.milkdown-editor {
-    overflow: auto;
-    padding: 10px 100px;
-}
-
-.milkdown-editor .milkdown,
-.milkdown-editor .milkdown .editor {
-    min-height: 100%;
-}
-
-.milkdown-status {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    z-index: 2;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 12px;
-    background: var(--react-light-100);
-    color: var(--react-light-700);
-}
-
-.milkdown-status.is-error {
-    background: rgba(207, 34, 46, 0.12);
-    color: #b42318;
-}
-
-.dark .milkdown-status {
-    background: var(--react-dark-100);
     color: var(--react-dark-700);
 }
 
-.dark .code-mirror-status {
+.prosemark-editor-mount .cm-editor.cm-focused {
+    outline: none;
+}
+
+.prosemark-editor-mount .cm-scroller {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.72;
+    overflow: auto;
+}
+
+.prosemark-editor-mount .cm-content {
+    width: min(100%, 960px);
+    min-height: 100%;
+    margin: 0 auto;
+    padding: 32px clamp(24px, 5vw, 72px) 64px;
+    caret-color: rgb(var(--react-brand-rgb));
+}
+
+.prosemark-editor-mount .cm-line {
+    padding: 0;
+}
+
+.prosemark-editor-mount .cm-gutters {
+    display: none;
+}
+
+.prosemark-editor-mount .cm-selectionBackground,
+.prosemark-editor-mount .cm-content ::selection {
+    background: color-mix(in srgb, rgb(var(--react-brand-rgb)) 24%, transparent) !important;
+}
+
+.prosemark-editor-mount .cm-latex-math,
+.prosemark-editor-mount .cm-html-widget,
+.prosemark-editor-mount .cm-image-block {
+    margin: 12px 0 18px;
+}
+
+.prosemark-editor-mount .cm-image img {
+    max-width: 100%;
+    max-height: 620px;
+    border-radius: 10px;
+}
+
+.prosemark-editor-mount .cm-checkbox {
+    width: 14px;
+    height: 14px;
+    margin: 0 5px 0 1px;
+    accent-color: rgb(var(--react-brand-rgb));
+    vertical-align: -1px;
+}
+
+.prosemark-editor-mount .cm-panels {
+    border-color: var(--react-border);
+    background: var(--react-light-100);
+    color: var(--react-dark-700);
+}
+
+.prosemark-editor-status {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--react-light-100);
+    color: var(--react-light-700);
+    font-size: 12px;
+}
+
+.prosemark-editor-status.is-error {
+    background: rgba(207, 34, 46, 0.12);
+    color: #b42318;
+}
+
+.markdown-toolbar-controls {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 2px;
+    min-height: 28px;
+}
+
+.markdown-toolbar-button {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 6px;
+    padding: 0;
+    background: transparent;
+    color: var(--react-dark-600);
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+.markdown-toolbar-button:hover:not(:disabled) {
+    background: var(--react-hover-background);
+    color: var(--react-dark-700);
+}
+
+.markdown-toolbar-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.36;
+}
+
+.markdown-toolbar-divider {
+    width: 1px;
+    height: 20px;
+    flex: none;
+    margin: 0 5px;
+    background: var(--react-dark-300);
+}
+
+.markdown-heading-select {
+    display: inline-flex;
+    height: 28px;
+    align-items: center;
+    gap: 3px;
+    border: 1px solid var(--react-dark-300);
+    border-radius: 6px;
+    padding: 0 6px;
+    color: var(--react-dark-600);
+}
+
+.markdown-heading-select select {
+    min-width: 72px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 12px;
+}
+
+.dark .prosemark-editor-shell {
+    --pm-header-mark-color: var(--react-light-500);
+    --pm-muted-color: var(--react-light-400);
+    --pm-code-background-color: #171719;
+    --pm-code-btn-background-color: rgba(255, 255, 255, 0.08);
+    --pm-code-btn-hover-background-color: rgba(255, 255, 255, 0.15);
+    --pm-latex-math-formula-color: var(--react-light-200);
+    --pm-latex-math-error-color: #ffb4ab;
+    --pm-latex-math-error-background-color: rgba(255, 180, 171, 0.09);
+    --text-primary: var(--react-light-200);
+    --text-muted: var(--react-light-400);
+    --border-color: rgba(255, 255, 255, 0.12);
+    --surface-subtle: #171719;
+    --surface-card: #1d1d1f;
+    --bg-base: #111113;
+    --fg-base: var(--react-light-200);
+    --text-secondary: var(--react-light-400);
+    --text-error: #ffb4ab;
+}
+
+.dark .prosemark-editor-mount .cm-editor {
+    color: var(--react-light-200);
+}
+
+.dark .prosemark-editor-mount .cm-fenced-code-line {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    background: #171719;
+    color: #f0f0f2;
+}
+
+.dark .prosemark-editor-mount .cm-fenced-code-line-first {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px 8px 0 0;
+}
+
+.dark .prosemark-editor-mount .cm-fenced-code-line-last {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0 0 8px 8px;
+}
+
+.dark .markdown-toolbar-button,
+.dark .markdown-heading-select {
+    color: var(--react-light-300);
+}
+
+.dark .markdown-toolbar-button:hover:not(:disabled) {
+    background: rgba(238, 238, 246, 0.11);
+    color: var(--react-light-50);
+}
+
+.dark .markdown-toolbar-divider {
+    background: rgba(238, 238, 246, 0.18);
+}
+
+.dark .prosemark-editor-mount .cm-panels {
+    background: transparent;
+    color: var(--react-light-400);
+}
+
+.dark .prosemark-editor-status {
     background: var(--react-dark-100);
     color: var(--react-dark-700);
 }

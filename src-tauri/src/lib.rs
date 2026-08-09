@@ -216,6 +216,7 @@ pub fn run() {
             commands::file::start_file_watch,
             commands::file::stop_file_watch,
             commands::file::stop_all_file_watches,
+            commands::file::store_document_asset,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

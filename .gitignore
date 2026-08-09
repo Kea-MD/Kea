@@ -50,7 +50,6 @@ next-env.d.ts
 /plans
 
 # local scratch / archival assets
-test.md
 /test.html
 legacy/src/assets/Logo/Old Orca Logo/
 /references/

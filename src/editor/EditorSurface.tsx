@@ -1,28 +1,27 @@
 import type { DocumentSnapshot } from '../core/contracts/document'
-import type { EditorMode } from '../core/contracts/editor'
-import { CodeMirrorEditor } from './CodeMirrorEditor'
-import { MilkdownEditor } from './MilkdownEditor'
+import type { EditorController } from '../core/contracts/editor'
+import { ProseMarkEditor } from './ProseMarkEditor'
 
 export interface EditorSurfaceProps {
   document: DocumentSnapshot
-  mode: EditorMode
   onChange: (content: string) => void
-  onOpenFile?: () => void
+  onEditorChange: (editor: EditorController | null) => void
+  onEditorStateChange: () => void
+  onOpenLink: (url: string) => void
 }
 
-export function EditorSurface({ document, mode, onChange, onOpenFile }: EditorSurfaceProps) {
-  if (mode === 'source') {
-    return (
-      <section className="react-editor-surface" aria-label="Source editor">
-        <CodeMirrorEditor documentId={document.id} content={document.content} onChange={onChange} />
-      </section>
-    )
-  }
-
+export function EditorSurface({ document, onChange, onEditorChange, onEditorStateChange, onOpenLink }: EditorSurfaceProps) {
   return (
-    <section className="react-editor-surface" aria-label="Rendered editor">
-      <MilkdownEditor documentId={document.id} content={document.content} onChange={onChange} />
-      {onOpenFile && <button type="button" className="absolute bottom-5 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-2 rounded-lg border-0 bg-[var(--react-dark-200)] px-4 py-2.5 text-[13px] font-medium text-[var(--react-dark-700)] opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100" onClick={onOpenFile}><span className="material-symbols-outlined" aria-hidden="true">description</span>Open File</button>}
+    <section className="react-editor-surface" aria-label="Markdown editor" data-testid="react-prosemark-editor">
+      <ProseMarkEditor
+        documentId={document.id}
+        documentPath={document.path}
+        content={document.content}
+        onChange={onChange}
+        onEditorChange={onEditorChange}
+        onEditorStateChange={onEditorStateChange}
+        onOpenLink={onOpenLink}
+      />
     </section>
   )
 }

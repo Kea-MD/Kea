@@ -100,6 +100,47 @@ fn atomic_write_file(path: &Path, content: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn store_asset(document_path: &Path, file_name: &str, bytes: &[u8]) -> Result<String, String> {
+    if !document_path.is_file() {
+        return Err("Save the document before adding images".to_string());
+    }
+    let extension = Path::new(file_name)
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(str::to_lowercase)
+        .ok_or("Image file needs an extension")?;
+    if !matches!(extension.as_str(), "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg") {
+        return Err("Unsupported image type".to_string());
+    }
+    let raw_stem = Path::new(file_name)
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .unwrap_or("image");
+    let mut stem = raw_stem
+        .chars()
+        .map(|character| if character.is_alphanumeric() || matches!(character, '-' | '_') { character } else { '-' })
+        .collect::<String>()
+        .trim_matches('-')
+        .to_string();
+    if stem.is_empty() { stem = "image".to_string(); }
+
+    let assets = document_path.parent().ok_or("Document has no parent directory")?.join("assets");
+    fs::create_dir_all(&assets).map_err(|error| format!("Failed to create assets directory: {}", error))?;
+    let mut candidate = assets.join(format!("{}.{}", stem, extension));
+    let mut suffix = 2;
+    while candidate.exists() {
+        candidate = assets.join(format!("{}-{}.{}", stem, suffix, extension));
+        suffix += 1;
+    }
+    fs::write(&candidate, bytes).map_err(|error| format!("Failed to write image: {}", error))?;
+    Ok(format!("assets/{}", candidate.file_name().and_then(|value| value.to_str()).ok_or("Invalid asset name")?))
+}
+
+#[tauri::command]
+pub async fn store_document_asset(document_path: String, file_name: String, bytes: Vec<u8>) -> Result<String, String> {
+    store_asset(Path::new(&document_path), &file_name, &bytes)
+}
+
 fn read_modified_time(path: &Path) -> Option<SystemTime> {
     fs::metadata(path).ok()?.modified().ok()
 }
@@ -627,7 +668,7 @@ pub async fn stop_all_file_watches(
 
 #[cfg(test)]
 mod tests {
-    use super::{atomic_write_file, is_markdown_file, read_dir_entries};
+    use super::{atomic_write_file, is_markdown_file, read_dir_entries, store_asset};
     use std::fs;
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -705,6 +746,19 @@ mod tests {
         assert!(folder.is_dir);
         assert_eq!(folder.children.as_ref().map(|children| children.len()), Some(0));
 
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn document_assets_are_sanitised_and_never_overwritten() {
+        let root = make_temp_dir("assets");
+        let document = root.join("note.md");
+        fs::write(&document, "# note").expect("failed to create document");
+        let first = store_asset(&document, "My screenshot!.PNG", &[1, 2, 3]).expect("first asset should save");
+        let second = store_asset(&document, "My screenshot!.PNG", &[4, 5]).expect("second asset should save");
+        assert_eq!(first, "assets/My-screenshot.png");
+        assert_eq!(second, "assets/My-screenshot-2.png");
+        assert_eq!(fs::read(root.join(&first)).expect("asset should be readable"), vec![1, 2, 3]);
         let _ = fs::remove_dir_all(root);
     }
 }

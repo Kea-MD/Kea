@@ -1,9 +1,11 @@
-import { useCallback, useReducer } from 'react'
+import { useCallback, useReducer, useRef } from 'react'
 import type {
   DocumentSnapshot,
   DocumentStoragePort,
+  ExternalDocumentChange,
   OpenedDocumentData,
 } from '../core/contracts/document'
+import type { FileWatchEventKind } from '../core/contracts/fileWatch'
 import { tauriDocumentStoragePort } from '../platform/tauri/documentStorage'
 
 export interface DocumentControllerState {
@@ -12,6 +14,7 @@ export interface DocumentControllerState {
   isLoading: boolean
   isSaving: boolean
   error: string | null
+  externalChanges: Record<string, ExternalDocumentChange>
 }
 
 export interface DocumentController extends DocumentControllerState {
@@ -23,9 +26,13 @@ export interface DocumentController extends DocumentControllerState {
   reorderDocuments: (fromIndex: number, toIndex: number) => void
   closeDocument: (id: string, force?: boolean) => Promise<boolean>
   updateContent: (content: string) => void
-  saveFile: () => Promise<boolean>
-  saveFileAs: () => Promise<boolean>
+  saveFile: (contentOverride?: string) => Promise<boolean>
+  saveFileAs: (contentOverride?: string) => Promise<boolean>
   updatePathsAfterRename: (oldPath: string, newPath: string, isDirectory: boolean) => void
+  externalChange: ExternalDocumentChange | null
+  checkExternalChange: (path: string, kind: FileWatchEventKind) => Promise<void>
+  acceptExternalChange: () => boolean
+  keepLocalVersion: () => boolean
   clearError: () => void
 }
 
@@ -37,9 +44,12 @@ type Action =
   | { type: 'reordered'; fromIndex: number; toIndex: number }
   | { type: 'created'; document: DocumentSnapshot }
   | { type: 'updated'; id: string; content: string }
-  | { type: 'saved'; id: string; path?: string; name?: string }
+  | { type: 'saved'; id: string; content?: string; path?: string; name?: string }
   | { type: 'closed'; id: string }
   | { type: 'renamed'; oldPath: string; newPath: string; isDirectory: boolean }
+  | { type: 'external-change'; change: ExternalDocumentChange }
+  | { type: 'external-clear'; id: string }
+  | { type: 'external-applied'; id: string; content: string }
   | { type: 'error'; message: string }
   | { type: 'clear-error' }
 
@@ -49,6 +59,7 @@ const initialState: DocumentControllerState = {
   isLoading: false,
   isSaving: false,
   error: null,
+  externalChanges: {},
 }
 
 function errorMessage(error: unknown): string {
@@ -128,12 +139,14 @@ function reducer(state: DocumentControllerState, action: Action): DocumentContro
         documents: state.documents.map(document => document.id === action.id
           ? {
               ...document,
+              content: action.content ?? document.content,
               path: action.path ?? document.path,
               name: action.name ?? document.name,
-              savedContent: document.content,
+              savedContent: action.content ?? document.content,
               isDirty: false,
             }
           : document),
+        externalChanges: Object.fromEntries(Object.entries(state.externalChanges).filter(([id]) => id !== action.id)),
         error: null,
       }
     case 'closed': {
@@ -143,7 +156,9 @@ function reducer(state: DocumentControllerState, action: Action): DocumentContro
       const nextActive = state.activeDocumentId !== action.id
         ? state.activeDocumentId
         : documents[Math.min(index, documents.length - 1)]?.id ?? null
-      return { ...state, documents, activeDocumentId: nextActive }
+      const externalChanges = { ...state.externalChanges }
+      delete externalChanges[action.id]
+      return { ...state, documents, activeDocumentId: nextActive, externalChanges }
     }
     case 'renamed':
       return {
@@ -153,7 +168,31 @@ function reducer(state: DocumentControllerState, action: Action): DocumentContro
           const path = replacePathPrefix(document.path, action.oldPath, action.newPath)
           return { ...document, path, name: path.split(/[\\/]/).pop() || document.name }
         }),
+        externalChanges: Object.fromEntries(Object.entries(state.externalChanges).map(([id, change]) => [
+          id,
+          pathMatches(change.path, action.oldPath) && (action.isDirectory || change.path === action.oldPath)
+            ? { ...change, path: replacePathPrefix(change.path, action.oldPath, action.newPath) }
+            : change,
+        ])),
       }
+    case 'external-change':
+      return { ...state, externalChanges: { ...state.externalChanges, [action.change.documentId]: action.change } }
+    case 'external-clear': {
+      const externalChanges = { ...state.externalChanges }
+      delete externalChanges[action.id]
+      return { ...state, externalChanges }
+    }
+    case 'external-applied': {
+      const externalChanges = { ...state.externalChanges }
+      delete externalChanges[action.id]
+      return {
+        ...state,
+        documents: state.documents.map(document => document.id === action.id
+          ? { ...document, content: action.content, savedContent: action.content, isDirty: false }
+          : document),
+        externalChanges,
+      }
+    }
     case 'error':
       return { ...state, error: action.message }
     case 'clear-error':
@@ -165,7 +204,11 @@ function reducer(state: DocumentControllerState, action: Action): DocumentContro
 
 export function useDocumentController(port: DocumentStoragePort = tauriDocumentStoragePort): DocumentController {
   const [state, dispatch] = useReducer(reducer, initialState)
+  const stateRef = useRef(state)
+  const ignoredExternalChanges = useRef(new Map<string, string>())
+  stateRef.current = state
   const activeDocument = state.documents.find(document => document.id === state.activeDocumentId) ?? null
+  const externalChange = activeDocument ? state.externalChanges[activeDocument.id] ?? null : null
 
   const openDocument = useCallback(async (data: OpenedDocumentData): Promise<string> => {
     const existing = state.documents.find(document => document.path === data.path)
@@ -236,13 +279,14 @@ export function useDocumentController(port: DocumentStoragePort = tauriDocumentS
     if (activeDocument) dispatch({ type: 'updated', id: activeDocument.id, content })
   }, [activeDocument])
 
-  const saveFile = useCallback(async (): Promise<boolean> => {
+  const saveFile = useCallback(async (contentOverride?: string): Promise<boolean> => {
     if (!activeDocument || state.isSaving) return false
-    if (!activeDocument.path) return saveFileAs()
+    if (!activeDocument.path) return saveFileAs(contentOverride)
+    const content = contentOverride ?? activeDocument.content
     dispatch({ type: 'saving', value: true })
     try {
-      await port.saveMarkdownFile(activeDocument.path, activeDocument.content)
-      dispatch({ type: 'saved', id: activeDocument.id })
+      await port.saveMarkdownFile(activeDocument.path, content)
+      dispatch({ type: 'saved', id: activeDocument.id, content })
       return true
     } catch (error) {
       dispatch({ type: 'error', message: `Failed to save file: ${errorMessage(error)}` })
@@ -252,12 +296,13 @@ export function useDocumentController(port: DocumentStoragePort = tauriDocumentS
     }
   }, [activeDocument, port, state.isSaving])
 
-  const saveFileAs = useCallback(async (): Promise<boolean> => {
+  const saveFileAs = useCallback(async (contentOverride?: string): Promise<boolean> => {
     if (!activeDocument || state.isSaving) return false
+    const content = contentOverride ?? activeDocument.content
     dispatch({ type: 'saving', value: true })
     try {
-      const result = await port.saveMarkdownFileAs(activeDocument.content)
-      dispatch({ type: 'saved', id: activeDocument.id, path: result.path, name: result.name })
+      const result = await port.saveMarkdownFileAs(content)
+      dispatch({ type: 'saved', id: activeDocument.id, content, path: result.path, name: result.name })
       return true
     } catch (error) {
       dispatch({ type: 'error', message: `Failed to save file as: ${errorMessage(error)}` })
@@ -268,7 +313,74 @@ export function useDocumentController(port: DocumentStoragePort = tauriDocumentS
   }, [activeDocument, port, state.isSaving])
 
   const updatePathsAfterRename = useCallback((oldPath: string, newPath: string, isDirectory: boolean): void => {
+    const replacements: Array<[string, string, string]> = []
+    for (const [path, signature] of ignoredExternalChanges.current) {
+      if (!pathMatches(path, oldPath) || (!isDirectory && path !== oldPath)) continue
+      replacements.push([path, replacePathPrefix(path, oldPath, newPath), signature])
+    }
+    for (const [path, replacement, signature] of replacements) {
+      ignoredExternalChanges.current.delete(path)
+      ignoredExternalChanges.current.set(replacement, signature)
+    }
     dispatch({ type: 'renamed', oldPath, newPath, isDirectory })
+  }, [])
+
+  const checkExternalChange = useCallback(async (path: string, kind: FileWatchEventKind): Promise<void> => {
+    const document = stateRef.current.documents.find(item => item.path === path)
+    if (!document || stateRef.current.isLoading) return
+
+    if (kind === 'removed') {
+      if (ignoredExternalChanges.current.get(path) === 'removed') return
+      dispatch({
+        type: 'external-change',
+        change: { documentId: document.id, path, kind, detectedAt: Date.now() },
+      })
+      return
+    }
+
+    try {
+      const diskContent = (await port.readFile(path)).content
+      const latest = stateRef.current.documents.find(item => item.id === document.id)
+      if (!latest) return
+      if (diskContent === latest.savedContent) {
+        ignoredExternalChanges.current.delete(path)
+        dispatch({ type: 'external-clear', id: latest.id })
+        return
+      }
+      if (!latest.isDirty) {
+        ignoredExternalChanges.current.delete(path)
+        dispatch({ type: 'external-applied', id: latest.id, content: diskContent })
+        return
+      }
+      if (ignoredExternalChanges.current.get(path) === diskContent) return
+      dispatch({
+        type: 'external-change',
+        change: { documentId: latest.id, path, kind, diskContent, detectedAt: Date.now() },
+      })
+    } catch (error) {
+      console.error('Failed to reconcile external file change:', error)
+    }
+  }, [port])
+
+  const acceptExternalChange = useCallback((): boolean => {
+    const activeId = stateRef.current.activeDocumentId
+    if (!activeId) return false
+    const change = stateRef.current.externalChanges[activeId]
+    if (!change) return false
+    ignoredExternalChanges.current.delete(change.path)
+    if (change.kind === 'removed') dispatch({ type: 'closed', id: activeId })
+    else dispatch({ type: 'external-applied', id: activeId, content: change.diskContent ?? '' })
+    return true
+  }, [])
+
+  const keepLocalVersion = useCallback((): boolean => {
+    const activeId = stateRef.current.activeDocumentId
+    if (!activeId) return false
+    const change = stateRef.current.externalChanges[activeId]
+    if (!change) return false
+    ignoredExternalChanges.current.set(change.path, change.kind === 'removed' ? 'removed' : change.diskContent ?? '')
+    dispatch({ type: 'external-clear', id: activeId })
+    return true
   }, [])
 
   const clearError = useCallback((): void => {
@@ -288,6 +400,10 @@ export function useDocumentController(port: DocumentStoragePort = tauriDocumentS
     saveFile,
     saveFileAs,
     updatePathsAfterRename,
+    externalChange,
+    checkExternalChange,
+    acceptExternalChange,
+    keepLocalVersion,
     clearError,
   }
 }

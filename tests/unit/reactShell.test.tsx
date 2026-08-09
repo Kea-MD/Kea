@@ -162,7 +162,7 @@ describe('React shell spike', () => {
     expect(screen.getByRole('tab', { name: /note.md/ })).not.toBeNull()
   })
 
-  it('mounts the CodeMirror source surface for an active document', async () => {
+  it('mounts the ProseMark editor and formatting toolbar for an active document', async () => {
     await act(async () => {
       render(<RuntimeProvider port={testRuntimePort}><App documentStoragePort={markdownDocumentStoragePort} /></RuntimeProvider>)
     })
@@ -170,22 +170,19 @@ describe('React shell spike', () => {
     await act(async () => {
       fireEvent.click(screen.getAllByRole('button', { name: 'Open File' })[0])
     })
-    fireEvent.click(screen.getByRole('switch', { name: 'Toggle editor mode' }))
-
-    expect(screen.getByTestId('react-code-mirror-editor')).not.toBeNull()
-    expect(screen.getByTestId('react-code-mirror-editor').querySelector('.cm-content')?.textContent).toBe('Other')
-    expect(screen.getByRole('textbox')).not.toBeNull()
+    expect(screen.getByTestId('react-prosemark-editor')).not.toBeNull()
+    expect(screen.getByRole('textbox', { name: 'Markdown editor' }).textContent).toBe('Other')
+    expect(screen.getByRole('button', { name: 'Bold' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Task list' })).not.toBeNull()
+    expect(screen.getByRole('combobox', { name: 'Text style' })).not.toBeNull()
   })
 
-  it('exposes the visual-only editor mode placeholder and accessible tab close button', async () => {
+  it('does not retain the obsolete source-mode toggle', async () => {
     await act(async () => {
       render(<RuntimeProvider port={testRuntimePort}><App /></RuntimeProvider>)
     })
 
-    fireEvent.click(screen.getByRole('switch', { name: 'Toggle editor mode' }))
-    expect(screen.getByRole('switch', { name: 'Toggle editor mode' }).getAttribute('aria-checked')).toBe('true')
-    fireEvent.click(screen.getByRole('switch', { name: 'Toggle editor mode' }))
-    expect(screen.getByRole('switch', { name: 'Toggle editor mode' }).getAttribute('aria-checked')).toBe('false')
+    expect(screen.queryByRole('switch', { name: 'Toggle editor mode' })).toBeNull()
     expect(screen.getByRole('button', { name: 'New document' })).not.toBeNull()
   })
 
@@ -198,7 +195,7 @@ describe('React shell spike', () => {
     expect(screen.getByRole('tab', { name: /Untitled/ })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Close Untitled' }).querySelector('.pi.pi-times')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'New document' }).querySelector('.pi.pi-plus')).not.toBeNull()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Open File' })[1])
+    fireEvent.click(screen.getAllByRole('button', { name: 'Open File' })[0])
     await act(async () => {})
     expect(screen.getByRole('tab', { name: /other.md/ })).not.toBeNull()
     expect(screen.getByRole('tab', { name: /other.md/ }).getAttribute('aria-selected')).toBe('true')

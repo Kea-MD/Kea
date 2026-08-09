@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useDocumentController } from '../../src/editor/useDocumentController'
 import type { DocumentStoragePort } from '../../src/core/contracts/document'
 
+let diskContent = 'initial'
 const port: DocumentStoragePort = {
-  readFile: path => Promise.resolve({ path, name: path.split('/').pop() ?? 'note.md', content: 'initial' }),
+  readFile: vi.fn(path => Promise.resolve({ path, name: path.split('/').pop() ?? 'note.md', content: diskContent })),
   openMarkdownFile: () => Promise.resolve({ path: '/workspace/picked.md', name: 'picked.md', content: 'picked' }),
   saveMarkdownFile: vi.fn(() => Promise.resolve()),
   saveMarkdownFileAs: vi.fn(() => Promise.resolve({ path: '/workspace/saved.md', name: 'saved.md' })),
@@ -16,6 +17,8 @@ function Harness() {
     <div>
       <output data-testid="documents">{controller.documents.map(document => `${document.name}:${document.isDirty ? 'dirty' : 'clean'}`).join('|')}</output>
       <output data-testid="active">{controller.activeDocument?.path ?? 'none'}</output>
+      <output data-testid="content">{controller.activeDocument?.content ?? 'none'}</output>
+      <output data-testid="conflict">{controller.externalChange?.kind ?? 'none'}</output>
       <button type="button" onClick={() => void controller.openFileFromPath('/workspace/note.md')}>Open</button>
       <button type="button" onClick={() => void controller.openFileDialog()}>Pick</button>
       <button type="button" onClick={controller.newFile}>New</button>
@@ -25,6 +28,9 @@ function Harness() {
       <button type="button" onClick={() => void controller.saveFileAs()}>Save As</button>
       <button type="button" onClick={() => void controller.closeDocument(controller.activeDocumentId ?? '')}>Close</button>
       <button type="button" onClick={() => controller.updatePathsAfterRename('/workspace', '/renamed', true)}>Rename</button>
+      <button type="button" onClick={() => void controller.checkExternalChange('/workspace/note.md', 'modified')}>External</button>
+      <button type="button" onClick={controller.acceptExternalChange}>Accept external</button>
+      <button type="button" onClick={controller.keepLocalVersion}>Keep local</button>
     </div>
   )
 }
@@ -33,6 +39,8 @@ describe('React document controller', () => {
   beforeEach(() => {
     vi.mocked(port.saveMarkdownFile).mockClear()
     vi.mocked(port.saveMarkdownFileAs).mockClear()
+    vi.mocked(port.readFile).mockClear()
+    diskContent = 'initial'
   })
 
   it('opens files, deduplicates paths, and updates the active tab', async () => {
@@ -88,5 +96,23 @@ describe('React document controller', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reorder' }))
     expect(screen.getByTestId('documents').textContent).toBe('Untitled:clean|note.md:clean')
     expect(screen.getByTestId('active').textContent).toBe('')
+  })
+
+  it('reloads clean external edits and asks before replacing dirty content', async () => {
+    render(<Harness />)
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Open' })) })
+    diskContent = 'changed on disk'
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'External' })) })
+    expect(screen.getByTestId('content').textContent).toBe('changed on disk')
+    expect(screen.getByTestId('conflict').textContent).toBe('none')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change' }))
+    diskContent = 'newer disk copy'
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'External' })) })
+    expect(screen.getByTestId('content').textContent).toBe('changed')
+    expect(screen.getByTestId('conflict').textContent).toBe('modified')
+    fireEvent.click(screen.getByRole('button', { name: 'Accept external' }))
+    expect(screen.getByTestId('content').textContent).toBe('newer disk copy')
+    expect(screen.getByTestId('documents').textContent).toBe('note.md:clean')
   })
 })
