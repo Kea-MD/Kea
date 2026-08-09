@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+const STORAGE_KEY = 'kea-sidebar-open'
+
 export function useSidebarInteraction(): {
   sidebarOpen: boolean
   sidebarHovering: boolean
   toggleSidebar: () => void
   handleSidebarHover: (hovering: boolean) => void
 } {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.localStorage.getItem(STORAGE_KEY) === 'true')
   const [sidebarHovering, setSidebarHovering] = useState(false)
   const hoverDisabled = useRef(false)
   const hoverTimeout = useRef<number | null>(null)
@@ -44,6 +46,9 @@ export function useSidebarInteraction(): {
   }, [clearHoverTimeout])
 
   useEffect(() => () => clearHoverTimeout(), [clearHoverTimeout])
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY, String(sidebarOpen))
+  }, [sidebarOpen])
 
   return { sidebarOpen, sidebarHovering, toggleSidebar, handleSidebarHover }
 }

@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::{Duration, SystemTime};
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 use crate::FileWatchRegistry;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -540,6 +540,104 @@ pub async fn move_item(source_path: String, target_dir: String) -> Result<String
         .map(|s| s.to_string())
 }
 
+fn duplicate_destination(source: &Path) -> Result<PathBuf, String> {
+    let parent = source.parent().ok_or("Cannot get parent directory")?;
+    let stem = source
+        .file_stem()
+        .and_then(|name| name.to_str())
+        .ok_or("Cannot get item name")?;
+    let extension = source.extension().and_then(|value| value.to_str());
+
+    for index in 1.. {
+        let suffix = if index == 1 {
+            " copy".to_string()
+        } else {
+            format!(" copy {}", index)
+        };
+        let name = match extension {
+            Some(extension) => format!("{}{}.{}", stem, suffix, extension),
+            None => format!("{}{}", stem, suffix),
+        };
+        let candidate = parent.join(name);
+        if !candidate.exists() {
+            return Ok(candidate);
+        }
+    }
+
+    Err("Could not choose a duplicate name".to_string())
+}
+
+fn copy_item(source: &Path, destination: &Path) -> Result<(), String> {
+    if source.is_dir() {
+        fs::create_dir(destination)
+            .map_err(|e| format!("Failed to create duplicate folder: {}", e))?;
+        for entry in fs::read_dir(source).map_err(|e| format!("Failed to read folder: {}", e))? {
+            let entry = entry.map_err(|e| format!("Failed to read folder item: {}", e))?;
+            copy_item(&entry.path(), &destination.join(entry.file_name()))?;
+        }
+        Ok(())
+    } else {
+        fs::copy(source, destination)
+            .map(|_| ())
+            .map_err(|e| format!("Failed to duplicate file: {}", e))
+    }
+}
+
+/// Duplicate a file or folder beside the original.
+#[tauri::command]
+pub async fn duplicate_item(path: String) -> Result<String, String> {
+    let source = Path::new(&path);
+    if !source.exists() {
+        return Err("Item does not exist".to_string());
+    }
+
+    let destination = duplicate_destination(source)?;
+    if let Err(error) = copy_item(source, &destination) {
+        let _ = if destination.is_dir() {
+            fs::remove_dir_all(&destination)
+        } else {
+            fs::remove_file(&destination)
+        };
+        return Err(error);
+    }
+    destination
+        .to_str()
+        .ok_or("Invalid path encoding".to_string())
+        .map(|value| value.to_string())
+}
+
+/// Open a file or folder using the operating system default application.
+#[tauri::command]
+pub async fn open_item(path: String) -> Result<(), String> {
+    tauri_plugin_opener::open_path(&path, None::<&str>)
+        .map_err(|error| format!("Failed to open item: {}", error))
+}
+
+/// Reveal a file or folder in the operating system file manager.
+#[tauri::command]
+pub async fn reveal_item(path: String) -> Result<(), String> {
+    tauri_plugin_opener::reveal_item_in_dir(&path)
+        .map_err(|error| format!("Failed to reveal item: {}", error))
+}
+
+/// Reload the main webview from the in-app command menu.
+#[tauri::command]
+pub async fn reload_window(app: AppHandle) -> Result<(), String> {
+    app.get_webview_window("main")
+        .ok_or("Main window is unavailable")?
+        .reload()
+        .map_err(|error| format!("Failed to reload window: {}", error))
+}
+
+/// Open developer tools from the in-app command menu.
+#[tauri::command]
+pub async fn open_devtools(app: AppHandle) -> Result<(), String> {
+    app.get_webview_window("main")
+        .ok_or("Main window is unavailable")?
+        .open_devtools();
+    Ok(())
+}
+
 /// Start watching a file for external changes.
 #[tauri::command]
 pub async fn start_file_watch(
@@ -668,7 +766,7 @@ pub async fn stop_all_file_watches(
 
 #[cfg(test)]
 mod tests {
-    use super::{atomic_write_file, is_markdown_file, read_dir_entries, store_asset};
+    use super::{atomic_write_file, copy_item, duplicate_destination, is_markdown_file, read_dir_entries, store_asset};
     use std::fs;
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -759,6 +857,21 @@ mod tests {
         assert_eq!(first, "assets/My-screenshot.png");
         assert_eq!(second, "assets/My-screenshot-2.png");
         assert_eq!(fs::read(root.join(&first)).expect("asset should be readable"), vec![1, 2, 3]);
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn duplicate_helpers_choose_a_unique_name_and_copy_contents() {
+        let root = make_temp_dir("duplicate");
+        let source = root.join("note.md");
+        fs::write(&source, "# note").expect("failed to create source file");
+        fs::write(root.join("note copy.md"), "existing").expect("failed to create first duplicate");
+
+        let destination = duplicate_destination(&source).expect("duplicate destination should be available");
+        assert_eq!(destination.file_name().and_then(|name| name.to_str()), Some("note copy 2.md"));
+        copy_item(&source, &destination).expect("duplicate should copy successfully");
+        assert_eq!(fs::read_to_string(destination).expect("duplicate should be readable"), "# note");
+
         let _ = fs::remove_dir_all(root);
     }
 }

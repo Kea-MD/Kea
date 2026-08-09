@@ -36,6 +36,18 @@ export function findEntry(entries: WorkspaceFileEntry[], path: string): Workspac
   return null
 }
 
+export function filterEntries(entries: WorkspaceFileEntry[], query: string): WorkspaceFileEntry[] {
+  const normalisedQuery = query.trim().toLocaleLowerCase()
+  if (!normalisedQuery) return entries
+
+  return entries.flatMap(entry => {
+    const children = entry.children ? filterEntries(entry.children, normalisedQuery) : []
+    const matches = entry.name.toLocaleLowerCase().includes(normalisedQuery)
+    if (!matches && children.length === 0) return []
+    return [{ ...entry, ...(entry.is_dir ? { children } : {}) }]
+  })
+}
+
 export function sortEntries(entries: WorkspaceFileEntry[]): WorkspaceFileEntry[] {
   return [...entries].sort((a, b) => a.is_dir === b.is_dir ? a.name.toLowerCase().localeCompare(b.name.toLowerCase()) : a.is_dir ? -1 : 1)
 }

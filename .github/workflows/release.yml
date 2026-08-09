@@ -34,7 +34,7 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: Kea ${{ github.ref_name }}
           releaseBody: See the release notes on GitHub for this version of Kea.
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           uploadUpdaterJson: true
           args: --ci

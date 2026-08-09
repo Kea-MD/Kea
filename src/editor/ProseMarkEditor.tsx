@@ -3,7 +3,7 @@ import { markdown } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import { forceParsing, syntaxTreeAvailable } from '@codemirror/language'
 import { Compartment, EditorSelection, EditorState, Transaction } from '@codemirror/state'
-import { drawSelection, EditorView, ViewPlugin, type ViewUpdate } from '@codemirror/view'
+import { EditorView, ViewPlugin, type ViewUpdate } from '@codemirror/view'
 import { GFM } from '@lezer/markdown'
 import {
   prosemarkBaseThemeSetup,
@@ -205,7 +205,6 @@ export function ProseMarkEditor({
             }),
             prosemarkBasicSetup(),
             prosemarkBaseThemeSetup(),
-            drawSelection(),
             ...latexMarkdownSyntaxTheme,
             mathCompartment.of([]),
             spellcheckCompartment.of([]),
@@ -269,6 +268,7 @@ export function ProseMarkEditor({
             clamp(snapshot.anchor, 0, view.state.doc.length),
             clamp(snapshot.head, 0, view.state.doc.length),
           ),
+          scrollIntoView: false,
         })
         window.requestAnimationFrame(() => {
           view.scrollDOM.scrollTop = snapshot.scrollTop

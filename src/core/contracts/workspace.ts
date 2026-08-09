@@ -26,4 +26,7 @@ export interface WorkspacePort {
   renameItem: (oldPath: string, newName: string) => Promise<string>
   deleteItem: (path: string) => Promise<void>
   moveItem: (sourcePath: string, targetDir: string) => Promise<string>
+  duplicateItem: (path: string) => Promise<string>
+  openItem: (path: string) => Promise<void>
+  revealItem: (path: string) => Promise<void>
 }

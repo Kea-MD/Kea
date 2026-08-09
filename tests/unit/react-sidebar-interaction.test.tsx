@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSidebarInteraction } from '../../src/workspace/useSidebarInteraction'
 
 function Harness() {
@@ -14,6 +14,7 @@ function Harness() {
 }
 
 describe('React sidebar interaction', () => {
+  beforeEach(() => window.localStorage.clear())
   afterEach(() => vi.useRealTimers())
 
   it('opens and closes with the same delayed hover behaviour as the Vue shell', () => {
@@ -35,5 +36,15 @@ describe('React sidebar interaction', () => {
     expect(screen.getByTestId('state').textContent).toBe('hovering')
     act(() => { vi.advanceTimersByTime(200) })
     expect(screen.getByTestId('state').textContent).toBe('closed')
+  })
+
+  it('restores and persists the sidebar open state', () => {
+    window.localStorage.setItem('kea-sidebar-open', 'true')
+    const { unmount } = render(<Harness />)
+
+    expect(screen.getByTestId('state').textContent).toBe('open')
+    act(() => { fireEvent.click(screen.getByRole('button', { name: 'Toggle' })) })
+    expect(window.localStorage.getItem('kea-sidebar-open')).toBe('false')
+    unmount()
   })
 })

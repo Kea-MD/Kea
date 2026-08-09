@@ -64,6 +64,18 @@ describe('tauri ports', () => {
       sourcePath: '/workspace/source/file.md',
       targetDir: '/workspace/target',
     })
+
+    invokeMock.mockResolvedValueOnce('/workspace/source copy.md')
+    await tauriWorkspacePort.duplicateItem('/workspace/source.md')
+    expect(invokeMock).toHaveBeenCalledWith('duplicate_item', { path: '/workspace/source.md' })
+
+    invokeMock.mockResolvedValueOnce(undefined)
+    await tauriWorkspacePort.openItem('/workspace/source.md')
+    expect(invokeMock).toHaveBeenCalledWith('open_item', { path: '/workspace/source.md' })
+
+    invokeMock.mockResolvedValueOnce(undefined)
+    await tauriWorkspacePort.revealItem('/workspace/source.md')
+    expect(invokeMock).toHaveBeenCalledWith('reveal_item', { path: '/workspace/source.md' })
   })
 
   it('calls invoke with file watch commands', async () => {

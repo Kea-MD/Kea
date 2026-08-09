@@ -7,7 +7,6 @@ import * as emoji from 'node-emoji'
 import {
   foldableSyntaxFacet,
   prosemarkMarkdownSyntaxExtensions,
-  selectAllDecorationsOnSelectExtension,
 } from '@prosemark/core'
 import { markdownCompatibilitySyntax } from './markdownCompatibility'
 
@@ -337,6 +336,5 @@ export function tableExtension(): Extension {
     }),
     tableTheme,
     treeSync,
-    selectAllDecorationsOnSelectExtension('cm-table-widget'),
   ]
 }

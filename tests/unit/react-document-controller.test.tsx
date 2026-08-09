@@ -5,7 +5,9 @@ import type { DocumentStoragePort } from '../../src/core/contracts/document'
 
 let diskContent = 'initial'
 const port: DocumentStoragePort = {
-  readFile: vi.fn(path => Promise.resolve({ path, name: path.split('/').pop() ?? 'note.md', content: diskContent })),
+  readFile: vi.fn(path => path === '/workspace/missing.md'
+    ? Promise.reject('missing')
+    : Promise.resolve({ path, name: path.split('/').pop() ?? 'note.md', content: diskContent })),
   openMarkdownFile: () => Promise.resolve({ path: '/workspace/picked.md', name: 'picked.md', content: 'picked' }),
   saveMarkdownFile: vi.fn(() => Promise.resolve()),
   saveMarkdownFileAs: vi.fn(() => Promise.resolve({ path: '/workspace/saved.md', name: 'saved.md' })),
@@ -21,6 +23,7 @@ function Harness() {
       <output data-testid="conflict">{controller.externalChange?.kind ?? 'none'}</output>
       <button type="button" onClick={() => void controller.openFileFromPath('/workspace/note.md')}>Open</button>
       <button type="button" onClick={() => void controller.openFileDialog()}>Pick</button>
+      <button type="button" onClick={() => void controller.restoreDocuments(['/workspace/note.md', '/workspace/missing.md'], '/workspace/note.md')}>Restore</button>
       <button type="button" onClick={controller.newFile}>New</button>
       <button type="button" onClick={() => controller.reorderDocuments(1, 0)}>Reorder</button>
       <button type="button" onClick={() => controller.updateContent('changed')}>Change</button>
@@ -49,6 +52,14 @@ describe('React document controller', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Open' })) })
     expect(screen.getByTestId('documents').textContent).toBe('note.md:clean')
     expect(screen.getByTestId('active').textContent).toBe('/workspace/note.md')
+  })
+
+  it('restores available documents in order and skips unavailable paths', async () => {
+    render(<Harness />)
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Restore' })) })
+    expect(screen.getByTestId('documents').textContent).toBe('note.md:clean')
+    expect(screen.getByTestId('active').textContent).toBe('/workspace/note.md')
+    expect(port.readFile).toHaveBeenCalledWith('/workspace/missing.md')
   })
 
   it('keeps dirty documents until discard is confirmed and saves content', async () => {

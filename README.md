@@ -1,8 +1,8 @@
-<img src="./legacy/src/assets/Logo/Icon-macOS-Default-1024x1024@1x.png" alt="Kea" style="width: 500px; height: auto;" />
+![Kea application icon](./src-tauri/icons/icon.png "Kea icon")
 
 > **A Markdown editor that just works—with others.**
 
-Kea is a local-first Markdown editor for people who want durable plain-text files, rich editing, and optional peer-to-peer collaboration. It keeps Markdown as the canonical document format while providing rendered editing, Mermaid diagrams, mathematical notation, comments, provenance, relative assets, and other rich document capabilities through derived or companion layers.
+Kea is a local-first Markdown editor for people who want durable plain-text files, rich editing, and optional peer-to-peer collaboration. It keeps Markdown as the canonical document format while  providing rendered editing, Mermaid diagrams, mathematical notation, comments, provenance, relative assets, and other rich document capabilities through derived or companion layers.
 
 ## Key Features
 

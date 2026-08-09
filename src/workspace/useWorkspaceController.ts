@@ -3,7 +3,7 @@ import type { WorkspacePort } from '../core/contracts/workspace'
 import { tauriWorkspacePort } from '../platform/tauri/workspaceFs'
 import {
   buildChildPath, deleteEntry, findEntry, getPathName, insertEntry, moveEntry, pathMatches,
-  renameEntry, replaceChildren, rewritePath, sortEntries, validateItemName,
+  renameEntry, replaceChildren, rewritePath, sortEntries, validateItemName, getParentPath,
   type WorkspaceFileEntry,
 } from './workspaceModel'
 
@@ -32,6 +32,10 @@ export interface WorkspaceController extends WorkspaceState {
   renameItem: (path: string, name: string) => Promise<string | null>
   deleteItem: (path: string) => Promise<boolean>
   moveItem: (sourcePath: string, targetDir: string) => Promise<string | null>
+  duplicateItem: (path: string) => Promise<string | null>
+  openItem: (path: string) => Promise<void>
+  revealItem: (path: string) => Promise<void>
+  closeWorkspace: () => void
   clearError: () => void
 }
 
@@ -44,6 +48,7 @@ type Action =
   | { type: 'expanded'; path: string; value: boolean }
   | { type: 'mutate'; update: (entries: WorkspaceFileEntry[]) => WorkspaceFileEntry[] }
   | { type: 'root'; oldPath: string; path: string; name: string }
+  | { type: 'closed' }
   | { type: 'error'; message: string }
   | { type: 'clear-error' }
 
@@ -73,6 +78,7 @@ function reducer(state: WorkspaceState, action: Action): WorkspaceState {
     }
     case 'mutate': return { ...state, entries: action.update(state.entries), loadingPaths: new Set() }
     case 'root': return state.rootPath === action.oldPath ? { ...state, rootPath: action.path, rootName: action.name } : state
+    case 'closed': return initialState
     case 'error': return { ...state, error: action.message }
     case 'clear-error': return { ...state, error: null }
     default: return state
@@ -234,7 +240,47 @@ export function useWorkspaceController(
     } catch (error) { if (workspace === workspaceRef.current) dispatch({ type: 'error', message: `Failed to move item: ${errorMessage(error)}` }); return null }
   }, [port, state.entries, state.rootPath])
 
-  return { ...state, openFolder, restoreWorkspace, toggleFolder, refreshDirectory, createFile: (parent, name) => create(parent, name, false), createFolder: (parent, name) => create(parent, name, true), renameItem, deleteItem, moveItem, clearError: () => dispatch({ type: 'clear-error' }) }
+  const duplicateItem = useCallback(async (path: string): Promise<string | null> => {
+    const source = findEntry(state.entries, path)
+    const parentPath = getParentPath(path) ?? state.rootPath
+    if (!source || !parentPath || path === state.rootPath) return null
+    const workspace = workspaceRef.current
+    ++requestRef.current
+    try {
+      const newPath = await port.duplicateItem(path)
+      if (workspace !== workspaceRef.current) return null
+      await refreshDirectory(parentPath)
+      return newPath
+    } catch (error) {
+      if (workspace === workspaceRef.current) dispatch({ type: 'error', message: `Failed to duplicate: ${errorMessage(error)}` })
+      return null
+    }
+  }, [port, refreshDirectory, state.entries, state.rootPath])
+
+  const closeWorkspace = useCallback((): void => {
+    ++requestRef.current
+    ++workspaceRef.current
+    window.localStorage.removeItem('kea-workspace-path')
+    dispatch({ type: 'closed' })
+  }, [])
+
+  const openItem = useCallback(async (path: string): Promise<void> => {
+    try {
+      await port.openItem(path)
+    } catch (error) {
+      dispatch({ type: 'error', message: `Failed to open item: ${errorMessage(error)}` })
+    }
+  }, [port])
+
+  const revealItem = useCallback(async (path: string): Promise<void> => {
+    try {
+      await port.revealItem(path)
+    } catch (error) {
+      dispatch({ type: 'error', message: `Failed to reveal item: ${errorMessage(error)}` })
+    }
+  }, [port])
+
+  return { ...state, openFolder, restoreWorkspace, toggleFolder, refreshDirectory, createFile: (parent, name) => create(parent, name, false), createFolder: (parent, name) => create(parent, name, true), renameItem, deleteItem, moveItem, duplicateItem, openItem, revealItem, closeWorkspace, clearError: () => dispatch({ type: 'clear-error' }) }
 }
 
 export function rewriteWorkspacePath(path: string, oldPath: string, newPath: string): string { return rewritePath(path, oldPath, newPath) }

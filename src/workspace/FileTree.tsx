@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import { findEntry, getParentPath, pathMatches, type WorkspaceFileEntry } from './workspaceModel'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+import { filterEntries, findEntry, getParentPath, pathMatches, type WorkspaceFileEntry } from './workspaceModel'
 import { FileTreeItem } from './FileTreeItem'
 
 interface Props {
@@ -38,6 +38,11 @@ export function FileTree({ entries, rootPath, expandedPaths, activePath, renameP
   const treeRef = useRef<HTMLUListElement>(null)
   const dragRef = useRef<DragState>(initialDragState)
   const [dragState, setDragState] = useState<DragState>(initialDragState)
+  const [query, setQuery] = useState('')
+  const filteredEntries = useMemo(() => filterEntries(entries, query), [entries, query])
+  const isSearching = query.trim().length > 0
+
+  useEffect(() => { setQuery('') }, [rootPath])
 
   const resetDragState = () => {
     dragRef.current = initialDragState
@@ -128,14 +133,36 @@ export function FileTree({ entries, rootPath, expandedPaths, activePath, renameP
     }
   }
 
+  const isExpanded = (path: string): boolean => {
+    if (!isSearching) return expandedPaths.has(path)
+    const entry = findEntry(filteredEntries, path)
+    return Boolean(entry?.is_dir && entry.children && entry.children.length > 0)
+  }
+
   return (
-    <ul
-      ref={treeRef}
-       className={`react-file-tree-list m-0 block min-h-0 flex-1 list-none overflow-y-auto rounded-md p-0${dragState.isOverRoot ? ' is-drop-root bg-[rgba(var(--react-brand-rgb),0.12)] shadow-[inset_0_0_0_1px_rgba(var(--react-brand-rgb),0.55)]' : ''}${dragState.hasMoved ? ' is-pointer-dragging' : ''}`}
-      role="tree"
-      aria-label="Workspace files"
-    >
-      {entries.map(entry => <FileTreeItem key={entry.path} entry={entry} level={0} expanded={expandedPaths.has(entry.path)} isExpanded={path => expandedPaths.has(path)} activePath={activePath} renamePath={renamePath} draggingPath={dragState.sourcePath} dropTargetPath={dragState.dropTargetPath} onToggle={onToggle} onSelect={onSelect} onRename={onRename} onRenameRequest={onRenameRequest} onContextMenu={onContextMenu} onPointerDragStart={handlePointerDragStart} />)}
-    </ul>
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="flex h-8 flex-none items-center gap-2 rounded-md border border-white/10 bg-black/10 px-2 text-white/60 focus-within:border-[rgba(var(--react-brand-rgb),0.7)] focus-within:text-white/90">
+        <i className="pi pi-search text-xs" aria-hidden="true" />
+        <input
+          className="min-w-0 flex-1 border-0 bg-transparent text-xs text-white outline-none placeholder:text-white/40"
+          type="search"
+          value={query}
+          placeholder="Search files…"
+          aria-label="Search files"
+          onChange={event => setQuery(event.target.value)}
+        />
+        {query && <button type="button" className="inline-flex h-5 w-5 flex-none items-center justify-center rounded bg-transparent p-0 text-white/50 hover:bg-white/10 hover:text-white" aria-label="Clear file search" onClick={() => setQuery('')}><i className="pi pi-times text-[10px]" aria-hidden="true" /></button>}
+      </div>
+      {isSearching && filteredEntries.length === 0
+        ? <p className="m-0 px-2 py-4 text-center text-xs text-white/40" role="status">No matching files</p>
+        : <ul
+          ref={treeRef}
+          className={`react-file-tree-list m-0 block min-h-0 flex-1 list-none overflow-y-auto rounded-md p-0${dragState.isOverRoot ? ' is-drop-root bg-[rgba(var(--react-brand-rgb),0.12)] shadow-[inset_0_0_0_1px_rgba(var(--react-brand-rgb),0.55)]' : ''}${dragState.hasMoved ? ' is-pointer-dragging' : ''}`}
+          role="tree"
+          aria-label="Workspace files"
+        >
+          {filteredEntries.map(entry => <FileTreeItem key={entry.path} entry={entry} level={0} expanded={isExpanded(entry.path)} isExpanded={isExpanded} activePath={activePath} renamePath={renamePath} draggingPath={dragState.sourcePath} dropTargetPath={dragState.dropTargetPath} onToggle={onToggle} onSelect={onSelect} onRename={onRename} onRenameRequest={onRenameRequest} onContextMenu={onContextMenu} onPointerDragStart={handlePointerDragStart} />)}
+        </ul>}
+    </div>
   )
 }

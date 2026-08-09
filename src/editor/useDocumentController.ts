@@ -25,7 +25,10 @@ export interface DocumentController extends DocumentControllerState {
   setActiveDocument: (id: string) => void
   reorderDocuments: (fromIndex: number, toIndex: number) => void
   closeDocument: (id: string, force?: boolean) => Promise<boolean>
+  restoreDocuments: (paths: string[], activePath?: string | null) => Promise<void>
   updateContent: (content: string) => void
+  saveDocument: (id: string, contentOverride?: string) => Promise<boolean>
+  saveDocumentAs: (id: string, contentOverride?: string) => Promise<boolean>
   saveFile: (contentOverride?: string) => Promise<boolean>
   saveFileAs: (contentOverride?: string) => Promise<boolean>
   updatePathsAfterRename: (oldPath: string, newPath: string, isDirectory: boolean) => void
@@ -259,6 +262,34 @@ export function useDocumentController(port: DocumentStoragePort = tauriDocumentS
     return id
   }, [])
 
+  const restoreDocuments = useCallback(async (paths: string[], activePath: string | null = null): Promise<void> => {
+    const uniquePaths = Array.from(new Set(paths.filter(path => path.length > 0)))
+    if (uniquePaths.length === 0) return
+
+    dispatch({ type: 'loading', value: true })
+    let restoredActiveId: string | null = null
+    try {
+      for (const path of uniquePaths) {
+        const existing = stateRef.current.documents.find(document => document.path === path)
+        if (existing) {
+          if (path === activePath) restoredActiveId = existing.id
+          continue
+        }
+
+        try {
+          const document = documentFromData(await port.readFile(path))
+          dispatch({ type: 'opened', document })
+          if (path === activePath) restoredActiveId = document.id
+        } catch {
+          // A deleted or inaccessible file should not prevent the rest of the session reopening.
+        }
+      }
+      if (restoredActiveId) dispatch({ type: 'active', id: restoredActiveId })
+    } finally {
+      dispatch({ type: 'loading', value: false })
+    }
+  }, [port])
+
   const setActiveDocument = useCallback((id: string): void => {
     dispatch({ type: 'active', id })
   }, [])
@@ -279,30 +310,14 @@ export function useDocumentController(port: DocumentStoragePort = tauriDocumentS
     if (activeDocument) dispatch({ type: 'updated', id: activeDocument.id, content })
   }, [activeDocument])
 
-  const saveFile = useCallback(async (contentOverride?: string): Promise<boolean> => {
-    if (!activeDocument || state.isSaving) return false
-    if (!activeDocument.path) return saveFileAs(contentOverride)
-    const content = contentOverride ?? activeDocument.content
-    dispatch({ type: 'saving', value: true })
-    try {
-      await port.saveMarkdownFile(activeDocument.path, content)
-      dispatch({ type: 'saved', id: activeDocument.id, content })
-      return true
-    } catch (error) {
-      dispatch({ type: 'error', message: `Failed to save file: ${errorMessage(error)}` })
-      return false
-    } finally {
-      dispatch({ type: 'saving', value: false })
-    }
-  }, [activeDocument, port, state.isSaving])
-
-  const saveFileAs = useCallback(async (contentOverride?: string): Promise<boolean> => {
-    if (!activeDocument || state.isSaving) return false
-    const content = contentOverride ?? activeDocument.content
+  const saveDocumentAs = useCallback(async (id: string, contentOverride?: string): Promise<boolean> => {
+    const document = state.documents.find(item => item.id === id)
+    if (!document || state.isSaving) return false
+    const content = contentOverride ?? document.content
     dispatch({ type: 'saving', value: true })
     try {
       const result = await port.saveMarkdownFileAs(content)
-      dispatch({ type: 'saved', id: activeDocument.id, content, path: result.path, name: result.name })
+      dispatch({ type: 'saved', id, content, path: result.path, name: result.name })
       return true
     } catch (error) {
       dispatch({ type: 'error', message: `Failed to save file as: ${errorMessage(error)}` })
@@ -310,7 +325,29 @@ export function useDocumentController(port: DocumentStoragePort = tauriDocumentS
     } finally {
       dispatch({ type: 'saving', value: false })
     }
-  }, [activeDocument, port, state.isSaving])
+  }, [port, state.documents, state.isSaving])
+
+  const saveDocument = useCallback(async (id: string, contentOverride?: string): Promise<boolean> => {
+    const document = state.documents.find(item => item.id === id)
+    if (!document || state.isSaving) return false
+    if (!document.path) return saveDocumentAs(id, contentOverride)
+    const content = contentOverride ?? document.content
+    dispatch({ type: 'saving', value: true })
+    try {
+      await port.saveMarkdownFile(document.path, content)
+      dispatch({ type: 'saved', id, content })
+      return true
+    } catch (error) {
+      dispatch({ type: 'error', message: `Failed to save file: ${errorMessage(error)}` })
+      return false
+    } finally {
+      dispatch({ type: 'saving', value: false })
+    }
+  }, [port, saveDocumentAs, state.documents, state.isSaving])
+
+  const saveFile = useCallback((contentOverride?: string): Promise<boolean> => activeDocument ? saveDocument(activeDocument.id, contentOverride) : Promise.resolve(false), [activeDocument, saveDocument])
+
+  const saveFileAs = useCallback((contentOverride?: string): Promise<boolean> => activeDocument ? saveDocumentAs(activeDocument.id, contentOverride) : Promise.resolve(false), [activeDocument, saveDocumentAs])
 
   const updatePathsAfterRename = useCallback((oldPath: string, newPath: string, isDirectory: boolean): void => {
     const replacements: Array<[string, string, string]> = []
@@ -396,7 +433,10 @@ export function useDocumentController(port: DocumentStoragePort = tauriDocumentS
     setActiveDocument,
     reorderDocuments,
     closeDocument,
+    restoreDocuments,
     updateContent,
+    saveDocument,
+    saveDocumentAs,
     saveFile,
     saveFileAs,
     updatePathsAfterRename,

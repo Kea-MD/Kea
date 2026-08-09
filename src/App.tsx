@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import { listen } from '@tauri-apps/api/event'
 import { useReactTheme } from './theme'
 import { useRuntimeContext } from './runtime/RuntimeContext'
@@ -25,6 +25,9 @@ import { extractMarkdownHeadings } from './editor/markdownHeadings'
 import { QuickOpenDialog } from './workspace/QuickOpenDialog'
 import { DocumentOutline } from './editor/DocumentOutline'
 import { scheduleAutoUpdateCheck } from './settings/updatesClient'
+import { ContextMenu } from './shared/ContextMenu'
+import { openDeveloperTools, reloadApplication } from './adapters/runtime/runtimeActions'
+import { clearDocumentSession, readDocumentSession, writeDocumentSession } from './editor/documentSession'
 
 function Icon({ children }: { children: string }) {
   return <span className="material-symbols-outlined" aria-hidden="true">{children}</span>
@@ -144,6 +147,7 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
   const [quickOpen, setQuickOpen] = useState(false)
   const [outlineOpen, setOutlineOpen] = useState(false)
   const [pendingAnchor, setPendingAnchor] = useState<{ documentId: string; anchor: string } | null>(null)
+  const [shellMenu, setShellMenu] = useState<{ x: number; y: number } | null>(null)
   const settingsController = useReactSettings()
   const { settings } = settingsController
   const workspace = useWorkspaceController(workspacePort, { restoreWorkspaceOnLaunch: settings.restoreWorkspaceOnLaunch })
@@ -152,8 +156,46 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
   const { sidebarOpen, sidebarHovering, toggleSidebar, handleSidebarHover } = useSidebarInteraction()
   const { sidebarWidth, isResizing, startResize } = useSidebarResize()
   const { isDark, toggleTheme, themeMode, setThemeMode } = useReactTheme()
-  const { hasTrafficLightsInset, isTauri } = useRuntimeContext()
+  const { hasTrafficLightsInset, isTauri, isMac } = useRuntimeContext()
   useExternalFileSync(documents.documents, isTauri, documents.checkExternalChange)
+
+  const documentSessionRootRef = useRef<string | null>(null)
+  const [documentSessionReadyRoot, setDocumentSessionReadyRoot] = useState<string | null>(null)
+  const restoreDocumentsRef = useRef(documents.restoreDocuments)
+  restoreDocumentsRef.current = documents.restoreDocuments
+
+  useEffect(() => {
+    const rootPath = workspace.rootPath
+    if (!rootPath) {
+      documentSessionRootRef.current = null
+      setDocumentSessionReadyRoot(null)
+      return
+    }
+    if (documentSessionRootRef.current === rootPath) return
+
+    documentSessionRootRef.current = rootPath
+    setDocumentSessionReadyRoot(null)
+    const session = readDocumentSession(rootPath)
+    if (!session) {
+      setDocumentSessionReadyRoot(rootPath)
+      return
+    }
+
+    let cancelled = false
+    void restoreDocumentsRef.current(session.paths, session.activePath).then(() => {
+      if (!cancelled && documentSessionRootRef.current === rootPath) setDocumentSessionReadyRoot(rootPath)
+    })
+    return () => { cancelled = true }
+  }, [workspace.rootPath])
+
+  useEffect(() => {
+    const rootPath = workspace.rootPath
+    if (!rootPath || documentSessionReadyRoot !== rootPath) return
+    writeDocumentSession(rootPath, {
+      paths: documents.documents.map(document => document.path).filter(Boolean),
+      activePath: documents.activeDocument?.path || null,
+    })
+  }, [documents.activeDocument?.path, documents.documents, documentSessionReadyRoot, workspace.rootPath])
 
   useEffect(() => scheduleAutoUpdateCheck(), [isTauri])
 
@@ -235,6 +277,43 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
     documents.updatePathsAfterRename(oldPath, newPath, isDirectory)
   }
 
+  const closeWorkspace = async (): Promise<void> => {
+    for (const document of documents.documents) {
+      if (!(await documents.closeDocument(document.id))) return
+    }
+    if (workspace.rootPath) clearDocumentSession(workspace.rootPath)
+    workspace.closeWorkspace()
+  }
+  const closeOtherDocuments = async (keepId: string): Promise<void> => {
+    for (const document of documents.documents.filter(item => item.id !== keepId)) {
+      if (!(await documents.closeDocument(document.id))) return
+    }
+  }
+  const closeDocumentsToRight = async (id: string): Promise<void> => {
+    const index = documents.documents.findIndex(document => document.id === id)
+    if (index < 0) return
+    for (const document of documents.documents.slice(index + 1)) {
+      if (!(await documents.closeDocument(document.id))) return
+    }
+  }
+  const closeAllDocuments = async (): Promise<void> => {
+    for (const document of documents.documents) {
+      if (!(await documents.closeDocument(document.id))) return
+    }
+  }
+  const copyPath = async (path: string): Promise<void> => {
+    try {
+      await navigator.clipboard?.writeText(path)
+    } catch (error) {
+      console.error('Failed to copy path:', error)
+    }
+  }
+  const handleShellContextMenu = (event: ReactMouseEvent<HTMLDivElement>): void => {
+    if (event.defaultPrevented) return
+    event.preventDefault()
+    setShellMenu({ x: event.clientX, y: event.clientY })
+  }
+
   const handleOpenLink = (url: string): void => {
     const current = documents.activeDocument
     if (!current) return
@@ -256,15 +335,32 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
   }
 
   return (
-    <div ref={setShellElement} className="react-spike-shell relative h-screen w-screen overflow-hidden rounded-[var(--react-radius)] bg-[var(--react-shell-background)] p-[var(--react-inset)] text-[var(--react-dark-700)] [clip-path:inset(0_round_var(--react-radius))] [isolation:isolate]">
+    <div ref={setShellElement} onContextMenu={handleShellContextMenu} className="react-spike-shell relative h-screen w-screen overflow-hidden rounded-[var(--react-radius)] bg-[var(--react-shell-background)] p-[var(--react-inset)] text-[var(--react-dark-700)] [clip-path:inset(0_round_var(--react-radius))] [isolation:isolate]">
       {settings.edgeGlowEnabled && <MouseRingGlow hostElement={shellElement} />}
       <div className="absolute inset-x-0 top-0 z-10 h-5 [app-region:drag]" data-tauri-drag-region="true" />
       <div className="react-page-container relative z-[1] flex h-full w-full rounded-[calc(var(--react-radius)-var(--react-inset))] bg-[var(--react-page-background)] p-[var(--react-inset)]">
         <div className={`grid h-full w-full min-w-0 [grid-template-columns:var(--react-sidebar-grid)] transition-[grid-template-columns] duration-[160ms] [transition-timing-function:cubic-bezier(0,0,0.58,1)] max-md:relative max-md:grid-cols-1 ${isResizing ? 'transition-none' : ''}`} style={{ '--react-sidebar-grid': sidebarOpen ? `${sidebarWidth}px minmax(0,1fr)` : '0 minmax(0,1fr)' } as CSSProperties}>
-            <Sidebar width={sidebarWidth} isOpen={sidebarOpen} isHovering={sidebarHovering} controller={workspace} activePath={selectedPath} onSelectFile={selectFile} onPathChanged={handlePathChanged} onNewFile={() => { setPendingFilePath(null); documents.newFile() }} onOpenFile={() => { setPendingFilePath(null); void documents.openFileDialog() }} onSaveFile={() => void documents.saveFile(activeEditor?.getContent())} canSave={Boolean(documents.activeDocument) || documents.documents.some(document => document.isDirty)} isSaving={documents.isSaving} openDocuments={documents.documents} onCloseDocuments={async ids => { for (const id of ids) await documents.closeDocument(id, true) }} onSettings={() => setSettingsOpen(true)} />
+            <Sidebar width={sidebarWidth} isOpen={sidebarOpen} isHovering={sidebarHovering} controller={workspace} activePath={selectedPath} onSelectFile={selectFile} onPathChanged={handlePathChanged} onNewFile={() => { setPendingFilePath(null); documents.newFile() }} onOpenFile={() => { setPendingFilePath(null); void documents.openFileDialog() }} onSaveFile={() => void documents.saveFile(activeEditor?.getContent())} canSave={Boolean(documents.activeDocument) || documents.documents.some(document => document.isDirty)} isSaving={documents.isSaving} openDocuments={documents.documents} onCloseDocuments={async ids => { for (const id of ids) await documents.closeDocument(id, true) }} onCloseWorkspace={closeWorkspace} shortcuts={settings.shortcuts} onSettings={() => setSettingsOpen(true)} />
             {sidebarOpen && <div className={`absolute top-10 bottom-[5px] z-10 w-2 cursor-col-resize rounded transition-[background] duration-150 ease-in after:absolute after:left-1/2 after:top-1/2 after:h-10 after:w-[3px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-sm after:bg-transparent after:transition-[background] hover:after:bg-[rgba(40,44,51,0.42)]${isResizing ? ' after:bg-[rgba(40,44,51,0.42)]' : ''}`} style={{ left: sidebarWidth + 5 }} onMouseDown={startResize} />}
              <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] bg-[var(--react-panel-background)]">
-             <DocumentTabs documents={documents.documents} activeDocumentId={documents.activeDocumentId} hasTrafficLightsInset={hasTrafficLightsInset} sidebarOpen={sidebarOpen} onSelect={documents.setActiveDocument} onClose={id => { void documents.closeDocument(id) }} onReorder={documents.reorderDocuments} onNew={() => { setPendingFilePath(null); documents.newFile() }} />
+             <DocumentTabs
+               documents={documents.documents}
+               activeDocumentId={documents.activeDocumentId}
+               hasTrafficLightsInset={hasTrafficLightsInset}
+               sidebarOpen={sidebarOpen}
+               onSelect={documents.setActiveDocument}
+               onClose={id => { void documents.closeDocument(id) }}
+               onReorder={documents.reorderDocuments}
+               onNew={() => { setPendingFilePath(null); documents.newFile() }}
+               onSave={id => documents.saveDocument(id, id === documents.activeDocumentId ? activeEditor?.getContent() : undefined)}
+               onSaveAs={id => documents.saveDocumentAs(id, id === documents.activeDocumentId ? activeEditor?.getContent() : undefined)}
+               onCopyPath={copyPath}
+               onReveal={path => workspace.revealItem(path)}
+               onCloseOthers={closeOtherDocuments}
+               onCloseToRight={closeDocumentsToRight}
+               onCloseAll={closeAllDocuments}
+               shortcuts={settings.shortcuts}
+             />
             <Toolbar
               sidebarOpen={sidebarOpen}
                onToggleSidebar={toggleSidebar}
@@ -302,6 +398,16 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
         onClose={() => setSettingsOpen(false)}
       />}
       {quickOpen && <QuickOpenDialog entries={workspace.entries} rootPath={workspace.rootPath} onOpen={selectFile} onClose={() => setQuickOpen(false)} />}
+      {shellMenu && <ContextMenu
+        x={shellMenu.x}
+        y={shellMenu.y}
+        label="App actions"
+        onClose={() => setShellMenu(null)}
+        items={[
+          { id: 'reload', label: 'Reload', icon: 'pi-refresh', shortcut: isMac ? '⌘R' : 'Ctrl+R', onSelect: reloadApplication },
+          ...(isTauri ? [{ id: 'devtools', label: 'Developer Tools', icon: 'pi-code', shortcut: isMac ? '⌥⌘I' : 'Ctrl+Shift+I', onSelect: openDeveloperTools }] : []),
+        ]}
+      />}
     </div>
   )
 }

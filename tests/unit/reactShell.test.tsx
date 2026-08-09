@@ -5,6 +5,7 @@ import { RuntimeProvider } from '../../src/runtime/RuntimeContext'
 import type { RuntimePort } from '../../src/core/contracts'
 import type { DocumentStoragePort } from '../../src/core/contracts/document'
 import type { WorkspacePort } from '../../src/core/contracts/workspace'
+import { DOCUMENT_SESSIONS_STORAGE_KEY } from '../../src/editor/documentSession'
 
 const testRuntimePort: RuntimePort = {
   getInitialContext: () => ({ isTauri: false, isMac: false, isMobile: false }),
@@ -35,10 +36,15 @@ const markdownWorkspacePort: WorkspacePort = {
   renameItem: () => Promise.resolve('/workspace/renamed.md'),
   deleteItem: () => Promise.resolve(),
   moveItem: () => Promise.resolve('/workspace/moved.md'),
+  duplicateItem: () => Promise.resolve('/workspace/note copy.md'),
+  openItem: () => Promise.resolve(),
+  revealItem: () => Promise.resolve(),
 }
 
 const markdownDocumentStoragePort: DocumentStoragePort = {
-  readFile: path => Promise.resolve({ path, name: path.split('/').pop() ?? 'note.md', content: '# Note\n', }),
+  readFile: path => path === '/workspace/missing.md'
+    ? Promise.reject('missing')
+    : Promise.resolve({ path, name: path.split('/').pop() ?? 'note.md', content: '# Note\n', }),
   openMarkdownFile: () => Promise.resolve({ path: '/workspace/other.md', name: 'other.md', content: 'Other\n' }),
   saveMarkdownFile: () => Promise.resolve(),
   saveMarkdownFileAs: () => Promise.resolve({ path: '/workspace/saved.md', name: 'saved.md' }),
@@ -66,6 +72,17 @@ describe('React shell spike', () => {
     expect(tabList()?.classList.contains('pl-[25px]')).toBe(true)
     fireEvent.click(screen.getByRole('button', { name: 'Show Sidebar' }))
     expect(tabList()?.classList.contains('pl-[15px]')).toBe(true)
+  })
+
+  it('replaces the native shell context menu with app actions', async () => {
+    await act(async () => {
+      render(<RuntimeProvider port={testRuntimePort}><App /></RuntimeProvider>)
+    })
+
+    fireEvent.contextMenu(screen.getByRole('main'), { clientX: 40, clientY: 48 })
+
+    expect(screen.getByRole('menu', { name: 'App actions' })).not.toBeNull()
+    expect(screen.getByRole('menuitem', { name: /Reload/ })).not.toBeNull()
   })
 
   it('toggles the isolated sidebar without touching Vue state', async () => {
@@ -160,6 +177,24 @@ describe('React shell spike', () => {
     expect(onOpenFile).toHaveBeenCalledWith('/workspace/note.md')
     expect(screen.getByRole('textbox')).not.toBeNull()
     expect(screen.getByRole('tab', { name: /note.md/ })).not.toBeNull()
+  })
+
+  it('restores the saved project and its open document tabs on startup', async () => {
+    window.localStorage.setItem('kea-workspace-path', '/workspace')
+    window.localStorage.setItem(DOCUMENT_SESSIONS_STORAGE_KEY, JSON.stringify({
+      '/workspace': { paths: ['/workspace/missing.md', '/workspace/note.md'], activePath: '/workspace/note.md' },
+    }))
+
+    await act(async () => {
+      render(<RuntimeProvider port={testRuntimePort}><App workspacePort={markdownWorkspacePort} documentStoragePort={markdownDocumentStoragePort} /></RuntimeProvider>)
+    })
+    await act(async () => {})
+
+    expect(screen.getByRole('tree', { name: 'Workspace files' })).not.toBeNull()
+    expect(screen.queryByRole('tab', { name: /missing.md/ })).toBeNull()
+    expect(screen.getByRole('tab', { name: /note.md/ })).not.toBeNull()
+    expect(screen.getByRole('tab', { name: /note.md/ }).getAttribute('aria-selected')).toBe('true')
+    expect(window.localStorage.getItem(DOCUMENT_SESSIONS_STORAGE_KEY)).toContain('/workspace/note.md')
   })
 
   it('mounts the ProseMark editor and formatting toolbar for an active document', async () => {

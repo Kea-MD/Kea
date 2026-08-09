@@ -492,6 +492,7 @@ select:focus-visible {
     margin: 0 auto;
     padding: 32px clamp(24px, 5vw, 72px) 64px;
     caret-color: rgb(var(--react-brand-rgb));
+    cursor: text;
 }
 
 .prosemark-editor-mount .cm-line {
@@ -507,10 +508,15 @@ select:focus-visible {
     background: color-mix(in srgb, rgb(var(--react-brand-rgb)) 24%, transparent) !important;
 }
 
-.prosemark-editor-mount .cm-latex-math,
+.prosemark-editor-mount .cm-selectionLayer {
+    pointer-events: none;
+}
+
+.prosemark-editor-mount .cm-latex-math[data-display="block"],
 .prosemark-editor-mount .cm-html-widget,
 .prosemark-editor-mount .cm-image-block {
-    margin: 12px 0 18px;
+    margin: 0;
+    padding-block: 12px 18px;
 }
 
 .prosemark-editor-mount .cm-image img {
@@ -615,6 +621,7 @@ select:focus-visible {
 .dark .prosemark-editor-shell {
     --pm-header-mark-color: var(--react-light-500);
     --pm-muted-color: var(--react-light-400);
+    --pm-cursor-color: var(--react-light-50);
     --pm-code-background-color: #171719;
     --pm-code-btn-background-color: rgba(255, 255, 255, 0.08);
     --pm-code-btn-hover-background-color: rgba(255, 255, 255, 0.15);
@@ -634,6 +641,16 @@ select:focus-visible {
 
 .dark .prosemark-editor-mount .cm-editor {
     color: var(--react-light-200);
+}
+
+.dark .prosemark-editor-mount .cm-content {
+    --pm-cursor-color: var(--react-light-50);
+    caret-color: var(--react-light-50);
+}
+
+.dark .prosemark-editor-mount .cm-editor .cm-cursor,
+.dark .prosemark-editor-mount .cm-editor .cm-dropCursor {
+    border-left-color: var(--react-light-50);
 }
 
 .dark .prosemark-editor-mount .cm-fenced-code-line {

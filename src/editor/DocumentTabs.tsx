@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type WheelEvent } from 'react'
 import type { DocumentSnapshot } from '../core/contracts/document'
+import { ContextMenu } from '../shared/ContextMenu'
+import { formatShortcutForDisplay } from '../modules/settings/shortcuts/shortcutRegistry'
 import './DocumentTabs.css'
 
 const TAB_FADE_MAX = 60
@@ -64,9 +66,17 @@ export interface DocumentTabsProps {
   onClose: (id: string) => void
   onReorder: (fromIndex: number, toIndex: number) => void
   onNew: () => void
+  onSave?: (id: string) => void | Promise<unknown>
+  onSaveAs?: (id: string) => void | Promise<unknown>
+  onCopyPath?: (path: string) => void | Promise<void>
+  onReveal?: (path: string) => void | Promise<void>
+  onCloseOthers?: (id: string) => void | Promise<void>
+  onCloseToRight?: (id: string) => void | Promise<void>
+  onCloseAll?: () => void | Promise<void>
+  shortcuts?: Record<string, string>
 }
 
-export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInset, sidebarOpen, onSelect, onClose, onReorder, onNew }: DocumentTabsProps) {
+export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInset, sidebarOpen, onSelect, onClose, onReorder, onNew, onSave, onSaveAs, onCopyPath, onReveal, onCloseOthers, onCloseToRight, onCloseAll, shortcuts = {} }: DocumentTabsProps) {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const tabsListRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<DragSession | null>(null)
@@ -76,6 +86,13 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
   const pointerUpRef = useRef<(event: globalThis.PointerEvent) => void>(() => {})
   const [fade, setFade] = useState({ left: 0, right: 0 })
   const [dragPresentation, setDragPresentation] = useState<DragPresentation | null>(null)
+  const [menu, setMenu] = useState<{ document: DocumentSnapshot; x: number; y: number } | null>(null)
+  const shortcut = (id: string): string | undefined => {
+    const binding = shortcuts[id]
+    if (!binding) return undefined
+    const formatted = formatShortcutForDisplay(binding)
+    return formatted === 'Unassigned' ? undefined : formatted
+  }
 
   const getTabElements = (): HTMLElement[] => Array.from(tabsListRef.current?.querySelectorAll<HTMLElement>('[data-tab-id]') ?? [])
 
@@ -311,6 +328,7 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
                     aria-grabbed={isDragged}
                     tabIndex={active ? 0 : -1}
                     data-tab-id={document.id}
+                    onContextMenu={event => { event.preventDefault(); setMenu({ document, x: event.clientX, y: event.clientY }) }}
                     onPointerDown={event => handlePointerDown(event, document.id)}
                     onClick={() => {
                       if (suppressNextClickRef.current) {
@@ -348,6 +366,24 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
         {draggedDocument.isDirty && <span className="m-1 h-2 w-2 flex-none rounded-full bg-[rgb(var(--react-brand-rgb))]" title="Unsaved changes" />}
         <button type="button" tabIndex={-1} aria-hidden="true"><i className="pi pi-times text-[10px]" aria-hidden="true" /></button>
       </div>}
+      {menu && <ContextMenu
+        x={menu.x}
+        y={menu.y}
+        label={`Actions for ${menu.document.name}`}
+        onClose={() => setMenu(null)}
+        items={[
+          { id: 'save', label: 'Save', icon: 'pi-save', shortcut: shortcut('save'), disabled: !menu.document.isDirty || !onSave, onSelect: () => onSave?.(menu.document.id) },
+          { id: 'save-as', label: 'Save As…', icon: 'pi-file-export', shortcut: shortcut('save_as'), disabled: !onSaveAs, onSelect: () => onSaveAs?.(menu.document.id) },
+          { type: 'separator' },
+          { id: 'copy-path', label: 'Copy Path', icon: 'pi-copy', disabled: !menu.document.path || !onCopyPath, onSelect: () => { if (menu.document.path) return onCopyPath?.(menu.document.path) } },
+          { id: 'reveal', label: 'Reveal in Finder', icon: 'pi-search', disabled: !menu.document.path || !onReveal, onSelect: () => { if (menu.document.path) return onReveal?.(menu.document.path) } },
+          { type: 'separator' },
+          { id: 'close', label: 'Close', icon: 'pi-times', shortcut: shortcut('close_tab'), onSelect: () => onClose(menu.document.id) },
+          { id: 'close-others', label: 'Close Others', icon: 'pi-minus', disabled: documents.length < 2 || !onCloseOthers, onSelect: () => onCloseOthers?.(menu.document.id) },
+          { id: 'close-right', label: 'Close Tabs to the Right', icon: 'pi-arrow-right', disabled: documents.findIndex(item => item.id === menu.document.id) === documents.length - 1 || !onCloseToRight, onSelect: () => onCloseToRight?.(menu.document.id) },
+          { id: 'close-all', label: 'Close All Tabs', icon: 'pi-times-circle', onSelect: () => onCloseAll ? onCloseAll() : documents.forEach(item => onClose(item.id)) },
+        ]}
+      />}
     </div>
   )
 }

@@ -43,4 +43,16 @@ export const tauriWorkspacePort: WorkspacePort = {
       targetDir,
     })
   },
+
+  duplicateItem(path: string): Promise<string> {
+    return invoke<string>('duplicate_item', { path })
+  },
+
+  openItem(path: string): Promise<void> {
+    return invoke('open_item', { path })
+  },
+
+  revealItem(path: string): Promise<void> {
+    return invoke('reveal_item', { path })
+  },
 }
