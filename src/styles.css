@@ -130,6 +130,10 @@ select:focus-visible {
     height: calc(100% - 33px);
 }
 
+.react-sidebar {
+    transform: translateX(-100%);
+}
+
 .react-sidebar-host.is-open .react-sidebar,
 .react-sidebar-host:not(.is-open).is-hovering .react-sidebar,
 .react-sidebar-host:not(.is-open):has(.react-sidebar:hover) .react-sidebar,
@@ -137,7 +141,6 @@ select:focus-visible {
     .react-sidebar {
     opacity: 1;
     transform: translateX(0);
-    translate: 0 0;
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition-timing-function: cubic-bezier(0, 0, 0.58, 1);
 }
