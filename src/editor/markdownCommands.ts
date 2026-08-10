@@ -10,6 +10,29 @@ function runProseMarkBinding(view: EditorView, key: string): boolean {
   return binding?.run?.(view) ?? false
 }
 
+function trimInlineSelectionWhitespace(view: EditorView): void {
+  const { state } = view
+  let changed = false
+  const ranges = state.selection.ranges.map(range => {
+    if (range.empty) return range
+    const selected = state.sliceDoc(range.from, range.to)
+    const leadingLength = selected.match(/^\s+/)?.[0].length ?? 0
+    const trailingLength = selected.match(/\s+$/)?.[0].length ?? 0
+    const from = range.from + leadingLength
+    const to = range.to - trailingLength
+    if (from >= to || (from === range.from && to === range.to)) return range
+    changed = true
+    return EditorSelection.range(from, to)
+  })
+
+  if (changed) view.dispatch({ selection: EditorSelection.create(ranges, state.selection.mainIndex) })
+}
+
+function runInlineProseMarkBinding(view: EditorView, key: string): boolean {
+  trimInlineSelectionWhitespace(view)
+  return runProseMarkBinding(view, key)
+}
+
 function transformLines(view: EditorView, transform: (line: string, index: number) => string): boolean {
   const range = view.state.selection.main
   const first = view.state.doc.lineAt(range.from)
@@ -33,6 +56,19 @@ function togglePrefix(view: EditorView, prefix: string, matcher: RegExp): boolea
   ).split('\n')
   const remove = source.every(line => matcher.test(line))
   return transformLines(view, line => remove ? line.replace(matcher, '') : `${prefix}${line.replace(matcher, '')}`)
+}
+
+function toggleOrderedList(view: EditorView): boolean {
+  const selection = view.state.selection.main
+  const lines = view.state.doc.sliceString(
+    view.state.doc.lineAt(selection.from).from,
+    view.state.doc.lineAt(selection.to).to,
+  ).split('\n')
+  const matcher = /^\d+[.)]\s+/
+  const remove = lines.every(line => matcher.test(line))
+  return transformLines(view, (line, index) => remove
+    ? line.replace(matcher, '')
+    : `${index + 1}. ${line.replace(matcher, '')}`)
 }
 
 function insert(view: EditorView, source: string, selectFrom = source.length, selectLength = 0): boolean {
@@ -59,7 +95,7 @@ export function executeMarkdownCommand(view: EditorView, command: EditorCommand)
     strikethrough: 'Mod-Shift-x',
   }
   const prosemarkKey = prosemarkKeys[command]
-  if (prosemarkKey) return runProseMarkBinding(view, prosemarkKey)
+  if (prosemarkKey) return runInlineProseMarkBinding(view, prosemarkKey)
 
   if (command === 'heading-paragraph') return transformLines(view, line => line.replace(/^#{1,6}\s+/, ''))
   if (command.startsWith('heading-')) {
@@ -68,7 +104,7 @@ export function executeMarkdownCommand(view: EditorView, command: EditorCommand)
   }
   if (command === 'blockquote') return togglePrefix(view, '> ', /^>\s?/)
   if (command === 'bullet-list') return togglePrefix(view, '- ', /^[-+*]\s+/)
-  if (command === 'ordered-list') return transformLines(view, (line, index) => `${index + 1}. ${line.replace(/^\d+[.)]\s+/, '')}`)
+  if (command === 'ordered-list') return toggleOrderedList(view)
   if (command === 'task-list') return togglePrefix(view, '- [ ] ', /^[-+*]\s+\[[ xX]\]\s+/)
 
   const selected = view.state.doc.sliceString(view.state.selection.main.from, view.state.selection.main.to)

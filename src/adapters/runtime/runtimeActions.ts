@@ -18,3 +18,12 @@ export async function openDeveloperTools(): Promise<void> {
     console.error('Failed to open developer tools:', error)
   }
 }
+
+export async function openNewWindow(): Promise<void> {
+  if (!isTauriRuntime()) return
+  try {
+    await invoke('create_editor_window')
+  } catch (error) {
+    console.error('Failed to open a new window:', error)
+  }
+}

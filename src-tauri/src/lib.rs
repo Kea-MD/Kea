@@ -1,24 +1,83 @@
 use tauri::{
     Manager,
     menu::{AboutMetadataBuilder, MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder},
+    webview::PageLoadEvent,
     Emitter,
+    WebviewWindow, WebviewWindowBuilder,
 };
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::AtomicBool;
+use std::time::Instant;
 
 mod commands;
 
 pub struct FileWatchRegistry {
     pub watchers: Mutex<HashMap<String, Arc<AtomicBool>>>,
+    pub recent_writes: Arc<Mutex<HashMap<String, (Instant, u64)>>>,
 }
 
 impl Default for FileWatchRegistry {
     fn default() -> Self {
         Self {
             watchers: Mutex::new(HashMap::new()),
+            recent_writes: Arc::new(Mutex::new(HashMap::new())),
         }
     }
+}
+
+#[cfg(target_os = "macos")]
+fn apply_window_vibrancy(window: &WebviewWindow) -> Result<(), String> {
+    use objc2_app_kit::{NSView, NSViewLayerContentsRedrawPolicy};
+    use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
+
+    apply_vibrancy(
+        window,
+        NSVisualEffectMaterial::HudWindow,
+        Some(NSVisualEffectState::Active),
+        Some(45.0),
+    )
+    .map_err(|error| format!("Failed to apply window vibrancy: {error}"))?;
+
+    window
+        .with_webview(|webview| unsafe {
+            let view: &NSView = &*webview.inner().cast();
+            view.setLayerContentsRedrawPolicy(NSViewLayerContentsRedrawPolicy::DuringViewResize);
+        })
+        .map_err(|error| format!("Failed to configure live WebView resizing: {error}"))
+}
+
+#[cfg(not(target_os = "macos"))]
+fn apply_window_vibrancy(_window: &WebviewWindow) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn create_editor_window(app: tauri::AppHandle) -> Result<(), String> {
+    let label = (2..)
+        .map(|index| format!("kea-{index}"))
+        .find(|label| app.get_webview_window(label).is_none())
+        .ok_or_else(|| "Unable to allocate a window label".to_string())?;
+    let mut config = app
+        .config()
+        .app
+        .windows
+        .first()
+        .cloned()
+        .ok_or_else(|| "Main window configuration is unavailable".to_string())?;
+    config.label = label;
+    let window = WebviewWindowBuilder::from_config(&app, &config)
+        .map_err(|error| format!("Failed to configure new window: {error}"))?
+        .on_page_load(|window, payload| {
+            if payload.event() == PageLoadEvent::Finished {
+                if let Err(error) = apply_window_vibrancy(&window) {
+                    eprintln!("{error}");
+                }
+            }
+        })
+        .build()
+        .map_err(|error| format!("Failed to create new window: {error}"))?;
+    apply_window_vibrancy(&window)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -38,17 +97,7 @@ pub fn run() {
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
 
-            #[cfg(target_os = "macos")]
-            {
-                use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
-                
-                apply_vibrancy(
-                    &window,
-                    NSVisualEffectMaterial::HudWindow,
-                    Some(NSVisualEffectState::Active),
-                    Some(45.0)
-                ).expect("Failed to apply vibrancy");
-            }
+            apply_window_vibrancy(&window)?;
 
             // Build native menu
             let handle = app.handle();
@@ -140,11 +189,16 @@ pub fn run() {
                 .build()?;
 
             // Window menu
+            let new_window = MenuItemBuilder::with_id("new_window", "New Window")
+                .accelerator("CmdOrCtrl+Shift+N")
+                .build(handle)?;
             let minimize = PredefinedMenuItem::minimize(handle, Some("Minimise"))?;
             let zoom = PredefinedMenuItem::maximize(handle, Some("Zoom"))?;
             let fullscreen = PredefinedMenuItem::fullscreen(handle, Some("Enter Full Screen"))?;
 
             let window_menu = SubmenuBuilder::new(handle, "Window")
+                .item(&new_window)
+                .separator()
                 .item(&minimize)
                 .item(&zoom)
                 .separator()
@@ -198,10 +252,16 @@ pub fn run() {
         })
         .on_menu_event(|app, event| {
             let id = event.id().as_ref();
-            // Emit event to frontend
-            let _ = app.emit("menu-event", id);
+            if let Some(window) = app
+                .webview_windows()
+                .into_values()
+                .find(|window| window.is_focused().unwrap_or(false))
+            {
+                let _ = app.emit_to(window.label(), "menu-event", id);
+            }
         })
         .invoke_handler(tauri::generate_handler![
+            create_editor_window,
             commands::file::open_markdown_file,
             commands::file::save_markdown_file,
             commands::file::save_markdown_file_as,

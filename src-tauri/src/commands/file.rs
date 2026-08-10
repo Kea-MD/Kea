@@ -1,12 +1,17 @@
 use serde::{Deserialize, Serialize};
+use std::collections::hash_map::DefaultHasher;
 use std::fs;
+use std::hash::{Hash, Hasher};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::Ordering;
 use std::thread;
-use std::time::{Duration, SystemTime};
-use tauri::{AppHandle, Emitter, Manager, State};
+use std::time::{Duration, Instant, SystemTime};
+use tauri::{AppHandle, Emitter, State};
 use crate::FileWatchRegistry;
+
+const RECENT_WRITE_TTL: Duration = Duration::from_secs(2);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileData {
@@ -145,6 +150,48 @@ fn read_modified_time(path: &Path) -> Option<SystemTime> {
     fs::metadata(path).ok()?.modified().ok()
 }
 
+fn content_signature(content: &[u8]) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    content.hash(&mut hasher);
+    hasher.finish()
+}
+
+fn record_write(
+    recent_writes: &Arc<Mutex<std::collections::HashMap<String, (Instant, u64)>>>,
+    path: &str,
+    content: &str,
+) -> Result<(), String> {
+    let now = Instant::now();
+    let mut writes = recent_writes
+        .lock()
+        .map_err(|_| "Failed to lock recent-write registry")?;
+    writes.retain(|_, (recorded_at, _)| now.duration_since(*recorded_at) < RECENT_WRITE_TTL);
+    writes.insert(path.to_string(), (now, content_signature(content.as_bytes())));
+    Ok(())
+}
+
+fn is_self_write(
+    recent_writes: &Arc<Mutex<std::collections::HashMap<String, (Instant, u64)>>>,
+    path: &str,
+) -> bool {
+    let expected_signature = {
+        let now = Instant::now();
+        let Ok(mut writes) = recent_writes.lock() else {
+            return false;
+        };
+        writes.retain(|_, (recorded_at, _)| now.duration_since(*recorded_at) < RECENT_WRITE_TTL);
+        writes.get(path).map(|(_, signature)| *signature)
+    };
+
+    let Some(expected_signature) = expected_signature else {
+        return false;
+    };
+    let Ok(content) = fs::read(path) else {
+        return false;
+    };
+    content_signature(&content) == expected_signature
+}
+
 /// Open a markdown file using file picker
 #[tauri::command]
 pub async fn open_markdown_file(app: AppHandle) -> Result<FileData, String> {
@@ -193,7 +240,12 @@ pub async fn open_markdown_file(app: AppHandle) -> Result<FileData, String> {
 
 /// Save markdown content to specified file path
 #[tauri::command]
-pub async fn save_markdown_file(path: String, content: String) -> Result<(), String> {
+pub async fn save_markdown_file(
+    state: State<'_, FileWatchRegistry>,
+    path: String,
+    content: String,
+) -> Result<(), String> {
+    record_write(&state.recent_writes, &path, &content)?;
     atomic_write_file(Path::new(&path), &content)?;
 
     Ok(())
@@ -201,7 +253,11 @@ pub async fn save_markdown_file(path: String, content: String) -> Result<(), Str
 
 /// Save markdown content with file picker (Save As)
 #[tauri::command]
-pub async fn save_markdown_file_as(app: AppHandle, content: String) -> Result<SaveResult, String> {
+pub async fn save_markdown_file_as(
+    app: AppHandle,
+    state: State<'_, FileWatchRegistry>,
+    content: String,
+) -> Result<SaveResult, String> {
     use tauri_plugin_dialog::DialogExt;
 
     // Open save dialog
@@ -225,6 +281,11 @@ pub async fn save_markdown_file_as(app: AppHandle, content: String) -> Result<Sa
             }
 
             // Write content
+            let path_str = path
+                .to_str()
+                .ok_or("Invalid file path")?
+                .to_string();
+            record_write(&state.recent_writes, &path_str, &content)?;
             atomic_write_file(&path, &content)?;
 
             // Get file name
@@ -235,11 +296,6 @@ pub async fn save_markdown_file_as(app: AppHandle, content: String) -> Result<Sa
                 .to_string();
 
             // Convert path to string
-            let path_str = path
-                .to_str()
-                .ok_or("Invalid file path")?
-                .to_string();
-
             Ok(SaveResult {
                 path: path_str,
                 name,
@@ -620,21 +676,18 @@ pub async fn reveal_item(path: String) -> Result<(), String> {
         .map_err(|error| format!("Failed to reveal item: {}", error))
 }
 
-/// Reload the main webview from the in-app command menu.
+/// Reload the webview that invoked the in-app command menu.
 #[tauri::command]
-pub async fn reload_window(app: AppHandle) -> Result<(), String> {
-    app.get_webview_window("main")
-        .ok_or("Main window is unavailable")?
+pub async fn reload_window(window: tauri::WebviewWindow) -> Result<(), String> {
+    window
         .reload()
         .map_err(|error| format!("Failed to reload window: {}", error))
 }
 
 /// Open developer tools from the in-app command menu.
 #[tauri::command]
-pub async fn open_devtools(app: AppHandle) -> Result<(), String> {
-    app.get_webview_window("main")
-        .ok_or("Main window is unavailable")?
-        .open_devtools();
+pub async fn open_devtools(window: tauri::WebviewWindow) -> Result<(), String> {
+    window.open_devtools();
     Ok(())
 }
 
@@ -671,6 +724,7 @@ pub async fn start_file_watch(
 
     let app_handle = app.clone();
     let watched_path = path.clone();
+    let recent_writes = state.recent_writes.clone();
 
     thread::spawn(move || {
         let mut last_exists = Path::new(&watched_path).exists();
@@ -686,6 +740,8 @@ pub async fn start_file_watch(
 
             if !exists {
                 if last_exists {
+                    // A missing file cannot match a completed Kea write. Always
+                    // surface removals so genuine external deletes are immediate.
                     let _ = app_handle.emit(
                         "file-watch-event",
                         FileWatchEvent {
@@ -704,13 +760,15 @@ pub async fn start_file_watch(
             let modified = read_modified_time(current_path);
             if last_exists {
                 if modified.is_some() && modified != last_modified {
-                    let _ = app_handle.emit(
-                        "file-watch-event",
-                        FileWatchEvent {
-                            path: watched_path.clone(),
-                            kind: "modified".to_string(),
-                        },
-                    );
+                    if !is_self_write(&recent_writes, &watched_path) {
+                        let _ = app_handle.emit(
+                            "file-watch-event",
+                            FileWatchEvent {
+                                path: watched_path.clone(),
+                                kind: "modified".to_string(),
+                            },
+                        );
+                    }
                 }
             }
 
@@ -766,9 +824,11 @@ pub async fn stop_all_file_watches(
 
 #[cfg(test)]
 mod tests {
-    use super::{atomic_write_file, copy_item, duplicate_destination, is_markdown_file, read_dir_entries, store_asset};
+    use super::{atomic_write_file, copy_item, duplicate_destination, is_markdown_file, is_self_write, read_dir_entries, record_write, store_asset};
+    use std::collections::HashMap;
     use std::fs;
     use std::path::PathBuf;
+    use std::sync::{Arc, Mutex};
     use std::time::{SystemTime, UNIX_EPOCH};
 
     fn make_temp_dir(test_name: &str) -> PathBuf {
@@ -794,6 +854,23 @@ mod tests {
         atomic_write_file(&file_path, "second").expect("second write should succeed");
         let second = fs::read_to_string(&file_path).expect("file should be readable after second write");
         assert_eq!(second, "second");
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn recent_write_suppression_only_matches_the_content_kea_saved() {
+        let root = make_temp_dir("recent-write");
+        let file_path = root.join("note.md");
+        let path = file_path.to_string_lossy().to_string();
+        let recent_writes = Arc::new(Mutex::new(HashMap::new()));
+
+        record_write(&recent_writes, &path, "kea content").expect("write should be recorded");
+        fs::write(&file_path, "kea content").expect("saved content should be written");
+        assert!(is_self_write(&recent_writes, &path));
+
+        fs::write(&file_path, "external content").expect("external content should be written");
+        assert!(!is_self_write(&recent_writes, &path));
 
         let _ = fs::remove_dir_all(root);
     }

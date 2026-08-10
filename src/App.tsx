@@ -15,7 +15,6 @@ import { EditorSurface } from './editor/EditorSurface'
 import { CodeMirrorToolbar } from './editor/CodeMirrorToolbar'
 import { useReactAutoSave } from './editor/useReactAutoSave'
 import { useExternalFileSync } from './editor/useExternalFileSync'
-import { ExternalChangeBanner } from './editor/ExternalChangeBanner'
 import type { DocumentStoragePort } from './core/contracts/document'
 import type { EditorController } from './core/contracts/editor'
 import type { WorkspacePort } from './core/contracts/workspace'
@@ -26,8 +25,9 @@ import { QuickOpenDialog } from './workspace/QuickOpenDialog'
 import { DocumentOutline } from './editor/DocumentOutline'
 import { scheduleAutoUpdateCheck } from './settings/updatesClient'
 import { ContextMenu } from './shared/ContextMenu'
-import { openDeveloperTools, reloadApplication } from './adapters/runtime/runtimeActions'
+import { openDeveloperTools, openNewWindow, reloadApplication } from './adapters/runtime/runtimeActions'
 import { clearDocumentSession, readDocumentSession, writeDocumentSession } from './editor/documentSession'
+import { getWindowLabel } from './runtime/windowIdentity'
 
 function Icon({ children }: { children: string }) {
   return <span className="material-symbols-outlined" aria-hidden="true">{children}</span>
@@ -86,8 +86,8 @@ function Toolbar({
   onToggleOutline: () => void
 }) {
   return (
-    <div className="grid min-h-[42px] flex-none grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 overflow-hidden bg-[var(--react-toolbar-background)] px-4 py-2 [box-shadow:0_-1px_0_var(--react-border),0_1px_0_var(--react-border)]" aria-label="Editor toolbar">
-      <div className="flex min-w-0 items-center gap-1">
+    <div className="relative flex min-h-[42px] flex-none items-center overflow-visible bg-[var(--react-toolbar-background)] px-3 py-2 [box-shadow:0_-1px_0_var(--react-border),0_1px_0_var(--react-border)]" aria-label="Editor toolbar">
+      <div className="absolute inset-y-0 left-3 z-10 flex items-center gap-1 bg-[var(--react-toolbar-background)]">
         <IconButton
           icon="dock_to_right"
           label={sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
@@ -97,10 +97,10 @@ function Toolbar({
           onMouseLeave={() => onSidebarHover(false)}
         />
       </div>
-      <div className="flex min-w-0 items-center justify-center gap-1 overflow-x-auto overflow-y-hidden whitespace-nowrap">
+      <div className="min-w-0 flex-1 overflow-hidden whitespace-nowrap">
         <CodeMirrorToolbar editor={editor} />
       </div>
-      <div className="flex min-w-0 items-center justify-end gap-1">
+      <div className="absolute inset-y-0 right-3 z-10 flex items-center gap-1 bg-[var(--react-toolbar-background)]">
         <IconButton icon="toc" label={outlineOpen ? 'Hide outline' : 'Show outline'} active={outlineOpen} disabled={!editor} onClick={onToggleOutline} />
         <IconButton icon={isDark ? 'light_mode' : 'dark_mode'} label={isDark ? 'Use light theme' : 'Use dark theme'} onClick={onToggleTheme} />
       </div>
@@ -139,6 +139,7 @@ export interface ReactShellProps {
 }
 
 export default function App({ workspacePort, documentStoragePort, onOpenFile }: ReactShellProps) {
+  const windowLabel = getWindowLabel()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [shellElement, setShellElement] = useState<HTMLDivElement | null>(null)
   const [activeEditor, setActiveEditor] = useState<EditorController | null>(null)
@@ -150,14 +151,22 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
   const [shellMenu, setShellMenu] = useState<{ x: number; y: number } | null>(null)
   const settingsController = useReactSettings()
   const { settings } = settingsController
-  const workspace = useWorkspaceController(workspacePort, { restoreWorkspaceOnLaunch: settings.restoreWorkspaceOnLaunch })
+  const workspace = useWorkspaceController(workspacePort, { restoreWorkspaceOnLaunch: settings.restoreWorkspaceOnLaunch, windowLabel })
   const documents = useDocumentController(documentStoragePort)
-  useReactAutoSave(documents.externalChange ? null : documents.activeDocument, documents.saveFile)
-  const { sidebarOpen, sidebarHovering, toggleSidebar, handleSidebarHover } = useSidebarInteraction()
+  const documentsRef = useRef(documents)
+  const activeEditorRef = useRef(activeEditor)
+  documentsRef.current = documents
+  activeEditorRef.current = activeEditor
+  useReactAutoSave(documents.activeDocument, documents.saveFile)
+  const { sidebarOpen, sidebarHovering, toggleSidebar, closeSidebar, handleSidebarHover } = useSidebarInteraction()
   const { sidebarWidth, isResizing, startResize } = useSidebarResize()
   const { isDark, toggleTheme, themeMode, setThemeMode } = useReactTheme()
-  const { hasTrafficLightsInset, isTauri, isMac } = useRuntimeContext()
+  const { hasTrafficLightsInset, isTauri, isMac, isMobile } = useRuntimeContext()
   useExternalFileSync(documents.documents, isTauri, documents.checkExternalChange)
+
+  useEffect(() => {
+    if (isMobile) closeSidebar()
+  }, [closeSidebar, isMobile])
 
   const documentSessionRootRef = useRef<string | null>(null)
   const [documentSessionReadyRoot, setDocumentSessionReadyRoot] = useState<string | null>(null)
@@ -175,7 +184,7 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
 
     documentSessionRootRef.current = rootPath
     setDocumentSessionReadyRoot(null)
-    const session = readDocumentSession(rootPath)
+    const session = readDocumentSession(windowLabel, rootPath)
     if (!session) {
       setDocumentSessionReadyRoot(rootPath)
       return
@@ -186,16 +195,16 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
       if (!cancelled && documentSessionRootRef.current === rootPath) setDocumentSessionReadyRoot(rootPath)
     })
     return () => { cancelled = true }
-  }, [workspace.rootPath])
+  }, [windowLabel, workspace.rootPath])
 
   useEffect(() => {
     const rootPath = workspace.rootPath
     if (!rootPath || documentSessionReadyRoot !== rootPath) return
-    writeDocumentSession(rootPath, {
+    writeDocumentSession(windowLabel, rootPath, {
       paths: documents.documents.map(document => document.path).filter(Boolean),
       activePath: documents.activeDocument?.path || null,
     })
-  }, [documents.activeDocument?.path, documents.documents, documentSessionReadyRoot, workspace.rootPath])
+  }, [documents.activeDocument?.path, documents.documents, documentSessionReadyRoot, windowLabel, workspace.rootPath])
 
   useEffect(() => scheduleAutoUpdateCheck(), [isTauri])
 
@@ -237,6 +246,7 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
     let disposed = false
     let unlisten: (() => void) | undefined
     void listen<string>('menu-event', event => {
+      if (event.payload === 'new_window') void openNewWindow()
       if (event.payload === 'open_settings') setSettingsOpen(true)
       if (event.payload === 'quick_open') setQuickOpen(true)
     }).then(removeListener => {
@@ -281,7 +291,7 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
     for (const document of documents.documents) {
       if (!(await documents.closeDocument(document.id))) return
     }
-    if (workspace.rootPath) clearDocumentSession(workspace.rootPath)
+    if (workspace.rootPath) clearDocumentSession(windowLabel, workspace.rootPath)
     workspace.closeWorkspace()
   }
   const closeOtherDocuments = async (keepId: string): Promise<void> => {
@@ -314,8 +324,10 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
     setShellMenu({ x: event.clientX, y: event.clientY })
   }
 
-  const handleOpenLink = (url: string): void => {
-    const current = documents.activeDocument
+  const handleOpenLink = useCallback((url: string): void => {
+    const documentController = documentsRef.current
+    const editor = activeEditorRef.current
+    const current = documentController.activeDocument
     if (!current) return
     const target = resolveMarkdownLink(current.path, url)
     if (!target) return
@@ -325,24 +337,24 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
     }
     if (!target.path) return
     if (target.path === current.path) {
-      const heading = extractMarkdownHeadings(activeEditor?.getContent() ?? current.content).find(item => item.anchor === target.anchor)
-      if (heading) activeEditor?.revealPosition(heading.position)
+      const heading = extractMarkdownHeadings(editor?.getContent() ?? current.content).find(item => item.anchor === target.anchor)
+      if (heading) editor?.revealPosition(heading.position)
       return
     }
-    void documents.openFileFromPath(target.path).then(documentId => {
+    void documentController.openFileFromPath(target.path).then(documentId => {
       if (documentId && target.anchor) setPendingAnchor({ documentId, anchor: target.anchor })
     })
-  }
+  }, [])
 
   return (
-    <div ref={setShellElement} onContextMenu={handleShellContextMenu} className="react-spike-shell relative h-screen w-screen overflow-hidden rounded-[var(--react-radius)] bg-[var(--react-shell-background)] p-[var(--react-inset)] text-[var(--react-dark-700)] [clip-path:inset(0_round_var(--react-radius))] [isolation:isolate]">
+    <div ref={setShellElement} onContextMenu={handleShellContextMenu} className="react-spike-shell relative h-screen w-screen overflow-hidden rounded-[var(--react-radius)] bg-[var(--react-shell-background)] p-[var(--react-inset)] text-[var(--react-dark-700)] [isolation:isolate]">
       {settings.edgeGlowEnabled && <MouseRingGlow hostElement={shellElement} />}
       <div className="absolute inset-x-0 top-0 z-10 h-5 [app-region:drag]" data-tauri-drag-region="true" />
       <div className="react-page-container relative z-[1] flex h-full w-full rounded-[calc(var(--react-radius)-var(--react-inset))] bg-[var(--react-page-background)] p-[var(--react-inset)]">
-        <div className={`grid h-full w-full min-w-0 [grid-template-columns:var(--react-sidebar-grid)] transition-[grid-template-columns] duration-[160ms] [transition-timing-function:cubic-bezier(0,0,0.58,1)] max-md:relative max-md:grid-cols-1 ${isResizing ? 'transition-none' : ''}`} style={{ '--react-sidebar-grid': sidebarOpen ? `${sidebarWidth}px minmax(0,1fr)` : '0 minmax(0,1fr)' } as CSSProperties}>
+        <div className={`grid h-full w-full min-w-0 [grid-template-columns:var(--react-sidebar-grid)] transition-[grid-template-columns] duration-[160ms] [transition-timing-function:cubic-bezier(0,0,0.58,1)] ${isResizing ? 'transition-none' : ''}`} style={{ '--react-sidebar-grid': sidebarOpen ? `${sidebarWidth}px minmax(0,1fr)` : '0 minmax(0,1fr)' } as CSSProperties}>
             <Sidebar width={sidebarWidth} isOpen={sidebarOpen} isHovering={sidebarHovering} controller={workspace} activePath={selectedPath} onSelectFile={selectFile} onPathChanged={handlePathChanged} onNewFile={() => { setPendingFilePath(null); documents.newFile() }} onOpenFile={() => { setPendingFilePath(null); void documents.openFileDialog() }} onSaveFile={() => void documents.saveFile(activeEditor?.getContent())} canSave={Boolean(documents.activeDocument) || documents.documents.some(document => document.isDirty)} isSaving={documents.isSaving} openDocuments={documents.documents} onCloseDocuments={async ids => { for (const id of ids) await documents.closeDocument(id, true) }} onCloseWorkspace={closeWorkspace} shortcuts={settings.shortcuts} onSettings={() => setSettingsOpen(true)} />
             {sidebarOpen && <div className={`absolute top-10 bottom-[5px] z-10 w-2 cursor-col-resize rounded transition-[background] duration-150 ease-in after:absolute after:left-1/2 after:top-1/2 after:h-10 after:w-[3px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-sm after:bg-transparent after:transition-[background] hover:after:bg-[rgba(40,44,51,0.42)]${isResizing ? ' after:bg-[rgba(40,44,51,0.42)]' : ''}`} style={{ left: sidebarWidth + 5 }} onMouseDown={startResize} />}
-             <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] bg-[var(--react-panel-background)]">
+             <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] bg-[var(--react-panel-background)] [box-shadow:0_0_0_1px_var(--react-border)]">
              <DocumentTabs
                documents={documents.documents}
                activeDocumentId={documents.activeDocumentId}
@@ -371,12 +383,6 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
               outlineOpen={outlineOpen}
               onToggleOutline={() => setOutlineOpen(open => !open)}
             />
-              {documents.externalChange && documents.activeDocument && <ExternalChangeBanner
-                change={documents.externalChange}
-                documentName={documents.activeDocument.name}
-                onAccept={() => { documents.acceptExternalChange() }}
-                onKeepLocal={() => { documents.keepLocalVersion() }}
-              />}
               <div className="react-editor-content relative flex min-h-0 flex-1 bg-transparent">
                 {documents.activeDocument
                   ? <EditorSurface document={documents.activeDocument} onChange={documents.updateContent} onEditorChange={handleEditorChange} onEditorStateChange={refreshEditorState} onOpenLink={handleOpenLink} />

@@ -18,6 +18,12 @@
     -ms-overflow-style: none;
 }
 
+/* This must stay outside the scrollable region so macOS window controls always have room. */
+.react-tabs-traffic-lights-safe-area {
+    flex: 0 0 65px;
+    width: 65px;
+}
+
 .react-tabs-scroll::-webkit-scrollbar {
     display: none;
 }
@@ -40,7 +46,7 @@
 }
 
 .react-tab.is-active {
-    background: var(--react-tab-active-background);
+    background: var(--react-toolbar-background);
 }
 
 .react-tab.is-active::before,
@@ -49,7 +55,7 @@
     bottom: 0;
     width: 26px;
     height: 26px;
-    background: var(--react-tab-active-background);
+    background: var(--react-toolbar-background);
     content: "";
     pointer-events: none;
 }
@@ -172,7 +178,7 @@
     height: 26px !important;
     padding: 5px 5px 5px 15px;
     border-radius: 13px !important;
-    background: var(--react-tab-background);
+    background: var(--react-toolbar-background);
     color: var(--react-tab-text);
     font-size: 13px;
     white-space: nowrap;

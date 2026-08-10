@@ -61,14 +61,12 @@ select:focus-visible {
     --react-dark-600: var(--react-light-600);
     --react-dark-700: var(--react-light-700);
     --react-shell-background: transparent;
-    --react-page-background: rgba(0, 0, 0, 0.5);
+    --react-page-background: rgba(0, 0, 0, 0.7);
     --react-panel-background: var(--react-light-50);
     --react-hover-background: rgba(37, 39, 45, 0.1);
-    --react-border: rgb(216, 216, 216);
+    --react-border: rgb(220, 220, 220);
     --react-sidebar-background: transparent;
     --react-toolbar-background: var(--react-light-100);
-    --react-tab-background: var(--react-toolbar-background);
-    --react-tab-active-background: var(--react-light-100);
     --react-tab-text: var(--react-dark-500);
     --react-tab-active-text: rgb(var(--react-brand-rgb));
 }
@@ -78,12 +76,10 @@ select:focus-visible {
 }
 
 .dark .react-spike-shell {
-    --react-panel-background: rgba(255, 255, 255, 0.07);
-    --react-border: rgb(50, 50, 50);
+    --react-panel-background: rgba(10, 10, 10, 1);
+    --react-border: rgb(25, 25, 25);
     --react-sidebar-background: transparent;
-    --react-toolbar-background: rgb(0, 0, 0);
-    --react-tab-background: var(--react-toolbar-background);
-    --react-tab-active-background: rgb(0, 0, 0);
+    --react-toolbar-background: rgb(15, 15, 15, 1);
     --react-tab-text: var(--react-dark-500);
     --react-tab-active-text: rgb(var(--react-brand-rgb));
 }
@@ -215,7 +211,9 @@ select:focus-visible {
     border-radius: 20px;
     background: var(--settings-dialog-background);
     color: var(--settings-text);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.12);
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .react-settings-header {
@@ -336,7 +334,11 @@ select:focus-visible {
 
 .react-settings-select:hover,
 .react-settings-shortcut-chip:hover {
-    border-color: color-mix(in srgb, var(--settings-accent) 52%, var(--settings-border));
+    border-color: color-mix(
+        in srgb,
+        var(--settings-accent) 52%,
+        var(--settings-border)
+    );
 }
 
 .react-settings-toggle {
@@ -349,7 +351,9 @@ select:focus-visible {
     border-radius: 999px;
     background: var(--settings-toggle-off);
     cursor: pointer;
-    transition: background 120ms ease, border-color 120ms ease;
+    transition:
+        background 120ms ease,
+        border-color 120ms ease;
 }
 
 .react-settings-toggle span {
@@ -431,7 +435,8 @@ select:focus-visible {
 }
 
 .react-settings-shortcut-chip.is-capturing {
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--settings-accent) 30%, transparent);
+    box-shadow: 0 0 0 1px
+        color-mix(in srgb, var(--settings-accent) 30%, transparent);
     background: var(--settings-accent-soft);
 }
 
@@ -446,7 +451,8 @@ select:focus-visible {
     --pm-link-color: rgb(var(--react-brand-rgb));
     --pm-muted-color: var(--react-dark-500);
     --pm-code-background-color: #f1f1f3;
-    --pm-code-font: "SF Mono", "Monaco", "Cascadia Mono", "Roboto Mono", monospace;
+    --pm-code-font:
+        "SF Mono", "Monaco", "Cascadia Mono", "Roboto Mono", monospace;
     --pm-code-btn-background-color: rgba(0, 0, 0, 0.06);
     --pm-code-btn-hover-background-color: rgba(0, 0, 0, 0.11);
     --pm-blockquote-vertical-line-background-color: rgb(var(--react-brand-rgb));
@@ -458,7 +464,11 @@ select:focus-visible {
     --text-muted: var(--react-dark-500);
     --link-color: rgb(var(--react-brand-rgb));
     --border-color: var(--react-border);
-    --surface-subtle: color-mix(in srgb, var(--react-dark-200) 55%, transparent);
+    --surface-subtle: color-mix(
+        in srgb,
+        var(--react-dark-200) 55%,
+        transparent
+    );
     --surface-card: var(--react-light-50);
     --bg-base: var(--react-light-50);
     --fg-base: var(--react-dark-700);
@@ -480,7 +490,14 @@ select:focus-visible {
 }
 
 .prosemark-editor-mount .cm-scroller {
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
     font-size: 16px;
     line-height: 1.72;
     overflow: auto;
@@ -505,7 +522,11 @@ select:focus-visible {
 
 .prosemark-editor-mount .cm-selectionBackground,
 .prosemark-editor-mount .cm-content ::selection {
-    background: color-mix(in srgb, rgb(var(--react-brand-rgb)) 24%, transparent) !important;
+    background: color-mix(
+        in srgb,
+        rgb(var(--react-brand-rgb)) 24%,
+        transparent
+    ) !important;
 }
 
 .prosemark-editor-mount .cm-selectionLayer {
@@ -556,12 +577,55 @@ select:focus-visible {
     color: #b42318;
 }
 
+.markdown-toolbar-viewport {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.markdown-toolbar-scroll {
+    display: flex;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.markdown-toolbar-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.markdown-toolbar-scroll-content {
+    display: flex;
+    min-width: 100%;
+    width: max-content;
+    align-items: center;
+    justify-content: safe center;
+}
+
+.markdown-toolbar-scroll-gutter {
+    display: block;
+    width: 56px;
+    height: 1px;
+    flex: none;
+}
+
 .markdown-toolbar-controls {
+    display: flex;
+    flex: none;
+    width: max-content;
+    min-width: 0;
+    align-items: center;
+    gap: 2px;
+    min-height: 28px;
+}
+
+.markdown-toolbar-group {
     display: inline-flex;
     flex: none;
     align-items: center;
     gap: 2px;
-    min-height: 28px;
 }
 
 .markdown-toolbar-button {
@@ -577,7 +641,9 @@ select:focus-visible {
     background: transparent;
     color: var(--react-dark-600);
     cursor: pointer;
-    transition: background-color 120ms ease, color 120ms ease;
+    transition:
+        background-color 120ms ease,
+        color 120ms ease;
 }
 
 .markdown-toolbar-button:hover:not(:disabled) {
@@ -603,19 +669,85 @@ select:focus-visible {
     height: 28px;
     align-items: center;
     gap: 3px;
-    border: 1px solid var(--react-dark-300);
+    border: 1px solid currentColor;
     border-radius: 6px;
     padding: 0 6px;
     color: var(--react-dark-600);
+    cursor: pointer;
 }
 
 .markdown-heading-select select {
-    min-width: 72px;
+    min-width: 54px;
+    appearance: none;
     border: 0;
     outline: 0;
     background: transparent;
     color: inherit;
     font-size: 12px;
+}
+
+.markdown-insert-menu {
+    position: relative;
+    flex: none;
+}
+
+.markdown-insert-menu summary {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: var(--react-dark-600);
+    cursor: pointer;
+    list-style: none;
+}
+
+.markdown-insert-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.markdown-insert-menu summary:hover,
+.markdown-insert-menu[open] summary {
+    background: var(--react-hover-background);
+    color: var(--react-dark-700);
+}
+
+.markdown-insert-menu-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+    display: grid;
+    width: 190px;
+    gap: 2px;
+    padding: 6px;
+    border: 1px solid var(--react-border);
+    border-radius: 10px;
+    background: var(--react-panel-background);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.markdown-insert-menu-panel button {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    border: 0;
+    border-radius: 6px;
+    padding: 7px 9px;
+    background: transparent;
+    color: var(--react-dark-700);
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.markdown-insert-menu-panel button:hover:not(:disabled) {
+    background: var(--react-hover-background);
+}
+
+.markdown-insert-menu-panel button:disabled {
+    opacity: 0.36;
 }
 
 .dark .prosemark-editor-shell {
@@ -671,8 +803,13 @@ select:focus-visible {
 }
 
 .dark .markdown-toolbar-button,
-.dark .markdown-heading-select {
-    color: var(--react-light-300);
+.dark .markdown-heading-select,
+.dark .markdown-insert-menu summary {
+    color: var(--react-light-500);
+}
+
+.dark .markdown-insert-menu-panel button {
+    color: var(--react-light-200);
 }
 
 .dark .markdown-toolbar-button:hover:not(:disabled) {
@@ -723,34 +860,5 @@ select:focus-visible {
     .react-settings-shortcut-controls {
         width: 100%;
         justify-content: flex-start;
-    }
-
-    .react-sidebar-host {
-        position: absolute;
-        inset: 0 auto 0 0;
-        z-index: 20;
-    }
-
-    .react-sidebar-host.is-open,
-    .react-sidebar-host.is-hovering,
-    .react-sidebar-host:has(.react-sidebar:hover) {
-        width: 0;
-    }
-
-    .react-sidebar {
-        position: fixed;
-        top: 0;
-        left: 5px;
-        display: block;
-        width: min(260px, calc(100% - 24px));
-        height: 100vh;
-        padding-top: 10px;
-        border-radius: 0;
-        z-index: 100;
-        box-shadow: 8px 0 24px rgba(0, 0, 0, 0.18);
-    }
-
-    .react-sidebar-content {
-        border-radius: 0;
     }
 }

@@ -6,6 +6,7 @@ export function useSidebarInteraction(): {
   sidebarOpen: boolean
   sidebarHovering: boolean
   toggleSidebar: () => void
+  closeSidebar: () => void
   handleSidebarHover: (hovering: boolean) => void
 } {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.localStorage.getItem(STORAGE_KEY) === 'true')
@@ -32,6 +33,12 @@ export function useSidebarInteraction(): {
     }, 300)
   }, [sidebarOpen])
 
+  const closeSidebar = useCallback(() => {
+    clearHoverTimeout()
+    setSidebarHovering(false)
+    setSidebarOpen(false)
+  }, [clearHoverTimeout])
+
   const handleSidebarHover = useCallback((hovering: boolean) => {
     if (hoverDisabled.current) return
     clearHoverTimeout()
@@ -50,5 +57,5 @@ export function useSidebarInteraction(): {
     window.localStorage.setItem(STORAGE_KEY, String(sidebarOpen))
   }, [sidebarOpen])
 
-  return { sidebarOpen, sidebarHovering, toggleSidebar, handleSidebarHover }
+  return { sidebarOpen, sidebarHovering, toggleSidebar, closeSidebar, handleSidebarHover }
 }

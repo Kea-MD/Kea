@@ -16,7 +16,7 @@ function deriveContext(
   return {
     ...initial,
     isFullscreen,
-    hasTrafficLightsInset: initial.isTauri && initial.isMac && !isFullscreen && !initial.isMobile,
+    hasTrafficLightsInset: initial.isTauri && initial.isMac && !isFullscreen,
   }
 }
 

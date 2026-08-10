@@ -28,14 +28,18 @@ function normaliseSession(value: unknown): DocumentSession | null {
   return { paths, activePath }
 }
 
-export function readDocumentSession(workspacePath: string): DocumentSession | null {
-  return normaliseSession(readSessions()[workspacePath])
+function sessionKey(windowLabel: string, workspacePath: string): string {
+  return `${windowLabel}:${workspacePath}`
 }
 
-export function writeDocumentSession(workspacePath: string, session: DocumentSession): void {
+export function readDocumentSession(windowLabel: string, workspacePath: string): DocumentSession | null {
+  return normaliseSession(readSessions()[sessionKey(windowLabel, workspacePath)])
+}
+
+export function writeDocumentSession(windowLabel: string, workspacePath: string, session: DocumentSession): void {
   try {
     const sessions = readSessions()
-    sessions[workspacePath] = {
+    sessions[sessionKey(windowLabel, workspacePath)] = {
       paths: Array.from(new Set(session.paths.filter(path => path.length > 0))),
       activePath: session.activePath && session.paths.includes(session.activePath) ? session.activePath : null,
     }
@@ -45,10 +49,10 @@ export function writeDocumentSession(workspacePath: string, session: DocumentSes
   }
 }
 
-export function clearDocumentSession(workspacePath: string): void {
+export function clearDocumentSession(windowLabel: string, workspacePath: string): void {
   try {
     const sessions = readSessions()
-    delete sessions[workspacePath]
+    delete sessions[sessionKey(windowLabel, workspacePath)]
     if (Object.keys(sessions).length === 0) window.localStorage.removeItem(DOCUMENT_SESSIONS_STORAGE_KEY)
     else window.localStorage.setItem(DOCUMENT_SESSIONS_STORAGE_KEY, JSON.stringify(sessions))
   } catch {

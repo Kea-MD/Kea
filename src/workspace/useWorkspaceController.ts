@@ -20,6 +20,7 @@ export interface WorkspaceState {
 export interface WorkspaceControllerOptions {
   /** Disabled by default so the isolated shell never restores a workspace implicitly. */
   restoreWorkspaceOnLaunch?: boolean | (() => boolean | Promise<boolean>)
+  windowLabel?: string
 }
 
 export interface WorkspaceController extends WorkspaceState {
@@ -89,6 +90,7 @@ export function useWorkspaceController(
   port: WorkspacePort = tauriWorkspacePort,
   options: WorkspaceControllerOptions = {},
 ): WorkspaceController {
+  const workspaceStorageKey = `kea-workspace-path:${options.windowLabel ?? 'main'}`
   const [state, dispatch] = useReducer(reducer, initialState)
   // This generation invalidates both the result and the continuation of every
   // read. Mutations bump it before starting I/O, so a late read cannot put
@@ -122,7 +124,7 @@ export function useWorkspaceController(
       const result = await port.openFolderDialog()
       if (request !== requestRef.current) return false
       dispatch({ type: 'opened', data: result })
-      window.localStorage.setItem('kea-workspace-path', result.path)
+      window.localStorage.setItem(workspaceStorageKey, result.path)
       return true
     } catch (error) {
       if (request === requestRef.current && error !== 'No folder selected') dispatch({ type: 'error', message: `Failed to open folder: ${errorMessage(error)}` })
@@ -130,10 +132,10 @@ export function useWorkspaceController(
     } finally {
       if (request === requestRef.current) dispatch({ type: 'loading', value: false })
     }
-  }, [port])
+  }, [port, workspaceStorageKey])
 
   const restoreWorkspace = useCallback(async (): Promise<boolean> => {
-    const savedPath = window.localStorage.getItem('kea-workspace-path')
+    const savedPath = window.localStorage.getItem(workspaceStorageKey)
     if (!savedPath) return false
     const request = ++requestRef.current
     ++workspaceRef.current
@@ -146,14 +148,14 @@ export function useWorkspaceController(
       return true
     } catch (error) {
       if (request === requestRef.current) {
-        window.localStorage.removeItem('kea-workspace-path')
+        window.localStorage.removeItem(workspaceStorageKey)
         dispatch({ type: 'error', message: `Failed to restore workspace: ${errorMessage(error)}` })
       }
       return false
     } finally {
       if (request === requestRef.current) dispatch({ type: 'loading', value: false })
     }
-  }, [port])
+  }, [port, workspaceStorageKey])
 
   useEffect(() => {
     if (restoredRef.current) return
@@ -196,7 +198,7 @@ export function useWorkspaceController(
       if (workspace === workspaceRef.current) dispatch({ type: 'mutate', update: entries => insertEntry(entries, parentPath === state.rootPath ? null : parentPath, entry) })
       return entry
     } catch (error) { if (workspace === workspaceRef.current) dispatch({ type: 'error', message: `Failed to create ${folder ? 'folder' : 'file'}: ${errorMessage(error)}` }); return null }
-  }, [port, state.entries, state.rootPath])
+  }, [port, state.entries, state.rootPath, workspaceStorageKey])
 
   const renameItem = useCallback(async (path: string, name: string): Promise<string | null> => {
     if (!validateItemName(name)) { dispatch({ type: 'error', message: 'Name cannot be empty or contain path separators.' }); return null }
@@ -208,7 +210,7 @@ export function useWorkspaceController(
       const newPath = await port.renameItem(path, name)
       if (workspace !== workspaceRef.current) return null
       dispatch({ type: 'mutate', update: entries => renameEntry(entries, path, newPath, name) })
-      if (path === state.rootPath) { dispatch({ type: 'root', oldPath: path, path: newPath, name }); window.localStorage.setItem('kea-workspace-path', newPath) }
+      if (path === state.rootPath) { dispatch({ type: 'root', oldPath: path, path: newPath, name }); window.localStorage.setItem(workspaceStorageKey, newPath) }
       return newPath
     } catch (error) { if (workspace === workspaceRef.current) dispatch({ type: 'error', message: `Failed to rename: ${errorMessage(error)}` }); return null }
   }, [port, state.entries, state.rootPath])
@@ -260,9 +262,9 @@ export function useWorkspaceController(
   const closeWorkspace = useCallback((): void => {
     ++requestRef.current
     ++workspaceRef.current
-    window.localStorage.removeItem('kea-workspace-path')
+    window.localStorage.removeItem(workspaceStorageKey)
     dispatch({ type: 'closed' })
-  }, [])
+  }, [workspaceStorageKey])
 
   const openItem = useCallback(async (path: string): Promise<void> => {
     try {

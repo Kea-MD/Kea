@@ -99,11 +99,45 @@ describe('ProseMark editor extensions', () => {
     expect(editor.state.doc.toString()).toBe('**selected text**')
   })
 
+  it('keeps bold markers on the selected line when the selection includes trailing newlines', () => {
+    const editor = createView('Hey!\n\nNext line', 0, 6)
+
+    expect(executeMarkdownCommand(editor, 'bold')).toBe(true)
+    expect(editor.state.doc.toString()).toBe('**Hey!**\n\nNext line')
+  })
+
+  it('keeps surrounding whitespace outside inline formatting markers', () => {
+    const editor = createView('  Hey!  ')
+
+    expect(executeMarkdownCommand(editor, 'italic')).toBe(true)
+    expect(editor.state.doc.toString()).toBe('  _Hey!_  ')
+  })
+
   it('inserts Kea-specific Markdown blocks without replacing editor state', () => {
     const editor = createView('', 0, 0)
 
     expect(executeMarkdownCommand(editor, 'insert-mermaid')).toBe(true)
     expect(editor.state.doc.toString()).toContain('```mermaid')
     expect(editor.state.doc.toString()).toContain('flowchart LR')
+  })
+
+  it('toggles ordered lists on and off across selected lines', () => {
+    const editor = createView('first\nsecond')
+
+    expect(executeMarkdownCommand(editor, 'ordered-list')).toBe(true)
+    expect(editor.state.doc.toString()).toBe('1. first\n2. second')
+    expect(executeMarkdownCommand(editor, 'ordered-list')).toBe(true)
+    expect(editor.state.doc.toString()).toBe('first\nsecond')
+  })
+
+  it('inserts links and images with useful editable selections', () => {
+    const editor = createView('', 0, 0)
+
+    expect(executeMarkdownCommand(editor, 'insert-link')).toBe(true)
+    expect(editor.state.doc.toString()).toContain('[]()')
+
+    editor.dispatch({ selection: EditorSelection.cursor(editor.state.doc.length) })
+    expect(executeMarkdownCommand(editor, 'insert-image')).toBe(true)
+    expect(editor.state.doc.toString()).toContain('![image description](image.png)')
   })
 })

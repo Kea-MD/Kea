@@ -79,8 +79,7 @@ A bare GFM URL: https://example.org/path?q=kea#markdown
 
 ## 5. Images and relative assets
 
-Inline image using a real repository asset:
-
+_Inline image using a real repository asset:_
 ![Kea application icon](./src-tauri/icons/icon.png "Kea icon")
 
 Reference-style image:

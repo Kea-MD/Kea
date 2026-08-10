@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { markdown } from '@codemirror/lang-markdown'
+import { redoDepth, undoDepth } from '@codemirror/commands'
 import { languages } from '@codemirror/language-data'
 import { forceParsing, syntaxTreeAvailable } from '@codemirror/language'
 import { Compartment, EditorSelection, EditorState, Transaction } from '@codemirror/state'
@@ -36,6 +37,7 @@ interface ProseMarkEditorProps {
   documentId: string
   documentPath: string
   content: string
+  contentRevision: number
   onChange: (content: string) => void
   onEditorChange: (editor: EditorController | null) => void
   onEditorStateChange: () => void
@@ -51,7 +53,9 @@ interface ViewportSnapshot {
 const viewportSnapshots = new Map<string, ViewportSnapshot>()
 const CONTENT_PUBLISH_DELAY_MS = 140
 const VIEWPORT_OVERSHOOT = 2000
-const VIEWPORT_PARSE_BUDGET_MS = 50
+const VIEWPORT_PARSE_SETTLE_MS = 120
+const VIEWPORT_PARSE_BUDGET_MS = 8
+const INITIAL_PARSE_BUDGET_MS = 50
 const IDLE_PARSE_BUDGET_MS = 50
 const IDLE_PARSE_TIMEOUT_MS = 2000
 
@@ -61,7 +65,7 @@ function clamp(value: number, min: number, max: number): number {
 
 function advanceViewportParse(view: EditorView, isDisposed: () => boolean): void {
   const target = Math.min(view.state.doc.length, view.viewport.to + VIEWPORT_OVERSHOOT)
-  forceParsing(view, target, VIEWPORT_PARSE_BUDGET_MS)
+  forceParsing(view, target, INITIAL_PARSE_BUDGET_MS)
 
   if ('requestIdleCallback' in window) {
     window.requestIdleCallback(() => {
@@ -71,24 +75,40 @@ function advanceViewportParse(view: EditorView, isDisposed: () => boolean): void
 }
 
 const viewportParsePlugin = ViewPlugin.fromClass(class {
-  private timeout = -1
+  private settleTimeout = -1
+  private idleCallback: number | null = null
 
   update(update: ViewUpdate): void {
-    if (!update.viewportChanged || this.timeout >= 0) return
-    const target = Math.min(update.state.doc.length, update.view.viewport.to + VIEWPORT_OVERSHOOT)
-    if (syntaxTreeAvailable(update.state, target)) return
+    if (update.viewportChanged) this.schedule(update.view)
+  }
 
-    this.timeout = window.setTimeout(() => {
-      this.timeout = -1
-      const nextTarget = Math.min(update.view.state.doc.length, update.view.viewport.to + VIEWPORT_OVERSHOOT)
-      if (!syntaxTreeAvailable(update.view.state, nextTarget)) {
-        forceParsing(update.view, nextTarget, VIEWPORT_PARSE_BUDGET_MS)
+  private schedule(view: EditorView): void {
+    if (this.settleTimeout >= 0) window.clearTimeout(this.settleTimeout)
+    if (this.idleCallback !== null && 'cancelIdleCallback' in window) {
+      window.cancelIdleCallback(this.idleCallback)
+      this.idleCallback = null
+    }
+
+    this.settleTimeout = window.setTimeout(() => {
+      this.settleTimeout = -1
+      const parse = (): void => {
+        this.idleCallback = null
+        const target = Math.min(view.state.doc.length, view.viewport.to + VIEWPORT_OVERSHOOT)
+        if (!syntaxTreeAvailable(view.state, target)) {
+          forceParsing(view, target, VIEWPORT_PARSE_BUDGET_MS)
+        }
       }
-    }, 0)
+      if ('requestIdleCallback' in window) {
+        this.idleCallback = window.requestIdleCallback(parse, { timeout: IDLE_PARSE_TIMEOUT_MS })
+      } else {
+        globalThis.setTimeout(parse, 0)
+      }
+    }, VIEWPORT_PARSE_SETTLE_MS)
   }
 
   destroy(): void {
-    if (this.timeout >= 0) window.clearTimeout(this.timeout)
+    if (this.settleTimeout >= 0) window.clearTimeout(this.settleTimeout)
+    if (this.idleCallback !== null && 'cancelIdleCallback' in window) window.cancelIdleCallback(this.idleCallback)
   }
 })
 
@@ -96,6 +116,7 @@ export function ProseMarkEditor({
   documentId,
   documentPath,
   content,
+  contentRevision,
   onChange,
   onEditorChange,
   onEditorStateChange,
@@ -112,6 +133,7 @@ export function ProseMarkEditor({
   const pendingLocalChange = useRef(false)
   const publishTimer = useRef<number | null>(null)
   const lastPublishedContent = useRef(content)
+  const appliedContentRevision = useRef(contentRevision)
   const [errorMessage, setErrorMessage] = useState('')
 
   onChangeRef.current = onChange
@@ -126,6 +148,8 @@ export function ProseMarkEditor({
 
     let disposed = false
     let stateFrame = 0
+    let lastCanUndo = false
+    let lastCanRedo = false
     let themeObserver: MutationObserver | null = null
     let mathLoadStarted = false
     const mathCompartment = new Compartment()
@@ -169,10 +193,15 @@ export function ProseMarkEditor({
       publishTimer.current = window.setTimeout(publishContent, CONTENT_PUBLISH_DELAY_MS)
     }
 
-    const publishEditorState = (): void => {
+    const publishEditorState = (view: EditorView): void => {
       if (stateFrame) return
       stateFrame = window.requestAnimationFrame(() => {
         stateFrame = 0
+        const canUndo = undoDepth(view.state) > 0
+        const canRedo = redoDepth(view.state) > 0
+        if (canUndo === lastCanUndo && canRedo === lastCanRedo) return
+        lastCanUndo = canUndo
+        lastCanRedo = canRedo
         onEditorStateChangeRef.current()
       })
     }
@@ -245,8 +274,8 @@ export function ProseMarkEditor({
               }
               if (update.docChanged || update.selectionSet || update.viewportChanged) {
                 recordViewport()
-                publishEditorState()
               }
+              if (update.docChanged) publishEditorState(update.view)
             }),
           ],
         }),
@@ -254,6 +283,7 @@ export function ProseMarkEditor({
 
       editorView.current = view
       lastPublishedContent.current = content
+      appliedContentRevision.current = contentRevision
       onEditorChangeRef.current(createCodeMirrorController(view))
       view.scrollDOM.addEventListener('scroll', recordViewport, { passive: true })
       themeObserver = new MutationObserver(() => {
@@ -314,18 +344,37 @@ export function ProseMarkEditor({
 
   useEffect(() => {
     const view = editorView.current
-    if (!view || pendingLocalChange.current || content === lastPublishedContent.current) return
+    if (!view || contentRevision === appliedContentRevision.current) return
+    appliedContentRevision.current = contentRevision
     if (view.state.doc.toString() === content) {
       lastPublishedContent.current = content
       return
     }
 
+    if (publishTimer.current !== null) {
+      window.clearTimeout(publishTimer.current)
+      publishTimer.current = null
+    }
+    pendingLocalChange.current = false
     applyingExternalContent.current = true
     try {
-      const cursor = Math.min(view.state.selection.main.head, content.length)
+      const current = view.state.doc.toString()
+      let prefixLength = 0
+      const sharedLength = Math.min(current.length, content.length)
+      while (prefixLength < sharedLength && current[prefixLength] === content[prefixLength]) prefixLength++
+
+      let suffixLength = 0
+      while (
+        suffixLength < sharedLength - prefixLength
+        && current[current.length - suffixLength - 1] === content[content.length - suffixLength - 1]
+      ) suffixLength++
+
       view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: content },
-        selection: EditorSelection.cursor(cursor),
+        changes: {
+          from: prefixLength,
+          to: current.length - suffixLength,
+          insert: content.slice(prefixLength, content.length - suffixLength),
+        },
         annotations: Transaction.addToHistory.of(false),
         userEvent: 'kea.external',
       })
@@ -333,7 +382,7 @@ export function ProseMarkEditor({
     } finally {
       applyingExternalContent.current = false
     }
-  }, [content])
+  }, [contentRevision])
 
   return (
     <div className="prosemark-editor-shell">

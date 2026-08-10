@@ -7,6 +7,7 @@ function Harness() {
   return (
     <div>
       <button type="button" onClick={sidebar.toggleSidebar}>Toggle</button>
+      <button type="button" onClick={sidebar.closeSidebar}>Close</button>
       <button type="button" onMouseEnter={() => sidebar.handleSidebarHover(true)} onMouseLeave={() => sidebar.handleSidebarHover(false)}>Hover target</button>
       <output data-testid="state">{sidebar.sidebarOpen ? 'open' : sidebar.sidebarHovering ? 'hovering' : 'closed'}</output>
     </div>
@@ -46,5 +47,17 @@ describe('React sidebar interaction', () => {
     act(() => { fireEvent.click(screen.getByRole('button', { name: 'Toggle' })) })
     expect(window.localStorage.getItem('kea-sidebar-open')).toBe('false')
     unmount()
+  })
+
+  it('closes the sidebar and clears a pending hover state', () => {
+    vi.useFakeTimers()
+    render(<Harness />)
+
+    act(() => { fireEvent.mouseEnter(screen.getByRole('button', { name: 'Hover target' })) })
+    expect(screen.getByTestId('state').textContent).toBe('hovering')
+
+    act(() => { fireEvent.click(screen.getByRole('button', { name: 'Close' })) })
+    expect(screen.getByTestId('state').textContent).toBe('closed')
+    expect(window.localStorage.getItem('kea-sidebar-open')).toBe('false')
   })
 })

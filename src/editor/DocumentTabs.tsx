@@ -286,7 +286,7 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
     if (scroller.scrollLeft !== previousScrollLeft) event.preventDefault()
   }
 
-  const offsetClass = !sidebarOpen && hasTrafficLightsInset ? ' pl-[65px]' : ''
+  const showTrafficLightsSafeArea = !sidebarOpen && hasTrafficLightsInset
   const maskStyle = {
     '--tabs-mask-left': `${fade.left}px`,
     '--tabs-mask-right': `${fade.right}px`,
@@ -309,8 +309,9 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
   }
 
   return (
-    <div className={`z-[1] flex h-10 items-start overflow-hidden pt-[7px] ${offsetClass}`} role="tablist" aria-label="Open documents">
-      <div className="flex w-full min-w-0 items-start pr-4 pl-0 select-none">
+    <div className="z-[1] flex h-10 min-w-0 items-start overflow-hidden pt-[7px]" role="tablist" aria-label="Open documents">
+      {showTrafficLightsSafeArea && <div className="react-tabs-traffic-lights-safe-area" aria-hidden="true" />}
+      <div className="flex min-w-0 flex-1 items-start pr-4 pl-0 select-none">
         <div className="relative min-w-0 flex-1" style={maskStyle}>
           <div ref={scrollerRef} className="react-tabs-scroll flex min-w-0 flex-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none]" onWheel={handleWheel}>
             <div ref={tabsListRef} className={`react-tabs-list relative flex w-max gap-[7px] ${tabListPaddingClass}`}>
@@ -321,7 +322,7 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
                 return (
                   <div
                     key={document.id}
-                    className={`react-tab relative flex h-[26px] max-w-[180px] cursor-pointer items-center gap-2.5 whitespace-nowrap rounded-[13px] border-0 bg-[var(--react-tab-background)] px-[5px] py-[5px] pl-[15px] text-[13px] text-[var(--react-tab-text)]${active ? ' is-active h-[33px] rounded-[13px_13px_0_0] font-semibold text-[var(--react-tab-active-text)]' : ''}${document.isDirty ? ' is-dirty' : ''}${isDragged ? ' is-drag-ghost' : ''}`}
+                    className={`react-tab relative flex h-[26px] max-w-[180px] cursor-pointer items-center gap-2.5 whitespace-nowrap rounded-[13px] border-0 bg-[var(--react-toolbar-background)] px-[5px] py-[5px] pl-[15px] text-[13px] text-[var(--react-tab-text)]${active ? ' is-active h-[33px] rounded-[13px_13px_0_0] font-semibold text-[var(--react-tab-active-text)]' : ''}${document.isDirty ? ' is-dirty' : ''}${isDragged ? ' is-drag-ghost' : ''}`}
                     style={transform ? { transform } : undefined}
                     role="tab"
                     aria-selected={active}
@@ -356,7 +357,7 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
                   </div>
                 )
               })}
-              <button type="button" className="react-new-tab inline-flex h-[26px] w-[26px] flex-none cursor-pointer items-center justify-center rounded-[13px] border-0 bg-[var(--react-tab-background)] p-0 text-[var(--react-tab-text)] hover:bg-[var(--react-light-300)] hover:text-[var(--react-dark-700)] dark:hover:bg-[rgba(238,238,246,0.11)] dark:hover:text-[var(--react-light-50)]" aria-label="New document" title="New document" onClick={onNew}><i className="pi pi-plus text-[10px]" aria-hidden="true" /></button>
+              <button type="button" className="react-new-tab inline-flex h-[26px] w-[26px] flex-none cursor-pointer items-center justify-center rounded-[13px] border-0 bg-[var(--react-toolbar-background)] p-0 text-[var(--react-tab-text)] hover:bg-[var(--react-light-300)] hover:text-[var(--react-dark-700)] dark:hover:bg-[rgba(238,238,246,0.11)] dark:hover:text-[var(--react-light-50)]" aria-label="New document" title="New document" onClick={onNew}><i className="pi pi-plus text-[10px]" aria-hidden="true" /></button>
             </div>
           </div>
         </div>

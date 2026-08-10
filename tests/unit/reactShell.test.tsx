@@ -14,6 +14,11 @@ const testRuntimePort: RuntimePort = {
   subscribeWindowState: () => Promise.resolve(() => {}),
 }
 
+const narrowRuntimePort: RuntimePort = {
+  ...testRuntimePort,
+  getInitialContext: () => ({ isTauri: false, isMac: false, isMobile: true }),
+}
+
 let systemDark = false
 let systemChangeHandler: (() => void) | undefined
 
@@ -92,6 +97,26 @@ describe('React shell spike', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Show Sidebar' }))
     expect(screen.getByRole('complementary', { name: 'Navigation' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Hide Sidebar' })).not.toBeNull()
+  })
+
+  it('closes the sidebar when the viewport becomes narrow', async () => {
+    window.localStorage.setItem('kea-sidebar-open', 'true')
+    await act(async () => {
+      render(<RuntimeProvider port={narrowRuntimePort}><App /></RuntimeProvider>)
+    })
+
+    expect(screen.getByRole('button', { name: 'Show Sidebar' })).not.toBeNull()
+    expect(window.localStorage.getItem('kea-sidebar-open')).toBe('false')
+  })
+
+  it('allows the sidebar to be reopened after a narrow viewport closes it', async () => {
+    window.localStorage.setItem('kea-sidebar-open', 'true')
+    await act(async () => {
+      render(<RuntimeProvider port={narrowRuntimePort}><App /></RuntimeProvider>)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show Sidebar' }))
     expect(screen.getByRole('button', { name: 'Hide Sidebar' })).not.toBeNull()
   })
 
@@ -180,9 +205,9 @@ describe('React shell spike', () => {
   })
 
   it('restores the saved project and its open document tabs on startup', async () => {
-    window.localStorage.setItem('kea-workspace-path', '/workspace')
+    window.localStorage.setItem('kea-workspace-path:web', '/workspace')
     window.localStorage.setItem(DOCUMENT_SESSIONS_STORAGE_KEY, JSON.stringify({
-      '/workspace': { paths: ['/workspace/missing.md', '/workspace/note.md'], activePath: '/workspace/note.md' },
+      'web:/workspace': { paths: ['/workspace/missing.md', '/workspace/note.md'], activePath: '/workspace/note.md' },
     }))
 
     await act(async () => {

@@ -10,7 +10,7 @@ import type {
 
 describe('framework-neutral contracts', () => {
   it('represents document, workspace, watcher, settings, editor, and errors', () => {
-    const document: DocumentSnapshot = { id: 'doc', path: '', name: 'Untitled', content: '', savedContent: '', isDirty: false }
+    const document: DocumentSnapshot = { id: 'doc', path: '', name: 'Untitled', content: '', savedContent: '', isDirty: false, contentRevision: 0 }
     const entry: WorkspaceFileEntry = { name: 'Readme.md', path: '/Readme.md', is_dir: false, is_markdown: true }
     const watch: FileWatchEvent = { kind: 'modified', path: entry.path }
     const command: EditorCommandEventDetail = { command: 'bold' }

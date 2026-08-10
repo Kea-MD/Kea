@@ -18,14 +18,7 @@ export interface DocumentSnapshot {
   content: string
   savedContent: string
   isDirty: boolean
-}
-
-export interface ExternalDocumentChange {
-  documentId: DocumentId
-  path: string
-  kind: 'modified' | 'removed'
-  diskContent?: string
-  detectedAt: number
+  contentRevision: number
 }
 
 export interface DocumentStoragePort {

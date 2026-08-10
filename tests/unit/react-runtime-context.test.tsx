@@ -30,7 +30,7 @@ function createPort(initial = { isTauri: true, isMac: true, isMobile: false }) {
 }
 
 describe('React runtime context', () => {
-  it('derives traffic-light inset from runtime and mobile state', async () => {
+  it('keeps the traffic-light inset on a narrow macOS Tauri window', async () => {
     const fake = createPort()
     await act(async () => {
       render(<RuntimeProvider port={fake.port}><Consumer /></RuntimeProvider>)
@@ -40,7 +40,7 @@ describe('React runtime context', () => {
     await act(async () => {
       fake.emitMobile(true)
     })
-    expect(JSON.parse(screen.getByText(/isTauri/).textContent ?? '').hasTrafficLightsInset).toBe(false)
+    expect(JSON.parse(screen.getByText(/isTauri/).textContent ?? '').hasTrafficLightsInset).toBe(true)
   })
 
   it('updates fullscreen state after a window resize and cleans listeners', async () => {

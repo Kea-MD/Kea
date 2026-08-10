@@ -20,5 +20,5 @@ export function useReactAutoSave(
     }, intervalMs)
 
     return () => window.clearTimeout(timeout)
-  }, [document?.content, document?.id, document?.isDirty, document?.path, intervalMs])
+  }, [document?.content, document?.id, document?.isDirty, document?.path, document?.savedContent, intervalMs])
 }

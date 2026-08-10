@@ -10,6 +10,7 @@ const documents: DocumentSnapshot[] = Array.from({ length: 8 }, (_, index) => ({
   content: '',
   savedContent: '',
   isDirty: false,
+  contentRevision: 0,
 }))
 
 describe('React document tabs', () => {
@@ -28,6 +29,26 @@ describe('React document tabs', () => {
     )
 
     expect(container.querySelector('.react-tabs-list')?.className).toContain('pl-[25px]')
+  })
+
+  it('keeps a fixed traffic-light safe area outside the shrinking tab scroller', () => {
+    const { container } = render(
+      <DocumentTabs
+        documents={documents}
+        activeDocumentId={documents[0].id}
+        hasTrafficLightsInset
+        sidebarOpen={false}
+        onSelect={() => {}}
+        onClose={() => {}}
+        onReorder={() => {}}
+        onNew={() => {}}
+      />,
+    )
+
+    const tabList = container.querySelector('[role="tablist"]')
+    expect(tabList?.firstElementChild?.className).toBe('react-tabs-traffic-lights-safe-area')
+    expect(container.querySelector('.react-tabs-scroll')?.parentElement?.parentElement?.className).toContain('flex-1')
+    expect(container.querySelector('.react-tabs-scroll')?.parentElement?.parentElement?.className).toContain('min-w-0')
   })
 
   it('ramps both edge fades with scroll distance and removes them at the boundaries', () => {
