@@ -26,12 +26,12 @@ export interface SidebarProps {
   onSettings: () => void
   isOpen: boolean
   isHovering: boolean
-  showSidebarToggle?: boolean
-  onToggleSidebar?: () => void
+  showSidebarToggle: boolean
+  onToggleSidebar: () => void
   topChromeHidden?: boolean
 }
 
-export function Sidebar({ controller, width, activePath, onSelectFile, onPathChanged, onNewFile, onOpenFile, onSaveFile, canSave, isSaving, openDocuments, onCloseDocuments, onCloseWorkspace, shortcuts = {}, onSettings, isOpen, isHovering, showSidebarToggle = false, onToggleSidebar, topChromeHidden = false }: SidebarProps) {
+export function Sidebar({ controller, width, activePath, onSelectFile, onPathChanged, onNewFile, onOpenFile, onSaveFile, canSave, isSaving, openDocuments, onCloseDocuments, onCloseWorkspace, shortcuts = {}, onSettings, isOpen, isHovering, showSidebarToggle, onToggleSidebar, topChromeHidden = false }: SidebarProps) {
   const [renamePath, setRenamePath] = useState<string | null>(null)
   const [menu, setMenu] = useState<{ target: WorkspaceFileEntry | 'root'; x: number; y: number } | null>(null)
   const [movePath, setMovePath] = useState<string | null>(null)
@@ -169,7 +169,7 @@ export function Sidebar({ controller, width, activePath, onSelectFile, onPathCha
          {controller.rootPath && <FileTree entries={controller.entries} rootPath={controller.rootPath} expandedPaths={controller.expandedPaths} activePath={activePath} renamePath={renamePath} onToggle={path => void controller.toggleFolder(path)} onSelectFile={onSelectFile} onRename={rename} onRenameRequest={setRenamePath} onContextMenu={contextMenu} onMove={async (source, target) => { const result = await controller.moveItem(source, target); if (result) onPathChanged(source, result, controller.entries.find(item => item.path === source)?.is_dir) }} />}
        </nav>
         <footer className="flex min-w-0 items-center gap-2 border-t border-white/10 p-3">
-          <span className={`min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-white/90${controller.rootName ? '' : ' italic font-normal text-white/40'}`} title={controller.rootName ?? 'No folder open'} onContextMenu={contextMenuRoot}>{controller.rootName ?? 'No folder open'}</span>
+          <span className={`min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm font-semibold text-white/90${controller.rootName ? '' : ' italic font-normal text-white/40'}`} title={controller.rootName ?? 'No folder open'} onContextMenu={contextMenuRoot}>{controller.rootName ?? 'No folder open'}</span>
           <button type="button" className="ml-auto flex h-[30px] w-[30px] flex-none items-center justify-center rounded bg-transparent p-0 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90" aria-label="Settings" title="Settings" onClick={onSettings}><Icon>settings</Icon></button>
         </footer>
      </div>

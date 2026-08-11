@@ -41,6 +41,7 @@ select:focus-visible {
 
 .react-spike-shell {
     --react-radius: 45px;
+    --react-panel-radius: 30px;
     --react-inset: 7.5px;
     --react-brand-rgb: 0, 150, 0;
     --react-light-50: rgba(255, 255, 255, 1);
@@ -69,6 +70,18 @@ select:focus-visible {
     --react-toolbar-background: var(--react-light-100);
     --react-tab-text: var(--react-dark-500);
     --react-tab-active-text: rgb(var(--react-brand-rgb));
+    --react-scrollbar-thumb-size: 3px;
+    --react-scrollbar-thumb: color-mix(
+        in srgb,
+        var(--react-dark-500) 52%,
+        transparent
+    );
+    --react-scrollbar-thumb-hover: color-mix(
+        in srgb,
+        var(--react-dark-600) 72%,
+        transparent
+    );
+    --react-scrollbar-track: transparent;
 }
 
 .dark {
@@ -82,6 +95,119 @@ select:focus-visible {
     --react-toolbar-background: rgb(15, 15, 15, 1);
     --react-tab-text: var(--react-dark-500);
     --react-tab-active-text: rgb(var(--react-brand-rgb));
+}
+
+.react-spike-shell * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--react-scrollbar-thumb)
+        var(--react-scrollbar-track);
+}
+
+.react-spike-shell *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.react-spike-shell *::-webkit-scrollbar-track,
+.react-spike-shell *::-webkit-scrollbar-corner {
+    background: var(--react-scrollbar-track);
+}
+
+.react-spike-shell *::-webkit-scrollbar-thumb {
+    min-width: 28px;
+    min-height: 28px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--react-scrollbar-thumb);
+    background-clip: padding-box;
+}
+
+.react-spike-shell *::-webkit-scrollbar-thumb:vertical {
+    border-left: var(--react-scrollbar-thumb-size) solid transparent;
+}
+
+.react-spike-shell *::-webkit-scrollbar-thumb:horizontal {
+    border-top: var(--react-scrollbar-thumb-size) solid transparent;
+}
+
+.react-spike-shell *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--react-scrollbar-thumb-hover);
+}
+
+.react-straight-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--react-scrollbar-thumb) transparent;
+}
+
+.react-straight-scrollbar::-webkit-scrollbar {
+    width: var(--react-scrollbar-thumb-size);
+    height: var(--react-scrollbar-thumb-size);
+}
+
+.react-straight-scrollbar::-webkit-scrollbar-track,
+.react-straight-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.react-straight-scrollbar::-webkit-scrollbar-thumb {
+    min-width: 28px;
+    min-height: 28px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--react-scrollbar-thumb);
+    background-clip: padding-box;
+}
+
+.react-straight-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--react-scrollbar-thumb-hover);
+}
+
+.react-custom-scroll-source {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.react-custom-scroll-source::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.straight-overlay-scrollbar {
+    position: absolute;
+    inset: 4px 0 4px auto;
+    z-index: 2;
+    width: 11px;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    touch-action: none;
+    transition: opacity 160ms ease;
+}
+
+.straight-overlay-scrollbar[data-scrollable="true"] {
+    pointer-events: auto;
+    opacity: 0.58;
+}
+
+.straight-overlay-scrollbar[data-scrollable="true"][data-active="true"],
+.straight-overlay-scrollbar[data-scrollable="true"]:hover {
+    opacity: 1;
+}
+
+.straight-overlay-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--react-scrollbar-thumb-size);
+    min-height: var(--react-scrollbar-thumb-size);
+    border-radius: 999px;
+    background: var(--react-scrollbar-thumb);
+    will-change: height, transform;
+}
+
+.straight-overlay-scrollbar:hover .straight-overlay-scrollbar-thumb {
+    background: var(--react-scrollbar-thumb-hover);
 }
 
 .material-symbols-outlined {
@@ -221,6 +347,70 @@ select:focus-visible {
     width: 100%;
     height: 100%;
     min-height: 0;
+}
+
+.document-outline {
+    pointer-events: none;
+}
+
+.document-outline-rail {
+    pointer-events: auto;
+}
+
+.document-outline-ticks {
+    transform-origin: right center;
+    transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.document-outline-ticks[data-open="true"] {
+    transform: translateY(-50%) translateX(-8px) scale(1.05);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.document-outline-tick {
+    transform-origin: right center;
+    transition: transform 300ms ease-in, opacity 300ms ease-in;
+}
+
+.document-outline-tick:hover,
+.document-outline-tick:focus-visible {
+    opacity: 1;
+}
+
+.document-outline-tick.is-active {
+    color: rgb(var(--react-brand-rgb));
+    opacity: 1;
+    box-shadow: 0 0 8px color-mix(in srgb, rgb(var(--react-brand-rgb)) 75%, transparent);
+    transform: scaleX(1.35);
+}
+
+.document-outline-popover {
+    pointer-events: none;
+    transform: translateY(-50%) translateX(-4px) scale(0.95);
+    opacity: 0;
+    transform-origin: right center;
+    transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.document-outline-popover.is-open {
+    pointer-events: auto;
+    transform: translateY(-50%) translateX(0) scale(1);
+    opacity: 1;
+}
+
+.document-outline-row {
+    transition: color 180ms ease;
+}
+
+.document-outline-row:hover,
+.document-outline-row:focus-visible {
+    color: var(--react-dark-700);
+}
+
+.document-outline-row.is-active {
+    color: rgb(var(--react-brand-rgb));
+    text-shadow: 0 0 10px color-mix(in srgb, rgb(var(--react-brand-rgb)) 55%, transparent);
 }
 
 .react-settings-overlay {
@@ -559,19 +749,106 @@ select:focus-visible {
     font-size: 16px;
     line-height: 1.72;
     overflow: auto;
+    scrollbar-width: none;
+}
+
+.prosemark-editor-mount .cm-scroller::-webkit-scrollbar {
+    display: none;
+}
+
+.curved-editor-scrollbar {
+    position: absolute;
+    inset: 0;
+    z-index: 12;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    opacity: 0;
+    shape-rendering: geometricPrecision;
+    transition: opacity 160ms ease;
+}
+
+.curved-editor-scrollbar[data-scrollable="true"] {
+    opacity: 0.58;
+}
+
+.curved-editor-scrollbar[data-scrollable="true"][data-active="true"],
+.curved-editor-scrollbar[data-scrollable="true"]:hover {
+    opacity: 1;
+}
+
+.curved-editor-scrollbar-path {
+    opacity: 0;
+}
+
+.curved-editor-scrollbar-path.is-active {
+    opacity: 1;
+}
+
+.curved-editor-scrollbar-thumb,
+.curved-editor-scrollbar-hit-area {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+}
+
+.curved-editor-scrollbar-thumb {
+    stroke: var(--react-scrollbar-thumb);
+    stroke-width: var(--react-scrollbar-thumb-size);
+    stroke-linecap: round;
+    transition: stroke 120ms ease;
+}
+
+.curved-editor-scrollbar-path.is-active:hover
+    .curved-editor-scrollbar-thumb {
+    stroke: var(--react-scrollbar-thumb-hover);
+}
+
+.curved-editor-scrollbar-hit-area {
+    stroke: transparent;
+    stroke-width: 12px;
+    pointer-events: none;
+    cursor: default;
+    touch-action: none;
+}
+
+.curved-editor-scrollbar[data-scrollable="true"]
+    .curved-editor-scrollbar-path.is-active
+    .curved-editor-scrollbar-hit-area {
+    pointer-events: stroke;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .curved-editor-scrollbar {
+        transition: none;
+    }
 }
 
 .prosemark-editor-mount .cm-content {
-    width: min(100%, 960px);
+    width: 100%;
+    max-width: 960px;
+    flex-grow: 0;
     min-height: 100%;
     margin: 0 auto;
-    padding: 32px clamp(24px, 5vw, 72px) 64px;
+    padding: 25px;
     caret-color: rgb(var(--react-brand-rgb));
     cursor: text;
 }
 
 .prosemark-editor-mount .cm-line {
-    padding: 0;
+    padding-inline: 8px;
+}
+
+.prosemark-editor-mount .cm-code-block-info {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+}
+
+.prosemark-editor-mount .cm-fenced-code-line:hover .cm-code-block-info,
+.prosemark-editor-mount .cm-code-block-info-hovered {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .prosemark-editor-mount .cm-gutters {

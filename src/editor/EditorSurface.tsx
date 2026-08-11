@@ -8,10 +8,12 @@ export interface EditorSurfaceProps {
   onChange: (content: string) => void
   onEditorChange: (editor: EditorController | null) => void
   onEditorStateChange: () => void
+  onActiveHeadingChange?: (position: number | null) => void
   onOpenLink: (url: string) => void
+  topChromeHidden?: boolean
 }
 
-function EditorSurfaceComponent({ document, onChange, onEditorChange, onEditorStateChange, onOpenLink }: EditorSurfaceProps) {
+function EditorSurfaceComponent({ document, onChange, onEditorChange, onEditorStateChange, onActiveHeadingChange, onOpenLink, topChromeHidden = false }: EditorSurfaceProps) {
   return (
     <section className="react-editor-surface" aria-label="Markdown editor" data-testid="react-prosemark-editor">
       <ProseMarkEditor
@@ -22,7 +24,9 @@ function EditorSurfaceComponent({ document, onChange, onEditorChange, onEditorSt
         onChange={onChange}
         onEditorChange={onEditorChange}
         onEditorStateChange={onEditorStateChange}
+        onActiveHeadingChange={onActiveHeadingChange}
         onOpenLink={onOpenLink}
+        topChromeHidden={topChromeHidden}
       />
     </section>
   )
@@ -35,5 +39,7 @@ export const EditorSurface = memo(EditorSurfaceComponent, (previous, next) => (
   && previous.onChange === next.onChange
   && previous.onEditorChange === next.onEditorChange
   && previous.onEditorStateChange === next.onEditorStateChange
+  && previous.onActiveHeadingChange === next.onActiveHeadingChange
   && previous.onOpenLink === next.onOpenLink
+  && previous.topChromeHidden === next.topChromeHidden
 ))

@@ -5,6 +5,46 @@ export interface MarkdownHeading {
   position: number
 }
 
+export interface ActiveHeadingScrollState {
+  scrollTop: number
+  maxScrollTop: number
+  activationOffset: number
+  bottomSpread: number
+  bottomTolerance: number
+}
+
+export function resolveActiveHeadingPosition(
+  headings: readonly MarkdownHeading[],
+  headingTops: readonly number[],
+  state: ActiveHeadingScrollState,
+): number | null {
+  if (!headings.length) return null
+
+  const maxScrollTop = Math.max(0, state.maxScrollTop)
+  const activationPoints = headings.map((_, index) => Math.max(0, (headingTops[index] ?? 0) - state.activationOffset))
+  if (maxScrollTop > 0 && state.bottomSpread > 0) {
+    const bottomStart = Math.max(0, maxScrollTop - state.bottomSpread)
+    const firstBottomHeading = activationPoints.findIndex(point => point >= bottomStart)
+    if (firstBottomHeading >= 0) {
+      const bottomHeadingCount = headings.length - firstBottomHeading
+      for (let index = firstBottomHeading; index < headings.length; index += 1) {
+        const step = index - firstBottomHeading + 1
+        activationPoints[index] = bottomStart + (maxScrollTop - bottomStart) * (step / bottomHeadingCount)
+      }
+    }
+  }
+
+  let activePosition: number | null = null
+  for (let index = 0; index < headings.length; index += 1) {
+    const comparisonScrollTop = index === headings.length - 1
+      ? Math.min(maxScrollTop, state.scrollTop + state.bottomTolerance)
+      : state.scrollTop
+    if (comparisonScrollTop < (activationPoints[index] ?? 0)) break
+    activePosition = headings[index]?.position ?? activePosition
+  }
+  return activePosition
+}
+
 export function markdownSlug(text: string): string {
   return text
     .trim()

@@ -32,6 +32,8 @@ import { tableExtension } from './extensions/table'
 import { internalLinkExtension } from './linkNavigation'
 import { imageIngestionExtension } from './extensions/imageIngestion'
 import { markdownCompatibilityExtension, markdownCompatibilitySyntax } from './extensions/markdownCompatibility'
+import { extractMarkdownHeadings, resolveActiveHeadingPosition } from './markdownHeadings'
+import { CurvedEditorScrollbar } from './CurvedEditorScrollbar'
 
 interface ProseMarkEditorProps {
   documentId: string
@@ -41,7 +43,9 @@ interface ProseMarkEditorProps {
   onChange: (content: string) => void
   onEditorChange: (editor: EditorController | null) => void
   onEditorStateChange: () => void
+  onActiveHeadingChange?: (position: number | null) => void
   onOpenLink: (url: string) => void
+  topChromeHidden?: boolean
 }
 
 interface ViewportSnapshot {
@@ -112,6 +116,53 @@ const viewportParsePlugin = ViewPlugin.fromClass(class {
   }
 })
 
+const codeBlockHoverPlugin = ViewPlugin.fromClass(class {
+  private hoveredInfo: HTMLElement | null = null
+
+  private readonly handlePointerOver = (event: PointerEvent): void => {
+    this.setHoveredInfo(this.findInfo(event.target))
+  }
+
+  private readonly handlePointerOut = (event: PointerEvent): void => {
+    const nextTarget = event.relatedTarget
+    if (nextTarget instanceof Node && this.view.dom.contains(nextTarget)) {
+      this.setHoveredInfo(this.findInfo(nextTarget))
+      return
+    }
+    this.setHoveredInfo(null)
+  }
+
+  constructor(private readonly view: EditorView) {
+    view.dom.addEventListener('pointerover', this.handlePointerOver)
+    view.dom.addEventListener('pointerout', this.handlePointerOut)
+  }
+
+  private findInfo(target: EventTarget | null): HTMLElement | null {
+    if (!(target instanceof Element)) return null
+    const line = target.closest('.cm-fenced-code-line')
+    if (!(line instanceof HTMLElement) || !this.view.contentDOM.contains(line)) return null
+
+    let firstLine: Element | null = line
+    while (firstLine && !firstLine.classList.contains('cm-fenced-code-line-first')) {
+      firstLine = firstLine.previousElementSibling
+    }
+    return firstLine?.querySelector<HTMLElement>('.cm-code-block-info') ?? null
+  }
+
+  private setHoveredInfo(nextInfo: HTMLElement | null): void {
+    if (nextInfo === this.hoveredInfo) return
+    this.hoveredInfo?.classList.remove('cm-code-block-info-hovered')
+    nextInfo?.classList.add('cm-code-block-info-hovered')
+    this.hoveredInfo = nextInfo
+  }
+
+  destroy(): void {
+    this.view.dom.removeEventListener('pointerover', this.handlePointerOver)
+    this.view.dom.removeEventListener('pointerout', this.handlePointerOut)
+    this.setHoveredInfo(null)
+  }
+})
+
 export function ProseMarkEditor({
   documentId,
   documentPath,
@@ -120,13 +171,16 @@ export function ProseMarkEditor({
   onChange,
   onEditorChange,
   onEditorStateChange,
+  onActiveHeadingChange = () => {},
   onOpenLink,
+  topChromeHidden = false,
 }: ProseMarkEditorProps) {
   const editorRoot = useRef<HTMLDivElement>(null)
   const editorView = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
   const onEditorChangeRef = useRef(onEditorChange)
   const onEditorStateChangeRef = useRef(onEditorStateChange)
+  const onActiveHeadingChangeRef = useRef(onActiveHeadingChange)
   const onOpenLinkRef = useRef(onOpenLink)
   const documentPathRef = useRef(documentPath)
   const applyingExternalContent = useRef(false)
@@ -135,10 +189,12 @@ export function ProseMarkEditor({
   const lastPublishedContent = useRef(content)
   const appliedContentRevision = useRef(contentRevision)
   const [errorMessage, setErrorMessage] = useState('')
+  const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null)
 
   onChangeRef.current = onChange
   onEditorChangeRef.current = onEditorChange
   onEditorStateChangeRef.current = onEditorStateChange
+  onActiveHeadingChangeRef.current = onActiveHeadingChange
   onOpenLinkRef.current = onOpenLink
   documentPathRef.current = documentPath
 
@@ -151,6 +207,9 @@ export function ProseMarkEditor({
     let lastCanUndo = false
     let lastCanRedo = false
     let themeObserver: MutationObserver | null = null
+    let activeHeadingFrame = 0
+    let headingPositions = extractMarkdownHeadings(content)
+    let reportedActiveHeading: number | null | undefined
     let mathLoadStarted = false
     const mathCompartment = new Compartment()
     const spellcheckCompartment = new Compartment()
@@ -217,6 +276,36 @@ export function ProseMarkEditor({
       })
     }
 
+    const reportActiveHeading = (view: EditorView): void => {
+      const scrollTop = view.scrollDOM.scrollTop
+      const maxScrollTop = Math.max(0, view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight)
+      const activationOffset = Math.min(32, view.defaultLineHeight * 2)
+      const headingTops = headingPositions.map(heading => view.lineBlockAt(view.state.doc.lineAt(heading.position).from).top)
+      const activeHeading = resolveActiveHeadingPosition(
+        headingPositions,
+        headingTops,
+        {
+          scrollTop,
+          maxScrollTop,
+          activationOffset,
+          bottomSpread: Math.min(maxScrollTop, Math.max(180, view.scrollDOM.clientHeight * 0.4)),
+          bottomTolerance: Math.max(32, view.defaultLineHeight * 2),
+        },
+      )
+
+      if (activeHeading === reportedActiveHeading) return
+      reportedActiveHeading = activeHeading
+      onActiveHeadingChangeRef.current(activeHeading)
+    }
+
+    const scheduleActiveHeading = (view: EditorView): void => {
+      if (activeHeadingFrame) return
+      activeHeadingFrame = window.requestAnimationFrame(() => {
+        activeHeadingFrame = 0
+        if (!disposed) reportActiveHeading(view)
+      })
+    }
+
     try {
       const view = new EditorView({
         parent: root,
@@ -247,6 +336,7 @@ export function ProseMarkEditor({
             imageIngestionExtension(() => documentPathRef.current, setErrorMessage),
             markdownCompatibilityExtension(url => onOpenLinkRef.current(url)),
             viewportParsePlugin,
+            codeBlockHoverPlugin,
             EditorView.contentAttributes.of({
               'aria-label': 'Markdown editor',
               'aria-multiline': 'true',
@@ -275,6 +365,8 @@ export function ProseMarkEditor({
               if (update.docChanged || update.selectionSet || update.viewportChanged) {
                 recordViewport()
               }
+              if (update.docChanged) headingPositions = extractMarkdownHeadings(update.view.state.doc.toString())
+              if (update.docChanged || update.viewportChanged) scheduleActiveHeading(update.view)
               if (update.docChanged) publishEditorState(update.view)
             }),
           ],
@@ -285,7 +377,11 @@ export function ProseMarkEditor({
       lastPublishedContent.current = content
       appliedContentRevision.current = contentRevision
       onEditorChangeRef.current(createCodeMirrorController(view))
+      setScrollElement(view.scrollDOM)
+      const handleActiveHeadingScroll = (): void => scheduleActiveHeading(view)
       view.scrollDOM.addEventListener('scroll', recordViewport, { passive: true })
+      view.scrollDOM.addEventListener('scroll', handleActiveHeadingScroll, { passive: true })
+      scheduleActiveHeading(view)
       themeObserver = new MutationObserver(() => {
         view.dispatch({ selection: view.state.selection })
       })
@@ -302,6 +398,7 @@ export function ProseMarkEditor({
         })
         window.requestAnimationFrame(() => {
           view.scrollDOM.scrollTop = snapshot.scrollTop
+          scheduleActiveHeading(view)
         })
       }
 
@@ -325,13 +422,17 @@ export function ProseMarkEditor({
         publishContent()
         recordViewport()
         if (stateFrame) window.cancelAnimationFrame(stateFrame)
+        if (activeHeadingFrame) window.cancelAnimationFrame(activeHeadingFrame)
         if (spellcheckIdleId !== null) {
           if ('cancelIdleCallback' in window) window.cancelIdleCallback(spellcheckIdleId)
           else globalThis.clearTimeout(spellcheckIdleId)
         }
         themeObserver?.disconnect()
         view.scrollDOM.removeEventListener('scroll', recordViewport)
+        view.scrollDOM.removeEventListener('scroll', handleActiveHeadingScroll)
+        onActiveHeadingChangeRef.current(null)
         onEditorChangeRef.current(null)
+        setScrollElement(null)
         editorView.current = null
         view.destroy()
       }
@@ -388,6 +489,7 @@ export function ProseMarkEditor({
     <div className="prosemark-editor-shell">
       {errorMessage && <div className="prosemark-editor-status is-error" role="alert">{errorMessage}</div>}
       <div ref={editorRoot} className="prosemark-editor-mount" />
+      <CurvedEditorScrollbar scrollElement={scrollElement} curveTop={topChromeHidden} />
     </div>
   )
 }

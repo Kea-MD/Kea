@@ -309,7 +309,7 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
   }
 
   return (
-    <div className="z-[1] flex h-10 min-w-0 items-start overflow-hidden pt-[7px]" role="tablist" aria-label="Open documents">
+    <div className="relative z-[2] flex h-10 min-w-0 items-start overflow-hidden pt-[7px]" role="tablist" aria-label="Open documents">
       {showTrafficLightsSafeArea && <div className="react-tabs-traffic-lights-safe-area" aria-hidden="true" />}
       <div className="flex min-w-0 flex-1 items-start pr-4 pl-0 select-none">
         <div className="relative min-w-0 flex-1" style={maskStyle}>

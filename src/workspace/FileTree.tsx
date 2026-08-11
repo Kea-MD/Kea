@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+import { StraightOverlayScrollbar } from '../ui/StraightOverlayScrollbar'
 import { filterEntries, findEntry, getParentPath, pathMatches, type WorkspaceFileEntry } from './workspaceModel'
 import { FileTreeItem } from './FileTreeItem'
 
@@ -39,8 +40,14 @@ export function FileTree({ entries, rootPath, expandedPaths, activePath, renameP
   const dragRef = useRef<DragState>(initialDragState)
   const [dragState, setDragState] = useState<DragState>(initialDragState)
   const [query, setQuery] = useState('')
+  const [scrollElement, setScrollElement] = useState<HTMLUListElement | null>(null)
   const filteredEntries = useMemo(() => filterEntries(entries, query), [entries, query])
   const isSearching = query.trim().length > 0
+
+  const setTreeElement = useCallback((element: HTMLUListElement | null) => {
+    treeRef.current = element
+    setScrollElement(element)
+  }, [])
 
   useEffect(() => { setQuery('') }, [rootPath])
 
@@ -155,14 +162,17 @@ export function FileTree({ entries, rootPath, expandedPaths, activePath, renameP
       </div>
       {isSearching && filteredEntries.length === 0
         ? <p className="m-0 px-2 py-4 text-center text-xs text-white/40" role="status">No matching files</p>
-        : <ul
-          ref={treeRef}
-          className={`react-file-tree-list m-0 block min-h-0 flex-1 list-none overflow-y-auto rounded-md p-0${dragState.isOverRoot ? ' is-drop-root bg-[rgba(var(--react-brand-rgb),0.12)] shadow-[inset_0_0_0_1px_rgba(var(--react-brand-rgb),0.55)]' : ''}${dragState.hasMoved ? ' is-pointer-dragging' : ''}`}
-          role="tree"
-          aria-label="Workspace files"
-        >
-          {filteredEntries.map(entry => <FileTreeItem key={entry.path} entry={entry} level={0} expanded={isExpanded(entry.path)} isExpanded={isExpanded} activePath={activePath} renamePath={renamePath} draggingPath={dragState.sourcePath} dropTargetPath={dragState.dropTargetPath} onToggle={onToggle} onSelect={onSelect} onRename={onRename} onRenameRequest={onRenameRequest} onContextMenu={onContextMenu} onPointerDragStart={handlePointerDragStart} />)}
-        </ul>}
+        : <div className="relative min-h-0 flex-1">
+            <ul
+              ref={setTreeElement}
+              className={`react-custom-scroll-source react-file-tree-list m-0 block h-full min-h-0 list-none overflow-y-auto rounded-md p-0${dragState.isOverRoot ? ' is-drop-root bg-[rgba(var(--react-brand-rgb),0.12)] shadow-[inset_0_0_0_1px_rgba(var(--react-brand-rgb),0.55)]' : ''}${dragState.hasMoved ? ' is-pointer-dragging' : ''}`}
+              role="tree"
+              aria-label="Workspace files"
+            >
+              {filteredEntries.map(entry => <FileTreeItem key={entry.path} entry={entry} level={0} expanded={isExpanded(entry.path)} isExpanded={isExpanded} activePath={activePath} renamePath={renamePath} draggingPath={dragState.sourcePath} dropTargetPath={dragState.dropTargetPath} onToggle={onToggle} onSelect={onSelect} onRename={onRename} onRenameRequest={onRenameRequest} onContextMenu={onContextMenu} onPointerDragStart={handlePointerDragStart} />)}
+            </ul>
+            <StraightOverlayScrollbar scrollElement={scrollElement} />
+          </div>}
     </div>
   )
 }

@@ -68,43 +68,35 @@ function IconButton({
 }
 
 function Toolbar({
-  sidebarOpen,
   showSidebarToggle,
   onToggleSidebar,
   onSidebarHover,
   isDark,
   onToggleTheme,
   editor,
-  outlineOpen,
-  onToggleOutline,
 }: {
-  sidebarOpen: boolean
   showSidebarToggle: boolean
   onToggleSidebar: () => void
   onSidebarHover: (hovering: boolean) => void
   isDark: boolean
   onToggleTheme: () => void
   editor: EditorController | null
-  outlineOpen: boolean
-  onToggleOutline: () => void
 }) {
   return (
-    <div className="relative flex min-h-[42px] flex-none items-center overflow-visible bg-[var(--react-toolbar-background)] px-3 py-2 [box-shadow:0_-1px_0_var(--react-border),0_1px_0_var(--react-border)]" aria-label="Editor toolbar">
+    <div className="relative z-[1] flex min-h-[42px] flex-none items-center overflow-visible bg-[var(--react-toolbar-background)] px-3 py-2 [outline:1px_solid_var(--react-border)]" aria-label="Editor toolbar">
       {showSidebarToggle && <div className="absolute inset-y-0 left-3 z-10 flex items-center gap-1 bg-[var(--react-toolbar-background)]">
-          <IconButton
-            icon="dock_to_right"
-            label={sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
-            active={sidebarOpen}
-            onClick={onToggleSidebar}
-            onMouseEnter={() => onSidebarHover(true)}
-            onMouseLeave={() => onSidebarHover(false)}
-          />
-        </div>}
+        <IconButton
+          icon="dock_to_right"
+          label="Show Sidebar"
+          onClick={onToggleSidebar}
+          onMouseEnter={() => onSidebarHover(true)}
+          onMouseLeave={() => onSidebarHover(false)}
+        />
+      </div>}
       <div className="min-w-0 flex-1 overflow-hidden whitespace-nowrap">
         <CodeMirrorToolbar editor={editor} />
       </div>
       <div className="absolute inset-y-0 right-3 z-10 flex items-center gap-1 bg-[var(--react-toolbar-background)]">
-        <IconButton icon="toc" label={outlineOpen ? 'Hide outline' : 'Show outline'} active={outlineOpen} disabled={!editor} onClick={onToggleOutline} />
         <IconButton icon={isDark ? 'light_mode' : 'dark_mode'} label={isDark ? 'Use light theme' : 'Use dark theme'} onClick={onToggleTheme} />
       </div>
     </div>
@@ -146,10 +138,10 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [shellElement, setShellElement] = useState<HTMLDivElement | null>(null)
   const [activeEditor, setActiveEditor] = useState<EditorController | null>(null)
+  const [activeHeadingPosition, setActiveHeadingPosition] = useState<number | null>(null)
   const [, setEditorStateVersion] = useState(0)
   const [pendingFilePath, setPendingFilePath] = useState<string | null>(null)
   const [quickOpen, setQuickOpen] = useState(false)
-  const [outlineOpen, setOutlineOpen] = useState(false)
   const [topChromeHeight, setTopChromeHeight] = useState(82)
   const [pendingAnchor, setPendingAnchor] = useState<{ documentId: string; anchor: string } | null>(null)
   const [shellMenu, setShellMenu] = useState<{ x: number; y: number } | null>(null)
@@ -229,6 +221,9 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
 
   const handleEditorChange = useCallback((editor: EditorController | null) => {
     setActiveEditor(editor)
+  }, [])
+  const handleActiveHeadingChange = useCallback((position: number | null) => {
+    setActiveHeadingPosition(position)
   }, [])
   const refreshEditorState = useCallback(() => {
     setEditorStateVersion(version => version + 1)
@@ -365,6 +360,9 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
     })
   }, [])
 
+  const toolbarSidebarButtonVisible = !sidebarOpen && (!settings.revealTopChromeOnEdgeHover || topChromeHovering)
+  const topChromeHidden = settings.revealTopChromeOnEdgeHover && !topChromeHovering
+
   return (
     <div ref={setShellElement} onContextMenu={handleShellContextMenu} className="react-spike-shell relative h-screen w-screen overflow-hidden rounded-[var(--react-radius)] bg-[var(--react-shell-background)] p-[var(--react-inset)] text-[var(--react-dark-700)] [isolation:isolate]">
       {settings.edgeGlowEnabled && <MouseRingGlow hostElement={shellElement} />}
@@ -373,9 +371,9 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
       <div className="react-page-container relative z-[1] flex h-full w-full rounded-[calc(var(--react-radius)-var(--react-inset))] bg-[var(--react-page-background)] p-[var(--react-inset)]">
         {settings.revealSidebarOnEdgeHover && !isMobile && <div className="react-sidebar-edge-trigger" data-testid="sidebar-edge-hover-trigger" aria-hidden="true" onMouseEnter={() => handleSidebarHover(true)} onMouseLeave={() => handleSidebarHover(false)} />}
         <div className={`grid h-full w-full min-w-0 [grid-template-columns:var(--react-sidebar-grid)] transition-[grid-template-columns] duration-[160ms] [transition-timing-function:cubic-bezier(0,0,0.58,1)] ${isResizing ? 'transition-none' : ''}`} style={{ '--react-sidebar-grid': sidebarOpen ? `${sidebarWidth}px minmax(0,1fr)` : '0 minmax(0,1fr)' } as CSSProperties}>
-            <Sidebar width={sidebarWidth} isOpen={sidebarOpen} isHovering={sidebarHovering} showSidebarToggle={settings.revealTopChromeOnEdgeHover && !topChromeHovering} onToggleSidebar={toggleSidebar} topChromeHidden={settings.revealTopChromeOnEdgeHover && !topChromeHovering} controller={workspace} activePath={selectedPath} onSelectFile={selectFile} onPathChanged={handlePathChanged} onNewFile={() => { setPendingFilePath(null); documents.newFile() }} onOpenFile={() => { setPendingFilePath(null); void documents.openFileDialog() }} onSaveFile={() => void documents.saveFile(activeEditor?.getContent())} canSave={Boolean(documents.activeDocument) || documents.documents.some(document => document.isDirty)} isSaving={documents.isSaving} openDocuments={documents.documents} onCloseDocuments={async ids => { for (const id of ids) await documents.closeDocument(id, true) }} onCloseWorkspace={closeWorkspace} shortcuts={settings.shortcuts} onSettings={() => setSettingsOpen(true)} />
+            <Sidebar width={sidebarWidth} isOpen={sidebarOpen} isHovering={sidebarHovering} showSidebarToggle={!toolbarSidebarButtonVisible} onToggleSidebar={toggleSidebar} topChromeHidden={topChromeHidden} controller={workspace} activePath={selectedPath} onSelectFile={selectFile} onPathChanged={handlePathChanged} onNewFile={() => { setPendingFilePath(null); documents.newFile() }} onOpenFile={() => { setPendingFilePath(null); void documents.openFileDialog() }} onSaveFile={() => void documents.saveFile(activeEditor?.getContent())} canSave={Boolean(documents.activeDocument) || documents.documents.some(document => document.isDirty)} isSaving={documents.isSaving} openDocuments={documents.documents} onCloseDocuments={async ids => { for (const id of ids) await documents.closeDocument(id, true) }} onCloseWorkspace={closeWorkspace} shortcuts={settings.shortcuts} onSettings={() => setSettingsOpen(true)} />
             {sidebarOpen && <div className={`absolute top-10 bottom-[5px] z-10 w-2 cursor-col-resize rounded transition-[background] duration-150 ease-in after:absolute after:left-1/2 after:top-1/2 after:h-10 after:w-[3px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-sm after:bg-transparent after:transition-[background] hover:after:bg-[rgba(40,44,51,0.42)]${isResizing ? ' after:bg-[rgba(40,44,51,0.42)]' : ''}`} style={{ left: sidebarWidth + 5 }} onMouseDown={startResize} />}
-             <main className={`relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] bg-[var(--react-panel-background)] [box-shadow:0_0_0_1px_var(--react-border)]${settings.revealTopChromeOnEdgeHover ? ` is-top-chrome-reveal-enabled${topChromeHovering ? ' is-top-chrome-visible' : ''}` : ''}`} style={{ '--react-top-chrome-height': `${topChromeHeight}px` } as CSSProperties}>
+             <main className={`relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--react-panel-radius)] border border-[var(--react-border)] bg-[var(--react-panel-background)]${settings.revealTopChromeOnEdgeHover ? ` is-top-chrome-reveal-enabled${topChromeHovering ? ' is-top-chrome-visible' : ''}` : ''}`} style={{ '--react-top-chrome-height': `${topChromeHeight}px` } as CSSProperties}>
             <div ref={topChromeRef} className={`react-top-chrome${settings.revealTopChromeOnEdgeHover ? ` is-hover-enabled${topChromeHovering ? ' is-hovering' : ''}` : ''}`} data-testid="react-top-chrome" onMouseEnter={() => handleTopChromeHover(true)} onMouseLeave={() => handleTopChromeHover(false)}>
               <DocumentTabs
                  documents={documents.documents}
@@ -396,22 +394,19 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
                  shortcuts={settings.shortcuts}
                />
             <Toolbar
-              sidebarOpen={sidebarOpen}
-              showSidebarToggle={!settings.revealTopChromeOnEdgeHover || topChromeHovering}
-               onToggleSidebar={toggleSidebar}
+                showSidebarToggle={toolbarSidebarButtonVisible}
+                onToggleSidebar={toggleSidebar}
                 onSidebarHover={handleSidebarHover}
                 isDark={isDark}
                 onToggleTheme={toggleTheme}
                 editor={activeEditor}
-                outlineOpen={outlineOpen}
-                onToggleOutline={() => setOutlineOpen(open => !open)}
               />
             </div>
               <div className={`react-editor-content relative flex min-h-0 flex-1 bg-transparent${settings.revealTopChromeOnEdgeHover ? ' is-top-chrome-aware' : ''}`}>
                 {documents.activeDocument
-                  ? <EditorSurface document={documents.activeDocument} onChange={documents.updateContent} onEditorChange={handleEditorChange} onEditorStateChange={refreshEditorState} onOpenLink={handleOpenLink} />
+                  ? <EditorSurface document={documents.activeDocument} onChange={documents.updateContent} onEditorChange={handleEditorChange} onEditorStateChange={refreshEditorState} onActiveHeadingChange={handleActiveHeadingChange} onOpenLink={handleOpenLink} topChromeHidden={topChromeHidden} />
                   : <EmptyEditor selectedFilePath={selectedPath} loading={documents.isLoading} error={documents.error} onOpenFolder={() => void workspace.openFolder()} onOpenFile={() => { setPendingFilePath(null); void documents.openFileDialog() }} onNewFile={() => { setPendingFilePath(null); documents.newFile() }} />}
-                {outlineOpen && documents.activeDocument && <DocumentOutline content={activeEditor?.getContent() ?? documents.activeDocument.content} onReveal={position => activeEditor?.revealPosition(position)} onClose={() => setOutlineOpen(false)} />}
+                {documents.activeDocument && <DocumentOutline content={activeEditor?.getContent() ?? documents.activeDocument.content} activePosition={activeHeadingPosition} onReveal={position => activeEditor?.revealPosition(position)} />}
               </div>
           </main>
         </div>

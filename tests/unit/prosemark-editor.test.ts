@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { parseMarkdownTable, parseTableCellInlineMarkdown } from '../../src/editor/extensions/table'
 import { renderMermaid, sanitiseMermaidSvg } from '../../src/editor/extensions/mermaidRenderer'
 import { executeMarkdownCommand } from '../../src/editor/markdownCommands'
-import { extractMarkdownHeadings } from '../../src/editor/markdownHeadings'
+import { extractMarkdownHeadings, resolveActiveHeadingPosition } from '../../src/editor/markdownHeadings'
 import { resolveMarkdownLink } from '../../src/editor/linkNavigation'
 
 let view: EditorView | null = null
@@ -84,6 +84,21 @@ describe('ProseMark editor extensions', () => {
       { level: 1, text: 'Hello, world!', anchor: 'hello-world', position: 0 },
       { level: 2, text: 'Hello, world!', anchor: 'hello-world-1', position: 38 },
     ])
+  })
+
+  it('gives each bottom heading an ordered activation interval', () => {
+    const headings = extractMarkdownHeadings('# First\n\n# Middle\n\n# Final')
+    const headingTops = [0, 880, 960]
+    const state = {
+      maxScrollTop: 700,
+      activationOffset: 32,
+      bottomSpread: 200,
+      bottomTolerance: 32,
+    }
+
+    expect(resolveActiveHeadingPosition(headings, headingTops, { ...state, scrollTop: 550 })).toBe(headings[0]!.position)
+    expect(resolveActiveHeadingPosition(headings, headingTops, { ...state, scrollTop: 610 })).toBe(headings[1]!.position)
+    expect(resolveActiveHeadingPosition(headings, headingTops, { ...state, scrollTop: 670 })).toBe(headings[2]!.position)
   })
 
   it('resolves relative, same-document, and external Markdown links', () => {

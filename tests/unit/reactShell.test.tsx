@@ -66,18 +66,33 @@ describe('React shell spike', () => {
   afterEach(() => vi.useRealTimers())
 
   it('renders the shell controls and empty editor state', async () => {
+    vi.useFakeTimers()
+    window.localStorage.setItem('kea-sidebar-open', 'true')
     await act(async () => {
       render(<RuntimeProvider port={testRuntimePort}><App /></RuntimeProvider>)
     })
 
     expect(screen.getByRole('main')).not.toBeNull()
     expect(screen.getByRole('heading', { name: 'No file open' })).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Show Sidebar' })).not.toBeNull()
+    expect(screen.getByTestId('react-top-chrome').querySelector('[aria-label="Show Sidebar"]')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Hide Sidebar' }).closest('.react-sidebar')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'New document' })).not.toBeNull()
     const tabList = () => screen.getByRole('tablist').querySelector('.react-tabs-list')
-    expect(tabList()?.classList.contains('pl-[25px]')).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: 'Show Sidebar' }))
     expect(tabList()?.classList.contains('pl-[15px]')).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Hide Sidebar' }))
+    expect(tabList()?.classList.contains('pl-[25px]')).toBe(true)
+    act(() => { vi.advanceTimersByTime(300) })
+    const toolbarShowSidebar = screen.getByTestId('react-top-chrome').querySelector<HTMLButtonElement>('[aria-label="Show Sidebar"]')
+    expect(toolbarShowSidebar).not.toBeNull()
+    fireEvent.mouseEnter(toolbarShowSidebar!)
+    expect(document.querySelector('.react-sidebar-host')?.classList.contains('is-hovering')).toBe(true)
+    expect(document.querySelector('.react-safety-triangle')?.classList.contains('is-active')).toBe(true)
+    expect(screen.getByTestId('react-top-chrome').querySelector('[aria-label="Show Sidebar"]')).not.toBeNull()
+    expect(screen.getByRole('complementary', { name: 'Navigation' }).querySelector('[aria-label="Show Sidebar"]')).toBeNull()
+    fireEvent.mouseLeave(toolbarShowSidebar!)
+    act(() => { vi.advanceTimersByTime(200) })
+    expect(document.querySelector('.react-sidebar-host')?.classList.contains('is-hovering')).toBe(false)
+    expect(document.querySelector('.react-safety-triangle')?.classList.contains('is-active')).toBe(false)
   })
 
   it('replaces the native shell context menu with app actions', async () => {
@@ -92,13 +107,15 @@ describe('React shell spike', () => {
   })
 
   it('toggles the isolated sidebar without touching Vue state', async () => {
+    window.localStorage.setItem('kea-sidebar-open', 'true')
     await act(async () => {
       render(<RuntimeProvider port={testRuntimePort}><App /></RuntimeProvider>)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Show Sidebar' }))
+    expect(screen.getByRole('button', { name: 'Hide Sidebar' }).closest('.react-sidebar')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Hide Sidebar' }))
     expect(screen.getByRole('complementary', { name: 'Navigation' })).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Hide Sidebar' })).not.toBeNull()
+    expect(screen.getByTestId('react-top-chrome').querySelector('[aria-label="Show Sidebar"]')).not.toBeNull()
   })
 
   it('closes the sidebar when the viewport becomes narrow', async () => {
@@ -107,7 +124,7 @@ describe('React shell spike', () => {
       render(<RuntimeProvider port={narrowRuntimePort}><App /></RuntimeProvider>)
     })
 
-    expect(screen.getByRole('button', { name: 'Show Sidebar' })).not.toBeNull()
+    expect(screen.getByTestId('react-top-chrome').querySelector('[aria-label="Show Sidebar"]')).not.toBeNull()
     expect(window.localStorage.getItem('kea-sidebar-open')).toBe('false')
   })
 
@@ -117,7 +134,7 @@ describe('React shell spike', () => {
       render(<RuntimeProvider port={narrowRuntimePort}><App /></RuntimeProvider>)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Show Sidebar' }))
+    fireEvent.keyDown(document, { key: '\\', ctrlKey: true })
     expect(screen.getByRole('button', { name: 'Hide Sidebar' })).not.toBeNull()
   })
 
@@ -201,11 +218,13 @@ describe('React shell spike', () => {
 
     const edgeTrigger = screen.getByTestId('sidebar-edge-hover-trigger')
     const sidebarHost = document.querySelector('.react-sidebar-host')
-    expect(screen.getByRole('button', { name: 'Show Sidebar' })).not.toBeNull()
+    expect(screen.getByTestId('react-top-chrome').querySelector('[aria-label="Show Sidebar"]')).toBeNull()
     expect(sidebarHost?.classList.contains('is-top-chrome-hidden')).toBe(true)
     fireEvent.mouseEnter(edgeTrigger)
     expect(sidebarHost?.classList.contains('is-hovering')).toBe(true)
     expect(sidebarHost?.classList.contains('is-top-chrome-hidden')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Show Sidebar' }).closest('.react-sidebar')).not.toBeNull()
+    expect(screen.getByTestId('react-top-chrome').querySelector('[aria-label="Show Sidebar"]')).toBeNull()
 
     fireEvent.mouseLeave(edgeTrigger)
     act(() => { vi.advanceTimersByTime(200) })
@@ -225,6 +244,7 @@ describe('React shell spike', () => {
     const topChrome = screen.getByTestId('react-top-chrome')
     const main = screen.getByRole('main')
     const editorContent = main.querySelector('.react-editor-content')
+    expect(screen.getByTestId('react-top-chrome').querySelector('[aria-label="Show Sidebar"]')).toBeNull()
     expect(topChrome.classList.contains('is-hover-enabled')).toBe(true)
     expect(topChrome.classList.contains('is-hovering')).toBe(false)
     expect(editorContent?.classList.contains('is-top-chrome-aware')).toBe(true)
@@ -232,6 +252,7 @@ describe('React shell spike', () => {
     fireEvent.mouseEnter(edgeTrigger)
     expect(topChrome.classList.contains('is-hovering')).toBe(true)
     expect(main.classList.contains('is-top-chrome-visible')).toBe(true)
+    expect(screen.getByTestId('react-top-chrome').querySelector('[aria-label="Show Sidebar"]')).not.toBeNull()
 
     fireEvent.mouseLeave(edgeTrigger)
     act(() => { vi.advanceTimersByTime(200) })
@@ -239,7 +260,7 @@ describe('React shell spike', () => {
     expect(main.classList.contains('is-top-chrome-visible')).toBe(false)
   })
 
-  it('moves the sidebar toggle into the sidebar actions when the top chrome hides', async () => {
+  it('keeps the sidebar toggle in the sidebar actions when the top chrome hides', async () => {
     window.localStorage.setItem('kea-settings', JSON.stringify({ workspace: { revealSidebarOnEdgeHover: true, revealTopChromeOnEdgeHover: true } }))
 
     await act(async () => {
@@ -249,6 +270,7 @@ describe('React shell spike', () => {
     fireEvent.mouseEnter(screen.getByTestId('sidebar-edge-hover-trigger'))
     const showSidebar = screen.getByRole('button', { name: 'Show Sidebar' })
     expect(showSidebar.closest('.react-sidebar')).not.toBeNull()
+    expect(showSidebar.closest('.react-top-chrome')).toBeNull()
     fireEvent.click(showSidebar)
     expect(screen.getByRole('button', { name: 'Hide Sidebar' }).closest('.react-sidebar')).not.toBeNull()
   })

@@ -135,7 +135,7 @@ export function SettingsDialog({ settings, themeMode, onThemeModeChange, onResto
         <button ref={closeButtonRef} type="button" className="react-settings-close" aria-label="Close settings" title="Close settings" onClick={onClose}>×</button>
       </header>
 
-      <div className="react-settings-content">
+      <div className="react-settings-content react-straight-scrollbar">
         <UpdatesSection />
         <section className="react-settings-section" aria-labelledby="react-appearance-settings-title">
           <h3 id="react-appearance-settings-title">Appearance</h3>
