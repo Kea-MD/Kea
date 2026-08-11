@@ -5,8 +5,7 @@ import type { WorkspaceController } from './useWorkspaceController'
 import { FileTree } from './FileTree'
 import type { DocumentSnapshot } from '../core/contracts/document'
 import { formatShortcutForDisplay } from '../modules/settings/shortcuts/shortcutRegistry'
-
-function Icon({ children }: { children: string }) { return <span className="material-symbols-outlined" aria-hidden="true">{children}</span> }
+import { AppIcon } from '../ui/AppIcon'
 
 export interface SidebarProps {
   controller: WorkspaceController
@@ -26,12 +25,13 @@ export interface SidebarProps {
   onSettings: () => void
   isOpen: boolean
   isHovering: boolean
+  onHoverChange: (hovering: boolean) => void
   showSidebarToggle: boolean
   onToggleSidebar: () => void
   topChromeHidden?: boolean
 }
 
-export function Sidebar({ controller, width, activePath, onSelectFile, onPathChanged, onNewFile, onOpenFile, onSaveFile, canSave, isSaving, openDocuments, onCloseDocuments, onCloseWorkspace, shortcuts = {}, onSettings, isOpen, isHovering, showSidebarToggle, onToggleSidebar, topChromeHidden = false }: SidebarProps) {
+export function Sidebar({ controller, width, activePath, onSelectFile, onPathChanged, onNewFile, onOpenFile, onSaveFile, canSave, isSaving, openDocuments, onCloseDocuments, onCloseWorkspace, shortcuts = {}, onSettings, isOpen, isHovering, onHoverChange, showSidebarToggle, onToggleSidebar, topChromeHidden = false }: SidebarProps) {
   const [renamePath, setRenamePath] = useState<string | null>(null)
   const [menu, setMenu] = useState<{ target: WorkspaceFileEntry | 'root'; x: number; y: number } | null>(null)
   const [movePath, setMovePath] = useState<string | null>(null)
@@ -109,16 +109,16 @@ export function Sidebar({ controller, width, activePath, onSelectFile, onPathCha
       const root = controller.rootPath
       if (!root) return []
       return [
-        { id: 'new-file', label: 'New File', icon: 'pi-file', shortcut: shortcut('new_file'), onSelect: () => void createAndRename(root, false) },
-        { id: 'new-folder', label: 'New Folder', icon: 'pi-folder', onSelect: () => void createAndRename(root, true) },
+        { id: 'new-file', label: 'New File', icon: 'fileNew', shortcut: shortcut('new_file'), onSelect: () => void createAndRename(root, false) },
+        { id: 'new-folder', label: 'New Folder', icon: 'folderNew', onSelect: () => void createAndRename(root, true) },
         { type: 'separator' },
-        { id: 'refresh', label: 'Refresh Workspace', icon: 'pi-refresh', onSelect: () => controller.refreshDirectory() },
+        { id: 'refresh', label: 'Refresh Workspace', icon: 'refresh', onSelect: () => controller.refreshDirectory() },
         { type: 'separator' },
-        { id: 'copy-path', label: 'Copy Workspace Path', icon: 'pi-copy', onSelect: () => copyPath(root) },
-        { id: 'reveal', label: 'Reveal in Finder', icon: 'pi-search', onSelect: () => controller.revealItem(root) },
+        { id: 'copy-path', label: 'Copy Workspace Path', icon: 'copy', onSelect: () => copyPath(root) },
+        { id: 'reveal', label: 'Reveal in Finder', icon: 'reveal', onSelect: () => controller.revealItem(root) },
         { type: 'separator' },
-        { id: 'open-folder', label: 'Open Another Folder…', icon: 'pi-folder-open', shortcut: shortcut('open_folder'), onSelect: open },
-        { id: 'close-workspace', label: 'Close Workspace', icon: 'pi-times', danger: true, onSelect: onCloseWorkspace },
+        { id: 'open-folder', label: 'Open Another Folder…', icon: 'folderOpen', shortcut: shortcut('open_folder'), onSelect: open },
+        { id: 'close-workspace', label: 'Close Workspace', icon: 'close', danger: true, onSelect: onCloseWorkspace },
       ]
     }
 
@@ -126,60 +126,63 @@ export function Sidebar({ controller, width, activePath, onSelectFile, onPathCha
     const parentPath = getParentPath(entry.path) ?? controller.rootPath
     const items: ContextMenuItem[] = []
     if (entry.is_dir) {
-      items.push({ id: 'toggle', label: controller.expandedPaths.has(entry.path) ? 'Collapse' : 'Expand', icon: controller.expandedPaths.has(entry.path) ? 'pi-chevron-up' : 'pi-chevron-down', onSelect: () => controller.toggleFolder(entry.path) })
-      items.push({ id: 'new-file', label: 'New File', icon: 'pi-file', shortcut: shortcut('new_file'), onSelect: () => void createAndRename(entry.path, false) })
-      items.push({ id: 'new-folder', label: 'New Folder', icon: 'pi-folder', onSelect: () => void createAndRename(entry.path, true) })
+      items.push({ id: 'toggle', label: controller.expandedPaths.has(entry.path) ? 'Collapse' : 'Expand', icon: controller.expandedPaths.has(entry.path) ? 'chevronUp' : 'chevronDown', onSelect: () => controller.toggleFolder(entry.path) })
+      items.push({ id: 'new-file', label: 'New File', icon: 'fileNew', shortcut: shortcut('new_file'), onSelect: () => void createAndRename(entry.path, false) })
+      items.push({ id: 'new-folder', label: 'New Folder', icon: 'folderNew', onSelect: () => void createAndRename(entry.path, true) })
       items.push({ type: 'separator' })
-      items.push({ id: 'refresh', label: 'Refresh', icon: 'pi-refresh', onSelect: () => controller.refreshDirectory(entry.path) })
+      items.push({ id: 'refresh', label: 'Refresh', icon: 'refresh', onSelect: () => controller.refreshDirectory(entry.path) })
     } else if (entry.is_markdown) {
-      items.push({ id: 'open', label: 'Open', icon: 'pi-file-edit', onSelect: () => onSelectFile(entry.path) })
+      items.push({ id: 'open', label: 'Open', icon: 'fileEdit', onSelect: () => onSelectFile(entry.path) })
     } else {
-      items.push({ id: 'open', label: 'Open with Default App', icon: 'pi-external-link', onSelect: () => controller.openItem(entry.path) })
+      items.push({ id: 'open', label: 'Open with Default App', icon: 'externalLink', onSelect: () => controller.openItem(entry.path) })
     }
     items.push({ type: 'separator' })
-    items.push({ id: 'rename', label: 'Rename', icon: 'pi-pencil', onSelect: () => { requestRename(entry.path) } })
-    items.push({ id: 'duplicate', label: 'Duplicate', icon: 'pi-copy', onSelect: async () => { await controller.duplicateItem(entry.path) } })
-    if (parentPath && entry.path !== controller.rootPath) items.push({ id: 'move', label: 'Move to…', icon: 'pi-arrow-right-arrow-left', onSelect: () => setMovePath(entry.path) })
+    items.push({ id: 'rename', label: 'Rename', icon: 'rename', onSelect: () => { requestRename(entry.path) } })
+    items.push({ id: 'duplicate', label: 'Duplicate', icon: 'copy', onSelect: async () => { await controller.duplicateItem(entry.path) } })
+    if (parentPath && entry.path !== controller.rootPath) items.push({ id: 'move', label: 'Move to…', icon: 'move', onSelect: () => setMovePath(entry.path) })
     items.push({ type: 'separator' })
-    items.push({ id: 'copy-path', label: 'Copy Path', icon: 'pi-copy', onSelect: () => copyPath(entry.path) })
-    if (controller.rootPath) items.push({ id: 'copy-relative-path', label: 'Copy Relative Path', icon: 'pi-link', onSelect: () => copyRelativePath(entry.path) })
-    items.push({ id: 'reveal', label: 'Reveal in Finder', icon: 'pi-search', onSelect: () => controller.revealItem(entry.path) })
-    if (entry.is_dir || entry.is_markdown) items.push({ id: 'open-default', label: 'Open with Default App', icon: 'pi-external-link', onSelect: () => controller.openItem(entry.path) })
+    items.push({ id: 'copy-path', label: 'Copy Path', icon: 'copy', onSelect: () => copyPath(entry.path) })
+    if (controller.rootPath) items.push({ id: 'copy-relative-path', label: 'Copy Relative Path', icon: 'link', onSelect: () => copyRelativePath(entry.path) })
+    items.push({ id: 'reveal', label: 'Reveal in Finder', icon: 'reveal', onSelect: () => controller.revealItem(entry.path) })
+    if (entry.is_dir || entry.is_markdown) items.push({ id: 'open-default', label: 'Open with Default App', icon: 'externalLink', onSelect: () => controller.openItem(entry.path) })
     items.push({ type: 'separator' })
-    items.push({ id: 'delete', label: 'Delete', icon: 'pi-trash', danger: true, onSelect: () => deleteEntry(entry.path) })
+    items.push({ id: 'delete', label: 'Delete', icon: 'trash', danger: true, onSelect: () => deleteEntry(entry.path) })
     return items
   }
-  return <div className={`relative z-4 w-0 overflow-visible pointer-events-none transition-[width] duration-[160ms] [transition-timing-function:cubic-bezier(0,0,0.58,1)] react-sidebar-host${isOpen ? ' is-open' : ''}${isHovering ? ' is-hovering' : ''}${topChromeHidden && !isOpen ? ' is-top-chrome-hidden' : ''}`} style={isOpen ? { width } : undefined}>
-   <div className={`react-safety-triangle${isHovering && !isOpen ? ' is-active' : ''}`} />
-   <aside className="react-sidebar absolute left-[5px] top-[92px] z-4 h-[calc(100%-97px)] min-w-0 overflow-hidden rounded-[25px] p-2.5 text-[rgba(163,163,168,1)] opacity-0 bg-transparent transition-[transform,backdrop-filter,opacity,background,top,height] duration-[160ms] [transition-timing-function:cubic-bezier(0.42,0,1,1)]" style={{ width: width - 10 }} aria-label="Navigation" onClick={() => menu && setMenu(null)}>
+  return <div
+    className={`react-sidebar-host relative z-[4] w-0 overflow-visible transition-[width] duration-[160ms] [transition-timing-function:cubic-bezier(0,0,0.58,1)] [&:has(.react-sidebar:hover)_.react-sidebar]:translate-x-0 [&:has(.react-sidebar:hover)_.react-sidebar]:opacity-100 [&:has(.react-sidebar:hover)_.react-sidebar]:border-white/5 [&:has(.react-sidebar:hover)_.react-sidebar]:bg-black/60 [&:has(.react-sidebar:hover)_.react-sidebar]:pt-0 [&:has(.react-sidebar:hover)_.react-sidebar]:backdrop-blur-[15px] [&:has(.react-sidebar:hover)_.react-sidebar]:backdrop-saturate-[1.8] [&:has(.react-sidebar:hover)_.react-sidebar]:[transition-timing-function:cubic-bezier(0,0,0.58,1)] [&:has(.react-safety-triangle:hover)_.react-sidebar]:translate-x-0 [&:has(.react-safety-triangle:hover)_.react-sidebar]:opacity-100 [&:has(.react-safety-triangle:hover)_.react-sidebar]:border-white/5 [&:has(.react-safety-triangle:hover)_.react-sidebar]:bg-black/60 [&:has(.react-safety-triangle:hover)_.react-sidebar]:pt-0 [&:has(.react-safety-triangle:hover)_.react-sidebar]:backdrop-blur-[15px] [&:has(.react-safety-triangle:hover)_.react-sidebar]:backdrop-saturate-[1.8] [&:has(.react-safety-triangle:hover)_.react-sidebar]:[transition-timing-function:cubic-bezier(0,0,0.58,1)] [&:has(.react-sidebar:hover)_.react-safety-triangle]:pointer-events-auto${isOpen ? ' is-open' : ''}${isHovering ? ' is-hovering' : ''}${topChromeHidden && !isOpen ? ' is-top-chrome-hidden' : ''}${isOpen || isHovering ? ' pointer-events-auto' : ' pointer-events-none'}${!isOpen ? ' [&:has(.react-sidebar:hover)]:z-[400] [&:has(.react-safety-triangle:hover)]:z-[400]' : ''}`}
+    style={isOpen ? { width } : undefined}
+  >
+   <div className={`react-safety-triangle absolute top-10 left-0 z-10 h-[50px] w-[250px] [clip-path:polygon(20px_30px,40px_30px,250px_50px,10px_50px)]${isHovering && !isOpen ? ' is-active pointer-events-auto' : ' pointer-events-none'}`} onMouseEnter={() => onHoverChange(true)} onMouseLeave={() => onHoverChange(false)} />
+   <aside className={`react-sidebar absolute left-[5px] z-[4] min-w-0 overflow-hidden rounded-[25px] border p-2.5 text-[rgba(163,163,168,1)] transition-[transform,backdrop-filter,opacity,background,top,height] duration-[160ms]${isOpen || (topChromeHidden && !isOpen) ? ' top-[5px] h-[calc(100%-10px)]' : ' top-[92px] h-[calc(100%-97px)]'}${isOpen ? ' translate-x-0 border-transparent bg-[var(--react-sidebar-background)] pt-0 opacity-100 backdrop-blur-none backdrop-saturate-100 [transition-timing-function:cubic-bezier(0,0,0.58,1)]' : isHovering ? ' translate-x-0 border-white/5 bg-black/60 pt-0 opacity-100 backdrop-blur-[15px] backdrop-saturate-[1.8] [transition-timing-function:cubic-bezier(0,0,0.58,1)]' : ' -translate-x-full border-transparent bg-transparent opacity-0 [transition-timing-function:cubic-bezier(0.42,0,1,1)]'}`} style={{ width: width - 10 }} aria-label="Navigation" onMouseEnter={() => onHoverChange(true)} onMouseLeave={() => onHoverChange(false)} onClick={() => menu && setMenu(null)}>
        <div className="grid h-full w-full grid-rows-[1fr_auto] overflow-hidden rounded-[25px]">
        <nav className="flex min-h-0 flex-col overflow-hidden px-2 text-sm" aria-label="Navigation">
-         <div className="mb-2 flex items-center justify-end gap-2 border-b border-white/10 px-3 pt-[3px] pb-2">
+          <div className="-mr-2 mb-2 flex items-center justify-end gap-2 border-b border-white/10 px-3 pt-[3px] pb-2">
            <div className="flex flex-none gap-0.5">
-             <button type="button" className="inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30" onClick={onNewFile} title="New File (⌘N)" aria-label="New File"><i className="pi pi-plus text-sm" /></button>
-             <button type="button" className="inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30" onClick={onOpenFile} title="Open File (⌘O)" aria-label="Open File"><i className="pi pi-file text-sm" /></button>
-             <button type="button" className="inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30" onClick={open} title="Open Folder (⌘⇧O)" aria-label="Open Folder"><i className="pi pi-folder-open text-sm" /></button>
-             <button type="button" className={`inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30${hasChanges ? ' text-[rgb(var(--react-brand-rgb))] hover:bg-[rgba(var(--react-brand-rgb),0.2)]' : ''}`} disabled={!canSave || isSaving} onClick={onSaveFile} title="Save (⌘S)" aria-label="Save"><i className="pi pi-save text-sm" /></button>
-             {showSidebarToggle && <button type="button" className="inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90" onClick={onToggleSidebar} title={isOpen ? 'Hide Sidebar' : 'Show Sidebar'} aria-label={isOpen ? 'Hide Sidebar' : 'Show Sidebar'}><Icon>dock_to_right</Icon></button>}
+             <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded bg-transparent p-0 text-white/55 transition-colors duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30" onClick={onNewFile} title="New File (⌘N)" aria-label="New File"><AppIcon name="fileNew" /></button>
+             <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded bg-transparent p-0 text-white/55 transition-colors duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30" onClick={onOpenFile} title="Open File (⌘O)" aria-label="Open File"><AppIcon name="file" /></button>
+             <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded bg-transparent p-0 text-white/55 transition-colors duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30" onClick={open} title="Open Folder (⌘⇧O)" aria-label="Open Folder"><AppIcon name="folderOpen" /></button>
+             <button type="button" className={`inline-flex h-7 w-7 items-center justify-center rounded bg-transparent p-0 text-white/55 transition-colors duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30${hasChanges ? ' text-[rgb(var(--react-brand-rgb))] hover:bg-[rgba(var(--react-brand-rgb),0.2)]' : ''}`} disabled={!canSave || isSaving} onClick={onSaveFile} title="Save (⌘S)" aria-label="Save"><AppIcon name="save" /></button>
+             {showSidebarToggle && <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded bg-transparent p-0 text-white/55 transition-colors duration-150 hover:bg-white/10 hover:text-white/90" onClick={onToggleSidebar} title={isOpen ? 'Hide Sidebar' : 'Show Sidebar'} aria-label={isOpen ? 'Hide Sidebar' : 'Show Sidebar'}><AppIcon name={isOpen ? 'panelClose' : 'panelOpen'} /></button>}
            </div>
          </div>
          {controller.loading && <p className="p-3 text-xs text-white/40" role="status">Loading workspace…</p>}
-         {controller.error && <div className="m-1 flex items-center gap-2 rounded-[7px] border border-[rgba(180,35,24,0.24)] p-2 text-xs text-[#b42318]" role="alert"><span>{controller.error}</span><button type="button" className="ml-auto rounded-[7px] border border-white/10 bg-transparent px-1.5 py-[3px] text-white/80 hover:bg-white/10" onClick={() => { controller.clearError(); open() }}>Retry</button></div>}
+         {controller.error && <div className="m-1 flex items-center gap-2 rounded-[7px] border border-[rgba(180,35,24,0.24)] p-2 text-xs text-[#b42318]" role="alert"><span className="select-text">{controller.error}</span><button type="button" className="ml-auto rounded-[7px] border border-white/10 bg-transparent px-1.5 py-[3px] text-white/80 hover:bg-white/10" onClick={() => { controller.clearError(); open() }}>Retry</button></div>}
          {!controller.rootPath && !controller.loading && <div className="flex flex-col items-center justify-center px-4 py-8 text-center text-white/40"><p className="m-0 text-[13px]">Open a folder to browse files</p></div>}
          {controller.rootPath && <FileTree entries={controller.entries} rootPath={controller.rootPath} expandedPaths={controller.expandedPaths} activePath={activePath} renamePath={renamePath} onToggle={path => void controller.toggleFolder(path)} onSelectFile={onSelectFile} onRename={rename} onRenameRequest={setRenamePath} onContextMenu={contextMenu} onMove={async (source, target) => { const result = await controller.moveItem(source, target); if (result) onPathChanged(source, result, controller.entries.find(item => item.path === source)?.is_dir) }} />}
        </nav>
         <footer className="flex min-w-0 items-center gap-2 border-t border-white/10 p-3">
           <span className={`min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm font-semibold text-white/90${controller.rootName ? '' : ' italic font-normal text-white/40'}`} title={controller.rootName ?? 'No folder open'} onContextMenu={contextMenuRoot}>{controller.rootName ?? 'No folder open'}</span>
-          <button type="button" className="ml-auto flex h-[30px] w-[30px] flex-none items-center justify-center rounded bg-transparent p-0 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90" aria-label="Settings" title="Settings" onClick={onSettings}><Icon>settings</Icon></button>
+          <button type="button" className="ml-auto flex h-7 w-7 flex-none items-center justify-center rounded bg-transparent p-0 text-white/55 transition-colors duration-150 hover:bg-white/10 hover:text-white/90" aria-label="Settings" title="Settings" onClick={onSettings}><AppIcon name="settings" /></button>
         </footer>
      </div>
      {menu && <ContextMenu x={menu.x} y={menu.y} label={menu.target === 'root' ? 'Workspace actions' : `Actions for ${menu.target.name}`} items={menuItems()} onClose={() => setMenu(null)} />}
      {movePath && controller.rootPath && <div className="fixed inset-0 z-[1999] flex items-center justify-center bg-black/20 p-4" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setMovePath(null) }}>
        <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[rgba(30,30,30,0.98)] p-3 text-white shadow-[0_14px_40px_rgba(0,0,0,0.4)]" role="dialog" aria-modal="true" aria-label="Move item">
-         <div className="mb-2 flex items-center justify-between"><h2 className="m-0 text-sm font-semibold">Move item to…</h2><button type="button" className="rounded p-1 text-white/50 hover:bg-white/10 hover:text-white" aria-label="Close move dialog" onClick={() => setMovePath(null)}><i className="pi pi-times" /></button></div>
+         <div className="mb-2 flex items-center justify-between"><h2 className="m-0 text-sm font-semibold">Move item to…</h2><button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded p-0 text-white/55 hover:bg-white/10 hover:text-white" aria-label="Close move dialog" onClick={() => setMovePath(null)}><AppIcon name="close" /></button></div>
          <div className="max-h-64 overflow-y-auto">
-           <button type="button" className="mb-1 flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-white/90 hover:bg-white/10" onClick={() => void move(movePath, controller.rootPath!)}><i className="pi pi-folder" />{controller.rootName ?? 'Workspace'}</button>
-           {folders(controller.entries, movePath).map(folder => <button key={folder.path} type="button" className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-white/90 hover:bg-white/10" style={{ paddingLeft: `${8 + folder.path.split(/[\\/]/).length * 8}px` }} onClick={() => void move(movePath, folder.path)}><i className="pi pi-folder" />{folder.name}</button>)}
+           <button type="button" className="mb-1 flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-white/90 hover:bg-white/10" onClick={() => void move(movePath, controller.rootPath!)}><AppIcon name="folder" />{controller.rootName ?? 'Workspace'}</button>
+           {folders(controller.entries, movePath).map(folder => <button key={folder.path} type="button" className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-white/90 hover:bg-white/10" style={{ paddingLeft: `${8 + folder.path.split(/[\\/]/).length * 8}px` }} onClick={() => void move(movePath, folder.path)}><AppIcon name="folder" />{folder.name}</button>)}
          </div>
        </div>
      </div>}

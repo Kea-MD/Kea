@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as R
 import type { DocumentSnapshot } from '../core/contracts/document'
 import { ContextMenu } from '../shared/ContextMenu'
 import { formatShortcutForDisplay } from '../modules/settings/shortcuts/shortcutRegistry'
+import { AppIcon } from '../ui/AppIcon'
 import './DocumentTabs.css'
 
 const TAB_FADE_MAX = 60
@@ -353,11 +354,11 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
                     )}
                     <span className="min-w-0 overflow-hidden text-ellipsis font-medium">{document.name}</span>
                     {document.isDirty && <span className="m-1 h-2 w-2 flex-none rounded-full bg-[rgb(var(--react-brand-rgb))] shadow-[0_0_0_1px_rgba(0,0,0,0.12)]" title="Unsaved changes" />}
-                    <button type="button" className="flex h-4 w-4 flex-none items-center justify-center rounded-[3px] border-0 bg-transparent p-0 text-inherit opacity-0 hover:bg-[rgba(37,39,45,0.1)] hover:opacity-100 dark:hover:bg-[rgba(238,238,246,0.11)]" aria-label={`Close ${document.name}`} title="Close" onClick={event => { event.stopPropagation(); onClose(document.id) }}><i className="pi pi-times text-[10px]" aria-hidden="true" /></button>
+                    <button type="button" className="flex h-4 w-4 flex-none items-center justify-center rounded-[3px] border-0 bg-transparent p-0 text-inherit opacity-0 hover:bg-[rgba(37,39,45,0.1)] hover:opacity-100 dark:hover:bg-[rgba(238,238,246,0.11)]" aria-label={`Close ${document.name}`} title="Close" onClick={event => { event.stopPropagation(); onClose(document.id) }}><AppIcon name="close" /></button>
                   </div>
                 )
               })}
-              <button type="button" className="react-new-tab inline-flex h-[26px] w-[26px] flex-none cursor-pointer items-center justify-center rounded-[13px] border-0 bg-[var(--react-toolbar-background)] p-0 text-[var(--react-tab-text)] hover:bg-[var(--react-light-300)] hover:text-[var(--react-dark-700)] dark:hover:bg-[rgba(238,238,246,0.11)] dark:hover:text-[var(--react-light-50)]" aria-label="New document" title="New document" onClick={onNew}><i className="pi pi-plus text-[10px]" aria-hidden="true" /></button>
+              <button type="button" className="react-new-tab inline-flex h-[26px] w-[26px] flex-none cursor-pointer items-center justify-center rounded-[13px] border-0 bg-[var(--react-toolbar-background)] p-0 text-[var(--react-tab-text)] hover:bg-[var(--react-light-300)] hover:text-[var(--react-dark-700)] dark:hover:bg-[rgba(238,238,246,0.11)] dark:hover:text-[var(--react-light-50)]" aria-label="New document" title="New document" onClick={onNew}><AppIcon name="add" /></button>
             </div>
           </div>
         </div>
@@ -365,7 +366,7 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
       {draggedDocument && dragPresentation && <div className={`react-tab react-tab-drag-overlay${draggedDocument.isDirty ? ' is-dirty' : ''}`} style={{ left: dragPresentation.left, top: dragPresentation.top, width: dragPresentation.width, transform: `translate3d(${dragPresentation.translateX}px, 0, 0)` }} aria-hidden="true">
         <span className="min-w-0 overflow-hidden text-ellipsis font-medium">{draggedDocument.name}</span>
         {draggedDocument.isDirty && <span className="m-1 h-2 w-2 flex-none rounded-full bg-[rgb(var(--react-brand-rgb))]" title="Unsaved changes" />}
-        <button type="button" tabIndex={-1} aria-hidden="true"><i className="pi pi-times text-[10px]" aria-hidden="true" /></button>
+        <button type="button" tabIndex={-1} aria-hidden="true"><AppIcon name="close" /></button>
       </div>}
       {menu && <ContextMenu
         x={menu.x}
@@ -373,16 +374,16 @@ export function DocumentTabs({ documents, activeDocumentId, hasTrafficLightsInse
         label={`Actions for ${menu.document.name}`}
         onClose={() => setMenu(null)}
         items={[
-          { id: 'save', label: 'Save', icon: 'pi-save', shortcut: shortcut('save'), disabled: !menu.document.isDirty || !onSave, onSelect: () => onSave?.(menu.document.id) },
-          { id: 'save-as', label: 'Save As…', icon: 'pi-file-export', shortcut: shortcut('save_as'), disabled: !onSaveAs, onSelect: () => onSaveAs?.(menu.document.id) },
+          { id: 'save', label: 'Save', icon: 'save', shortcut: shortcut('save'), disabled: !menu.document.isDirty || !onSave, onSelect: () => onSave?.(menu.document.id) },
+          { id: 'save-as', label: 'Save As…', icon: 'saveAs', shortcut: shortcut('save_as'), disabled: !onSaveAs, onSelect: () => onSaveAs?.(menu.document.id) },
           { type: 'separator' },
-          { id: 'copy-path', label: 'Copy Path', icon: 'pi-copy', disabled: !menu.document.path || !onCopyPath, onSelect: () => { if (menu.document.path) return onCopyPath?.(menu.document.path) } },
-          { id: 'reveal', label: 'Reveal in Finder', icon: 'pi-search', disabled: !menu.document.path || !onReveal, onSelect: () => { if (menu.document.path) return onReveal?.(menu.document.path) } },
+          { id: 'copy-path', label: 'Copy Path', icon: 'copy', disabled: !menu.document.path || !onCopyPath, onSelect: () => { if (menu.document.path) return onCopyPath?.(menu.document.path) } },
+          { id: 'reveal', label: 'Reveal in Finder', icon: 'reveal', disabled: !menu.document.path || !onReveal, onSelect: () => { if (menu.document.path) return onReveal?.(menu.document.path) } },
           { type: 'separator' },
-          { id: 'close', label: 'Close', icon: 'pi-times', shortcut: shortcut('close_tab'), onSelect: () => onClose(menu.document.id) },
-          { id: 'close-others', label: 'Close Others', icon: 'pi-minus', disabled: documents.length < 2 || !onCloseOthers, onSelect: () => onCloseOthers?.(menu.document.id) },
-          { id: 'close-right', label: 'Close Tabs to the Right', icon: 'pi-arrow-right', disabled: documents.findIndex(item => item.id === menu.document.id) === documents.length - 1 || !onCloseToRight, onSelect: () => onCloseToRight?.(menu.document.id) },
-          { id: 'close-all', label: 'Close All Tabs', icon: 'pi-times-circle', onSelect: () => onCloseAll ? onCloseAll() : documents.forEach(item => onClose(item.id)) },
+          { id: 'close', label: 'Close', icon: 'close', shortcut: shortcut('close_tab'), onSelect: () => onClose(menu.document.id) },
+          { id: 'close-others', label: 'Close Others', icon: 'minus', disabled: documents.length < 2 || !onCloseOthers, onSelect: () => onCloseOthers?.(menu.document.id) },
+          { id: 'close-right', label: 'Close Tabs to the Right', icon: 'arrowRight', disabled: documents.findIndex(item => item.id === menu.document.id) === documents.length - 1 || !onCloseToRight, onSelect: () => onCloseToRight?.(menu.document.id) },
+          { id: 'close-all', label: 'Close All Tabs', icon: 'closeCircle', onSelect: () => onCloseAll ? onCloseAll() : documents.forEach(item => onClose(item.id)) },
         ]}
       />}
     </div>

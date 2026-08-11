@@ -245,16 +245,16 @@ export function CurvedEditorScrollbar({ scrollElement, curveTop }: { scrollEleme
   }
 
   const pathGroup = (mode: PathMode, pathGeometry: PerimeterPathGeometry, active: boolean) => (
-    <g className={`curved-editor-scrollbar-path${active ? ' is-active' : ''}`}>
+    <g className={`group curved-editor-scrollbar-path${active ? ' is-active opacity-100' : ' opacity-0'}`}>
       <path
         ref={mode === 'curved' ? curvedThumbRef : straightThumbRef}
-        className="curved-editor-scrollbar-thumb"
+        className="curved-editor-scrollbar-thumb fill-none stroke-[var(--react-scrollbar-thumb)] [stroke-linecap:round] [stroke-width:var(--react-scrollbar-thumb-size)] [vector-effect:non-scaling-stroke] transition-[stroke] duration-120 group-hover:stroke-[var(--react-scrollbar-thumb-hover)]"
         d={pathGeometry.d}
         pathLength="1"
       />
       <path
         ref={mode === 'curved' ? curvedPathRef : straightPathRef}
-        className="curved-editor-scrollbar-hit-area"
+        className="curved-editor-scrollbar-hit-area pointer-events-none touch-none cursor-default fill-none stroke-transparent [stroke-width:12px] [vector-effect:non-scaling-stroke]"
         d={pathGeometry.d}
         onPointerDown={event => handlePointerDown(mode, event)}
         onPointerMove={event => handlePointerMove(mode, event)}
@@ -268,7 +268,7 @@ export function CurvedEditorScrollbar({ scrollElement, curveTop }: { scrollEleme
   return (
     <svg
       ref={svgRef}
-      className="curved-editor-scrollbar"
+      className="pointer-events-none absolute inset-0 z-12 h-full w-full overflow-visible opacity-0 [shape-rendering:geometricPrecision] transition-opacity duration-[160ms] motion-reduce:transition-none data-[scrollable=true]:opacity-[0.58] [&[data-scrollable=true][data-active=true]]:opacity-100 data-[scrollable=true]:hover:opacity-100 data-[scrollable=true]:[&_.is-active_.curved-editor-scrollbar-hit-area]:[pointer-events:stroke]"
       viewBox={`0 0 ${geometry.width} ${geometry.height}`}
       preserveAspectRatio="none"
       data-scrollable="false"

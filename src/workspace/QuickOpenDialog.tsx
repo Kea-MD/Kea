@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { WorkspaceFileEntry } from '../core/contracts/workspace'
+import { AppIcon } from '../ui/AppIcon'
 
 function flattenMarkdown(entries: WorkspaceFileEntry[]): WorkspaceFileEntry[] {
   return entries.flatMap(entry => entry.is_dir ? flattenMarkdown(entry.children ?? []) : entry.is_markdown ? [entry] : [])
@@ -51,8 +52,8 @@ export function QuickOpenDialog({ entries, rootPath, onOpen, onClose }: {
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/25 pt-[12vh] backdrop-blur-[2px]" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
       <section className="w-[min(620px,calc(100vw-32px))] overflow-hidden rounded-xl border border-[var(--react-border)] bg-[var(--react-panel-background)] shadow-2xl" role="dialog" aria-modal="true" aria-label="Quick Open">
         <div className="flex items-center gap-2 border-b border-[var(--react-border)] px-3">
-          <span className="material-symbols-outlined !text-[20px]">search</span>
-          <input ref={inputRef} className="h-12 min-w-0 flex-1 border-0 bg-transparent text-sm outline-none" value={query} placeholder="Search Markdown files…" aria-label="Search files" onChange={event => setQuery(event.target.value)} onKeyDown={event => {
+          <AppIcon name="search" />
+          <input ref={inputRef} className="h-12 min-w-0 flex-1 select-text border-0 bg-transparent text-sm outline-none" value={query} placeholder="Search Markdown files…" aria-label="Search files" onChange={event => setQuery(event.target.value)} onKeyDown={event => {
             if (event.key === 'Escape') onClose()
             if (event.key === 'ArrowDown') { event.preventDefault(); setSelected(value => Math.min(value + 1, results.length - 1)) }
             if (event.key === 'ArrowUp') { event.preventDefault(); setSelected(value => Math.max(value - 1, 0)) }
@@ -62,7 +63,7 @@ export function QuickOpenDialog({ entries, rootPath, onOpen, onClose }: {
         </div>
         <div className="max-h-[55vh] overflow-y-auto p-1.5">
           {results.map(({ file }, index) => <button key={file.path} type="button" className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm ${index === selected ? 'bg-[var(--react-hover-background)]' : 'bg-transparent'}`} onMouseEnter={() => setSelected(index)} onClick={() => { onOpen(file.path); onClose() }}>
-            <span className="material-symbols-outlined !text-[18px]">markdown</span>
+            <AppIcon name="file" />
             <span className="font-medium">{file.name}</span>
             <span className="ml-auto min-w-0 truncate text-xs text-[var(--react-dark-500)]">{file.relativePath}</span>
           </button>)}

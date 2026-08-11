@@ -163,6 +163,95 @@ const codeBlockHoverPlugin = ViewPlugin.fromClass(class {
   }
 })
 
+const keaEditorTheme = EditorView.theme({
+  '&': {
+    height: '100%',
+    background: 'transparent',
+    color: 'var(--react-dark-700)',
+  },
+  '&.cm-focused': { outline: 'none' },
+  '.cm-scroller': {
+    overflow: 'auto',
+    scrollbarWidth: 'none',
+    fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    fontSize: '16px',
+    lineHeight: '1.72',
+  },
+  '.cm-scroller::-webkit-scrollbar': { display: 'none' },
+  '.cm-content': {
+    width: '100%',
+    maxWidth: '960px',
+    minHeight: '100%',
+    flexGrow: '0',
+    margin: '0 auto',
+    padding: '25px',
+    caretColor: 'rgb(var(--react-brand-rgb))',
+    cursor: 'text',
+  },
+  '.cm-line': { paddingInline: '8px' },
+  '.cm-code-block-info': {
+    opacity: '0',
+    pointerEvents: 'none',
+    transition: 'opacity 120ms ease',
+  },
+  '.cm-fenced-code-line:hover .cm-code-block-info, .cm-code-block-info-hovered': {
+    opacity: '1',
+    pointerEvents: 'auto',
+  },
+  '.cm-gutters': { display: 'none' },
+  '.cm-selectionBackground, .cm-content ::selection': {
+    background: 'color-mix(in srgb, rgb(var(--react-brand-rgb)) 24%, transparent) !important',
+  },
+  '.cm-selectionLayer': { pointerEvents: 'none' },
+  '.cm-latex-math[data-display="block"], .cm-html-widget, .cm-image-block': {
+    margin: '0',
+    paddingBlock: '12px 18px',
+  },
+  '.cm-image img': {
+    maxWidth: '100%',
+    maxHeight: '620px',
+    borderRadius: '10px',
+  },
+  '.cm-checkbox': {
+    width: '14px',
+    height: '14px',
+    margin: '0 5px 0 1px',
+    accentColor: 'rgb(var(--react-brand-rgb))',
+    verticalAlign: '-1px',
+  },
+  '.cm-panels': {
+    borderColor: 'var(--react-border)',
+    background: 'var(--react-light-100)',
+    color: 'var(--react-dark-700)',
+  },
+  '.dark &': { color: 'var(--react-light-200)' },
+  '.dark & .cm-content': {
+    '--pm-cursor-color': 'var(--react-light-50)',
+    caretColor: 'var(--react-light-50)',
+  },
+  '.dark & .cm-cursor, .dark & .cm-dropCursor': {
+    borderLeftColor: 'var(--react-light-50)',
+  },
+  '.dark & .cm-fenced-code-line': {
+    borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+    borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+    background: '#171719',
+    color: '#f0f0f2',
+  },
+  '.dark & .cm-fenced-code-line-first': {
+    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '8px 8px 0 0',
+  },
+  '.dark & .cm-fenced-code-line-last': {
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '0 0 8px 8px',
+  },
+  '.dark & .cm-panels': {
+    background: 'transparent',
+    color: 'var(--react-light-400)',
+  },
+})
+
 export function ProseMarkEditor({
   documentId,
   documentPath,
@@ -323,6 +412,7 @@ export function ProseMarkEditor({
             }),
             prosemarkBasicSetup(),
             prosemarkBaseThemeSetup(),
+            keaEditorTheme,
             ...latexMarkdownSyntaxTheme,
             mathCompartment.of([]),
             spellcheckCompartment.of([]),
@@ -486,9 +576,9 @@ export function ProseMarkEditor({
   }, [contentRevision])
 
   return (
-    <div className="prosemark-editor-shell">
-      {errorMessage && <div className="prosemark-editor-status is-error" role="alert">{errorMessage}</div>}
-      <div ref={editorRoot} className="prosemark-editor-mount" />
+    <div className="prosemark-editor-shell relative h-full min-h-0 w-full select-text overflow-hidden [--accent:rgb(var(--react-brand-rgb))] [--bg-base:var(--react-light-50)] [--border-color:var(--react-border)] [--fg-base:var(--react-dark-700)] [--link-color:rgb(var(--react-brand-rgb))] [--pm-blockquote-vertical-line-background-color:rgb(var(--react-brand-rgb))] [--pm-code-background-color:#f1f1f3] [--pm-code-btn-background-color:rgba(0,0,0,0.06)] [--pm-code-btn-hover-background-color:rgba(0,0,0,0.11)] [--pm-code-font:'SF_Mono','Monaco','Cascadia_Mono','Roboto_Mono',monospace] [--pm-cursor-color:rgb(var(--react-brand-rgb))] [--pm-header-mark-color:var(--react-dark-400)] [--pm-latex-math-error-background-color:rgba(180,35,24,0.08)] [--pm-latex-math-error-color:#b42318] [--pm-latex-math-formula-color:var(--react-dark-700)] [--pm-link-color:rgb(var(--react-brand-rgb))] [--pm-muted-color:var(--react-dark-500)] [--surface-card:var(--react-light-50)] [--surface-subtle:color-mix(in_srgb,var(--react-dark-200)_55%,transparent)] [--text-error:#b42318] [--text-muted:var(--react-dark-500)] [--text-primary:var(--react-dark-700)] [--text-secondary:var(--react-dark-500)] dark:[--bg-base:#111113] dark:[--border-color:rgba(255,255,255,0.12)] dark:[--fg-base:var(--react-light-200)] dark:[--pm-code-background-color:#171719] dark:[--pm-code-btn-background-color:rgba(255,255,255,0.08)] dark:[--pm-code-btn-hover-background-color:rgba(255,255,255,0.15)] dark:[--pm-cursor-color:var(--react-light-50)] dark:[--pm-header-mark-color:var(--react-light-500)] dark:[--pm-latex-math-error-background-color:rgba(255,180,171,0.09)] dark:[--pm-latex-math-error-color:#ffb4ab] dark:[--pm-latex-math-formula-color:var(--react-light-200)] dark:[--pm-muted-color:var(--react-light-400)] dark:[--surface-card:#1d1d1f] dark:[--surface-subtle:#171719] dark:[--text-error:#ffb4ab] dark:[--text-muted:var(--react-light-400)] dark:[--text-primary:var(--react-light-200)] dark:[--text-secondary:var(--react-light-400)]">
+      {errorMessage && <div className="absolute top-3 right-4 z-[2] select-text rounded-lg bg-[rgba(207,34,46,0.12)] px-2.5 py-1.5 text-xs text-[#b42318]" role="alert">{errorMessage}</div>}
+      <div ref={editorRoot} className="h-full min-h-0 w-full" />
       <CurvedEditorScrollbar scrollElement={scrollElement} curveTop={topChromeHidden} />
     </div>
   )

@@ -6,7 +6,7 @@ export function openMermaidFullscreen(source: string, ariaLabel: string): void {
   if (!rendered.svg) return
 
   const overlay = document.createElement('div')
-  overlay.className = 'cm-mermaid-fullscreen'
+  overlay.className = 'cm-mermaid-fullscreen select-none'
   overlay.setAttribute('role', 'dialog')
   overlay.setAttribute('aria-modal', 'true')
   overlay.setAttribute('aria-label', ariaLabel)

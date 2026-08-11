@@ -15,7 +15,7 @@ export interface EditorSurfaceProps {
 
 function EditorSurfaceComponent({ document, onChange, onEditorChange, onEditorStateChange, onActiveHeadingChange, onOpenLink, topChromeHidden = false }: EditorSurfaceProps) {
   return (
-    <section className="react-editor-surface" aria-label="Markdown editor" data-testid="react-prosemark-editor">
+    <section className="h-full min-h-0 w-full" aria-label="Markdown editor" data-testid="react-prosemark-editor">
       <ProseMarkEditor
         documentId={document.id}
         documentPath={document.path}

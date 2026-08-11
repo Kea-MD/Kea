@@ -1,10 +1,11 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { AppIcon, type AppIconName } from '../ui/AppIcon'
 
 export interface ContextMenuAction {
   id: string
   label: string
-  icon?: string
+  icon?: AppIconName
   shortcut?: string
   disabled?: boolean
   danger?: boolean
@@ -83,7 +84,7 @@ export function ContextMenu({ x, y, label, items, onClose }: ContextMenuProps) {
   const menu = (
     <div
       ref={menuRef}
-      className="fixed z-[2000] grid min-w-[188px] max-w-[280px] rounded-[10px] border border-white/[0.12] bg-[rgba(32,33,38,0.96)] p-1 shadow-[0_8px_24px_rgba(0,0,0,0.28),0_1px_2px_rgba(0,0,0,0.2)] backdrop-blur-[18px]"
+      className="fixed z-[2000] grid min-w-[188px] max-w-[280px] select-none rounded-[10px] border border-white/[0.12] bg-[rgba(32,33,38,0.96)] p-1 shadow-[0_8px_24px_rgba(0,0,0,0.28),0_1px_2px_rgba(0,0,0,0.2)] backdrop-blur-[18px]"
       role="menu"
       aria-label={label}
       style={{ left: position.left, top: position.top }}
@@ -104,7 +105,7 @@ export function ContextMenu({ x, y, label, items, onClose }: ContextMenuProps) {
               void item.onSelect()
             }}
           >
-            {item.icon && <i className={`pi ${item.icon} w-4 text-center text-[11px] text-white/45`} aria-hidden="true" />}
+            {item.icon && <AppIcon name={item.icon} />}
             <span className="min-w-0 flex-1 truncate">{item.label}</span>
             {item.shortcut && <span className="ml-3 whitespace-nowrap rounded-[4px] bg-white/[0.07] px-1.5 py-0.5 text-[10px] font-medium leading-3 text-white/45">{item.shortcut}</span>}
           </button>

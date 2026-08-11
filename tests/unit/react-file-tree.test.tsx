@@ -33,8 +33,13 @@ function renderTree(expandedPaths = new Set<string>()) {
 describe('React file tree', () => {
   it('uses a custom overlay carriage with the native scrollbar hidden', () => {
     const { container } = renderTree()
+    const tree = screen.getByRole('tree', { name: 'Workspace files' })
+    const search = screen.getByRole('searchbox', { name: 'Search files' })
 
-    expect(screen.getByRole('tree', { name: 'Workspace files' }).classList.contains('react-custom-scroll-source')).toBe(true)
+    expect(tree.classList.contains('react-custom-scroll-source')).toBe(true)
+    expect(search.classList.contains('select-text')).toBe(true)
+    expect(tree.classList.contains('[&::-webkit-scrollbar]:hidden')).toBe(true)
+    expect(tree.style.scrollbarWidth).toBe('none')
     expect(container.querySelector('.straight-overlay-scrollbar')).not.toBeNull()
   })
 

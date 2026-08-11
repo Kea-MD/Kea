@@ -29,10 +29,7 @@ import { ContextMenu } from './shared/ContextMenu'
 import { openDeveloperTools, openNewWindow, reloadApplication } from './adapters/runtime/runtimeActions'
 import { clearDocumentSession, readDocumentSession, writeDocumentSession } from './editor/documentSession'
 import { getWindowLabel } from './runtime/windowIdentity'
-
-function Icon({ children }: { children: string }) {
-  return <span className="material-symbols-outlined" aria-hidden="true">{children}</span>
-}
+import { AppIcon, type AppIconName } from './ui/AppIcon'
 
 function IconButton({
   icon,
@@ -43,7 +40,7 @@ function IconButton({
   onMouseEnter,
   onMouseLeave,
 }: {
-  icon: string
+  icon: AppIconName
   label: string
   disabled?: boolean
   active?: boolean
@@ -62,7 +59,7 @@ function IconButton({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <Icon>{icon}</Icon>
+      <AppIcon name={icon} />
     </button>
   )
 }
@@ -86,7 +83,7 @@ function Toolbar({
     <div className="relative z-[1] flex min-h-[42px] flex-none items-center overflow-visible bg-[var(--react-toolbar-background)] px-3 py-2 [outline:1px_solid_var(--react-border)]" aria-label="Editor toolbar">
       {showSidebarToggle && <div className="absolute inset-y-0 left-3 z-10 flex items-center gap-1 bg-[var(--react-toolbar-background)]">
         <IconButton
-          icon="dock_to_right"
+          icon="panelOpen"
           label="Show Sidebar"
           onClick={onToggleSidebar}
           onMouseEnter={() => onSidebarHover(true)}
@@ -97,7 +94,7 @@ function Toolbar({
         <CodeMirrorToolbar editor={editor} />
       </div>
       <div className="absolute inset-y-0 right-3 z-10 flex items-center gap-1 bg-[var(--react-toolbar-background)]">
-        <IconButton icon={isDark ? 'light_mode' : 'dark_mode'} label={isDark ? 'Use light theme' : 'Use dark theme'} onClick={onToggleTheme} />
+        <IconButton icon={isDark ? 'sun' : 'moon'} label={isDark ? 'Use light theme' : 'Use dark theme'} onClick={onToggleTheme} />
       </div>
     </div>
   )
@@ -107,14 +104,14 @@ function EmptyEditor({ children, onOpenFolder, onOpenFile, onNewFile, selectedFi
   return (
     <section className="absolute inset-0 flex items-center justify-center" aria-label="Editor preview">
       <div className="max-w-[560px] px-5 text-center text-[var(--react-dark-500)]">
-        <span className="material-symbols-outlined mb-4 !text-[64px] opacity-50">description</span>
+        <AppIcon name="file" display className="mx-auto mb-4 opacity-50" />
         <h1 className="mb-[10px] text-2xl font-medium text-[var(--react-dark-700)]">{loading ? 'Loading document' : selectedFilePath ? 'Editor surface coming next' : 'No file open'}</h1>
-        <p className="m-0 opacity-[.85]">{loading ? `Opening ${selectedFilePath}` : selectedFilePath ? `${selectedFilePath} is open in a React tab.` : 'Open a markdown file to start editing'}</p>
-        {error && <p className="m-0" role="alert">{error}</p>}
+        <p className={`m-0 opacity-[.85]${selectedFilePath ? ' select-text' : ''}`}>{loading ? `Opening ${selectedFilePath}` : selectedFilePath ? `${selectedFilePath} is open in a React tab.` : 'Open a markdown file to start editing'}</p>
+        {error && <p className="m-0 select-text" role="alert">{error}</p>}
         <div className="mt-[26px] flex flex-wrap justify-center gap-2.5">
-           <button type="button" className="inline-flex min-w-[136px] cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-[var(--react-dark-200)] px-4 py-2.5 text-[13px] font-medium text-[var(--react-dark-700)]" onClick={onOpenFolder}><Icon>folder</Icon>Open Folder</button>
-           <button type="button" className="inline-flex min-w-[136px] cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-[var(--react-dark-200)] px-4 py-2.5 text-[13px] font-medium text-[var(--react-dark-700)]" onClick={onOpenFile}><Icon>description</Icon>Open File</button>
-           <button type="button" className="inline-flex min-w-[136px] cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-[rgb(var(--react-brand-rgb))] px-4 py-2.5 text-[13px] font-medium text-white" onClick={onNewFile}><Icon>add</Icon>New File</button>
+           <button type="button" className="inline-flex min-w-[136px] cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-[var(--react-dark-200)] px-4 py-2.5 text-[13px] font-medium text-[var(--react-dark-700)]" onClick={onOpenFolder}><AppIcon name="folderOpen" />Open Folder</button>
+           <button type="button" className="inline-flex min-w-[136px] cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-[var(--react-dark-200)] px-4 py-2.5 text-[13px] font-medium text-[var(--react-dark-700)]" onClick={onOpenFile}><AppIcon name="file" />Open File</button>
+           <button type="button" className="inline-flex min-w-[136px] cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-[rgb(var(--react-brand-rgb))] px-4 py-2.5 text-[13px] font-medium text-white" onClick={onNewFile}><AppIcon name="add" />New File</button>
         </div>
         <div className="mt-5 flex flex-wrap justify-center gap-2.5 text-[11px] text-[var(--react-dark-500)]" aria-label="Keyboard shortcuts">
           <span className="inline-flex min-w-[100px] items-center justify-center gap-1.5"><kbd className="rounded border border-[var(--react-dark-300)] bg-[var(--react-dark-100)] px-1.5 py-0.5">⌘O</kbd> Folder</span>
@@ -364,17 +361,17 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
   const topChromeHidden = settings.revealTopChromeOnEdgeHover && !topChromeHovering
 
   return (
-    <div ref={setShellElement} onContextMenu={handleShellContextMenu} className="react-spike-shell relative h-screen w-screen overflow-hidden rounded-[var(--react-radius)] bg-[var(--react-shell-background)] p-[var(--react-inset)] text-[var(--react-dark-700)] [isolation:isolate]">
+    <div ref={setShellElement} onContextMenu={handleShellContextMenu} className="react-spike-shell relative h-screen w-screen select-none overflow-hidden rounded-[var(--react-radius)] bg-[var(--react-shell-background)] p-[var(--react-inset)] text-[var(--react-dark-700)] [isolation:isolate]">
       {settings.edgeGlowEnabled && <MouseRingGlow hostElement={shellElement} />}
       <div className="absolute inset-x-0 top-0 z-10 h-5 [app-region:drag]" data-tauri-drag-region="true" />
-      {settings.revealTopChromeOnEdgeHover && !isMobile && <div className="react-top-chrome-edge-trigger" data-testid="top-chrome-edge-hover-trigger" aria-hidden="true" onMouseEnter={() => handleTopChromeHover(true)} onMouseLeave={() => handleTopChromeHover(false)} />}
+      {settings.revealTopChromeOnEdgeHover && !isMobile && <div className="pointer-events-auto fixed inset-x-0 top-0 z-[11] h-[15px]" data-testid="top-chrome-edge-hover-trigger" aria-hidden="true" onMouseEnter={() => handleTopChromeHover(true)} onMouseLeave={() => handleTopChromeHover(false)} />}
       <div className="react-page-container relative z-[1] flex h-full w-full rounded-[calc(var(--react-radius)-var(--react-inset))] bg-[var(--react-page-background)] p-[var(--react-inset)]">
-        {settings.revealSidebarOnEdgeHover && !isMobile && <div className="react-sidebar-edge-trigger" data-testid="sidebar-edge-hover-trigger" aria-hidden="true" onMouseEnter={() => handleSidebarHover(true)} onMouseLeave={() => handleSidebarHover(false)} />}
+        {settings.revealSidebarOnEdgeHover && !isMobile && <div className="pointer-events-auto fixed inset-y-0 left-0 z-[3] w-[15px]" data-testid="sidebar-edge-hover-trigger" aria-hidden="true" onMouseEnter={() => handleSidebarHover(true)} onMouseLeave={() => handleSidebarHover(false)} />}
         <div className={`grid h-full w-full min-w-0 [grid-template-columns:var(--react-sidebar-grid)] transition-[grid-template-columns] duration-[160ms] [transition-timing-function:cubic-bezier(0,0,0.58,1)] ${isResizing ? 'transition-none' : ''}`} style={{ '--react-sidebar-grid': sidebarOpen ? `${sidebarWidth}px minmax(0,1fr)` : '0 minmax(0,1fr)' } as CSSProperties}>
-            <Sidebar width={sidebarWidth} isOpen={sidebarOpen} isHovering={sidebarHovering} showSidebarToggle={!toolbarSidebarButtonVisible} onToggleSidebar={toggleSidebar} topChromeHidden={topChromeHidden} controller={workspace} activePath={selectedPath} onSelectFile={selectFile} onPathChanged={handlePathChanged} onNewFile={() => { setPendingFilePath(null); documents.newFile() }} onOpenFile={() => { setPendingFilePath(null); void documents.openFileDialog() }} onSaveFile={() => void documents.saveFile(activeEditor?.getContent())} canSave={Boolean(documents.activeDocument) || documents.documents.some(document => document.isDirty)} isSaving={documents.isSaving} openDocuments={documents.documents} onCloseDocuments={async ids => { for (const id of ids) await documents.closeDocument(id, true) }} onCloseWorkspace={closeWorkspace} shortcuts={settings.shortcuts} onSettings={() => setSettingsOpen(true)} />
+            <Sidebar width={sidebarWidth} isOpen={sidebarOpen} isHovering={sidebarHovering} onHoverChange={handleSidebarHover} showSidebarToggle={!toolbarSidebarButtonVisible} onToggleSidebar={toggleSidebar} topChromeHidden={topChromeHidden} controller={workspace} activePath={selectedPath} onSelectFile={selectFile} onPathChanged={handlePathChanged} onNewFile={() => { setPendingFilePath(null); documents.newFile() }} onOpenFile={() => { setPendingFilePath(null); void documents.openFileDialog() }} onSaveFile={() => void documents.saveFile(activeEditor?.getContent())} canSave={Boolean(documents.activeDocument) || documents.documents.some(document => document.isDirty)} isSaving={documents.isSaving} openDocuments={documents.documents} onCloseDocuments={async ids => { for (const id of ids) await documents.closeDocument(id, true) }} onCloseWorkspace={closeWorkspace} shortcuts={settings.shortcuts} onSettings={() => setSettingsOpen(true)} />
             {sidebarOpen && <div className={`absolute top-10 bottom-[5px] z-10 w-2 cursor-col-resize rounded transition-[background] duration-150 ease-in after:absolute after:left-1/2 after:top-1/2 after:h-10 after:w-[3px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-sm after:bg-transparent after:transition-[background] hover:after:bg-[rgba(40,44,51,0.42)]${isResizing ? ' after:bg-[rgba(40,44,51,0.42)]' : ''}`} style={{ left: sidebarWidth + 5 }} onMouseDown={startResize} />}
              <main className={`relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--react-panel-radius)] border border-[var(--react-border)] bg-[var(--react-panel-background)]${settings.revealTopChromeOnEdgeHover ? ` is-top-chrome-reveal-enabled${topChromeHovering ? ' is-top-chrome-visible' : ''}` : ''}`} style={{ '--react-top-chrome-height': `${topChromeHeight}px` } as CSSProperties}>
-            <div ref={topChromeRef} className={`react-top-chrome${settings.revealTopChromeOnEdgeHover ? ` is-hover-enabled${topChromeHovering ? ' is-hovering' : ''}` : ''}`} data-testid="react-top-chrome" onMouseEnter={() => handleTopChromeHover(true)} onMouseLeave={() => handleTopChromeHover(false)}>
+            <div ref={topChromeRef} className={`react-top-chrome ${settings.revealTopChromeOnEdgeHover ? `is-hover-enabled absolute inset-x-0 top-0 transition-[transform,opacity] duration-[160ms]${topChromeHovering ? ' is-hovering pointer-events-auto translate-y-0 opacity-100 [transition-timing-function:cubic-bezier(0,0,0.58,1)]' : ' pointer-events-none -translate-y-[calc(100%+1px)] opacity-0 [transition-timing-function:cubic-bezier(0.42,0,1,1)]'}` : 'relative'} z-20`} data-testid="react-top-chrome" onMouseEnter={() => handleTopChromeHover(true)} onMouseLeave={() => handleTopChromeHover(false)}>
               <DocumentTabs
                  documents={documents.documents}
                  activeDocumentId={documents.activeDocumentId}
@@ -402,7 +399,7 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
                 editor={activeEditor}
               />
             </div>
-              <div className={`react-editor-content relative flex min-h-0 flex-1 bg-transparent${settings.revealTopChromeOnEdgeHover ? ' is-top-chrome-aware' : ''}`}>
+              <div className={`react-editor-content relative flex min-h-0 flex-1 bg-transparent${settings.revealTopChromeOnEdgeHover ? ` is-top-chrome-aware [clip-path:inset(0_0_0_0)] transition-[clip-path] duration-[160ms] [transition-timing-function:cubic-bezier(0.42,0,1,1)]${topChromeHovering ? ' [clip-path:inset(var(--react-top-chrome-height)_0_0_0)] [transition-timing-function:cubic-bezier(0,0,0.58,1)]' : ''}` : ''}`}>
                 {documents.activeDocument
                   ? <EditorSurface document={documents.activeDocument} onChange={documents.updateContent} onEditorChange={handleEditorChange} onEditorStateChange={refreshEditorState} onActiveHeadingChange={handleActiveHeadingChange} onOpenLink={handleOpenLink} topChromeHidden={topChromeHidden} />
                   : <EmptyEditor selectedFilePath={selectedPath} loading={documents.isLoading} error={documents.error} onOpenFolder={() => void workspace.openFolder()} onOpenFile={() => { setPendingFilePath(null); void documents.openFileDialog() }} onNewFile={() => { setPendingFilePath(null); documents.newFile() }} />}
@@ -431,8 +428,8 @@ export default function App({ workspacePort, documentStoragePort, onOpenFile }: 
         label="App actions"
         onClose={() => setShellMenu(null)}
         items={[
-          { id: 'reload', label: 'Reload', icon: 'pi-refresh', shortcut: isMac ? '⌘R' : 'Ctrl+R', onSelect: reloadApplication },
-          ...(isTauri ? [{ id: 'devtools', label: 'Developer Tools', icon: 'pi-code', shortcut: isMac ? '⌥⌘I' : 'Ctrl+Shift+I', onSelect: openDeveloperTools }] : []),
+          { id: 'reload', label: 'Reload', icon: 'refresh', shortcut: isMac ? '⌘R' : 'Ctrl+R', onSelect: reloadApplication },
+          ...(isTauri ? [{ id: 'devtools', label: 'Developer Tools', icon: 'code' as const, shortcut: isMac ? '⌥⌘I' : 'Ctrl+Shift+I', onSelect: openDeveloperTools }] : []),
         ]}
       />}
     </div>

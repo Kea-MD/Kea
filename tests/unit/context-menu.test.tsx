@@ -8,6 +8,7 @@ describe('ContextMenu', () => {
     const onClose = vi.fn()
     render(<ContextMenu x={24} y={32} label="File actions" onClose={onClose} items={[{ id: 'open', label: 'Open', shortcut: '⌘O', onSelect }]} />)
 
+    expect(screen.getByRole('menu', { name: 'File actions' }).classList.contains('select-none')).toBe(true)
     expect(screen.getByText('⌘O')).not.toBeNull()
 
     fireEvent.click(screen.getByRole('menuitem', { name: /Open/ }))

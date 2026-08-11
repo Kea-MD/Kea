@@ -83,7 +83,7 @@ export function mountMermaidCanvas(host: HTMLElement, options: MermaidCanvasOpti
 
   const sourceEditingEnabled = options.source !== undefined && options.onSourceChange !== undefined
   const sourcePanel = document.createElement('div')
-  sourcePanel.className = 'cm-mermaid-canvas-editor'
+  sourcePanel.className = 'cm-mermaid-canvas-editor select-text'
   const viewport = document.createElement('div')
   viewport.className = 'cm-mermaid-canvas-viewport'
   const stage = document.createElement('div')
@@ -303,7 +303,7 @@ export function mountMermaidCanvas(host: HTMLElement, options: MermaidCanvasOpti
     stage.replaceChildren()
     stage.style.cssText = 'position:absolute;inset:0;opacity:1;transform:none'
     const error = document.createElement('div')
-    error.className = 'cm-mermaid-canvas-error-msg'
+    error.className = 'cm-mermaid-canvas-error-msg select-text'
     error.textContent = `Diagram error: ${message}`
     stage.append(error)
     svg = null

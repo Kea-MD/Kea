@@ -148,7 +148,7 @@ export function StraightOverlayScrollbar({ scrollElement }: { scrollElement: HTM
   return (
     <div
       ref={scrollbarRef}
-      className="straight-overlay-scrollbar"
+      className="straight-overlay-scrollbar group pointer-events-none absolute inset-y-1 right-0 z-[2] w-[11px] touch-none overflow-hidden opacity-0 transition-opacity duration-[160ms] data-[scrollable=true]:pointer-events-auto data-[scrollable=true]:opacity-[0.58] [&[data-scrollable=true][data-active=true]]:opacity-100 data-[scrollable=true]:hover:opacity-100"
       data-scrollable="false"
       data-active="false"
       aria-hidden="true"
@@ -158,7 +158,7 @@ export function StraightOverlayScrollbar({ scrollElement }: { scrollElement: HTM
       onPointerCancel={handlePointerEnd}
       onLostPointerCapture={handlePointerEnd}
     >
-      <div ref={thumbRef} className="straight-overlay-scrollbar-thumb" />
+      <div ref={thumbRef} className="absolute top-0 right-0 min-h-[var(--react-scrollbar-thumb-size)] w-[var(--react-scrollbar-thumb-size)] rounded-full bg-[var(--react-scrollbar-thumb)] will-change-[height,transform] group-hover:bg-[var(--react-scrollbar-thumb-hover)]" />
     </div>
   )
 }
