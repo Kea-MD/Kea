@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 const devHost = process.env.TAURI_DEV_HOST || '127.0.0.1'
+const devPort = 1422
+const tauriHmrPort = 1423
 
 export default defineConfig({
   plugins: [
@@ -20,13 +22,13 @@ export default defineConfig({
   },
   clearScreen: false,
   server: {
-    port: 1420,
+    port: devPort,
     strictPort: true,
     host: devHost,
     hmr: {
       protocol: 'ws',
       host: devHost,
-      port: process.env.TAURI_DEV_HOST ? 1421 : 1420,
+      port: process.env.TAURI_DEV_HOST ? tauriHmrPort : devPort,
     },
     watch: {
       usePolling: true,

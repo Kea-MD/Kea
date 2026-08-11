@@ -24,7 +24,7 @@ __- Frontend state: React state in `src/`; legacy Pinia stores remain in `legacy
 
 - Install deps: `npm install`
 - Dev server only: `npm run dev`
-  - Runs the default React app on port `1420` (strict port in `vite.config.ts`).
+  - Runs the default React app on port `1422` (strict port in `vite.react.config.ts`).
 - Legacy Vue dev server: `npm run dev:legacy`
   - Uses `legacy/vite.config.ts`.
 - Type-check + production web build: `npm run build`
