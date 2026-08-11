@@ -15,6 +15,8 @@ export interface SettingsDialogProps {
   themeMode: ThemeMode
   onThemeModeChange: (mode: ThemeMode) => void
   onRestoreWorkspaceChange: (value: boolean) => void
+  onRevealSidebarOnEdgeHoverChange: (value: boolean) => void
+  onRevealTopChromeOnEdgeHoverChange: (value: boolean) => void
   onEdgeGlowChange: (value: boolean) => void
   onSetShortcut: (actionId: ShortcutActionId, binding: string) => boolean
   onResetShortcut: (actionId: ShortcutActionId) => void
@@ -77,7 +79,7 @@ function UpdatesSection(): React.JSX.Element {
   </section>
 }
 
-export function SettingsDialog({ settings, themeMode, onThemeModeChange, onRestoreWorkspaceChange, onEdgeGlowChange, onSetShortcut, onResetShortcut, onResetAllShortcuts, onClose }: SettingsDialogProps) {
+export function SettingsDialog({ settings, themeMode, onThemeModeChange, onRestoreWorkspaceChange, onRevealSidebarOnEdgeHoverChange, onRevealTopChromeOnEdgeHoverChange, onEdgeGlowChange, onSetShortcut, onResetShortcut, onResetAllShortcuts, onClose }: SettingsDialogProps) {
   const [editingShortcutId, setEditingShortcutId] = useState<ShortcutActionId | null>(null)
   const [shortcutError, setShortcutError] = useState('')
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -152,6 +154,12 @@ export function SettingsDialog({ settings, themeMode, onThemeModeChange, onResto
 
         <section className="react-settings-section" aria-labelledby="react-workspace-settings-title">
           <h3 id="react-workspace-settings-title">Workspace</h3>
+          <SettingRow label="Reveal sidebar on edge hover" description="Show the sidebar when the pointer reaches the left edge of the window.">
+            <Toggle checked={settings.revealSidebarOnEdgeHover} label="Reveal sidebar on edge hover" onChange={onRevealSidebarOnEdgeHoverChange} />
+          </SettingRow>
+          <SettingRow label="Reveal tabs and toolbar on top hover" description="Show the tabs and toolbar when the pointer reaches the top edge of the window.">
+            <Toggle checked={settings.revealTopChromeOnEdgeHover} label="Reveal tabs and toolbar on top hover" onChange={onRevealTopChromeOnEdgeHoverChange} />
+          </SettingRow>
           <SettingRow label="Restore previous workspace on launch" description="Re-open your last folder automatically when Kea starts.">
             <Toggle checked={settings.restoreWorkspaceOnLaunch} label="Restore previous workspace on launch" onChange={onRestoreWorkspaceChange} />
           </SettingRow>

@@ -12,18 +12,22 @@ const SETTINGS_STORAGE_KEY = 'kea-settings'
 
 export interface ReactSettings {
   restoreWorkspaceOnLaunch: boolean
+  revealSidebarOnEdgeHover: boolean
+  revealTopChromeOnEdgeHover: boolean
   edgeGlowEnabled: boolean
   shortcuts: ShortcutMap
 }
 
 interface StoredSettings {
-  workspace?: { restoreWorkspaceOnLaunch?: unknown }
+  workspace?: { restoreWorkspaceOnLaunch?: unknown; revealSidebarOnEdgeHover?: unknown; revealTopChromeOnEdgeHover?: unknown }
   effects?: { edgeGlowEnabled?: unknown }
   shortcuts?: Record<string, unknown>
 }
 
 const defaultSettings: ReactSettings = {
   restoreWorkspaceOnLaunch: true,
+  revealSidebarOnEdgeHover: false,
+  revealTopChromeOnEdgeHover: false,
   edgeGlowEnabled: true,
   shortcuts: getDefaultShortcutMap(),
 }
@@ -52,6 +56,12 @@ function readSettings(): ReactSettings {
       restoreWorkspaceOnLaunch: typeof stored.workspace?.restoreWorkspaceOnLaunch === 'boolean'
         ? stored.workspace.restoreWorkspaceOnLaunch
         : defaultSettings.restoreWorkspaceOnLaunch,
+      revealSidebarOnEdgeHover: typeof stored.workspace?.revealSidebarOnEdgeHover === 'boolean'
+        ? stored.workspace.revealSidebarOnEdgeHover
+        : defaultSettings.revealSidebarOnEdgeHover,
+      revealTopChromeOnEdgeHover: typeof stored.workspace?.revealTopChromeOnEdgeHover === 'boolean'
+        ? stored.workspace.revealTopChromeOnEdgeHover
+        : defaultSettings.revealTopChromeOnEdgeHover,
       edgeGlowEnabled: typeof stored.effects?.edgeGlowEnabled === 'boolean'
         ? stored.effects.edgeGlowEnabled
         : defaultSettings.edgeGlowEnabled,
@@ -67,7 +77,11 @@ function persistSettings(settings: ReactSettings): void {
   try {
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({
       version: 2,
-      workspace: { restoreWorkspaceOnLaunch: settings.restoreWorkspaceOnLaunch },
+      workspace: {
+        restoreWorkspaceOnLaunch: settings.restoreWorkspaceOnLaunch,
+        revealSidebarOnEdgeHover: settings.revealSidebarOnEdgeHover,
+        revealTopChromeOnEdgeHover: settings.revealTopChromeOnEdgeHover,
+      },
       effects: { edgeGlowEnabled: settings.edgeGlowEnabled },
       shortcuts: settings.shortcuts,
     }))
@@ -79,6 +93,8 @@ function persistSettings(settings: ReactSettings): void {
 export function useReactSettings(): {
   settings: ReactSettings
   setRestoreWorkspaceOnLaunch: (value: boolean) => void
+  setRevealSidebarOnEdgeHover: (value: boolean) => void
+  setRevealTopChromeOnEdgeHover: (value: boolean) => void
   setEdgeGlowEnabled: (value: boolean) => void
   setShortcut: (actionId: ShortcutActionId, binding: string) => boolean
   resetShortcut: (actionId: ShortcutActionId) => void
@@ -96,6 +112,14 @@ export function useReactSettings(): {
 
   const setRestoreWorkspaceOnLaunch = useCallback((value: boolean) => {
     updateSettings(current => ({ ...current, restoreWorkspaceOnLaunch: value }))
+  }, [updateSettings])
+
+  const setRevealSidebarOnEdgeHover = useCallback((value: boolean) => {
+    updateSettings(current => ({ ...current, revealSidebarOnEdgeHover: value }))
+  }, [updateSettings])
+
+  const setRevealTopChromeOnEdgeHover = useCallback((value: boolean) => {
+    updateSettings(current => ({ ...current, revealTopChromeOnEdgeHover: value }))
   }, [updateSettings])
 
   const setEdgeGlowEnabled = useCallback((value: boolean) => {
@@ -131,6 +155,8 @@ export function useReactSettings(): {
   return {
     settings,
     setRestoreWorkspaceOnLaunch,
+    setRevealSidebarOnEdgeHover,
+    setRevealTopChromeOnEdgeHover,
     setEdgeGlowEnabled,
     setShortcut,
     resetShortcut,

@@ -26,9 +26,12 @@ export interface SidebarProps {
   onSettings: () => void
   isOpen: boolean
   isHovering: boolean
+  showSidebarToggle?: boolean
+  onToggleSidebar?: () => void
+  topChromeHidden?: boolean
 }
 
-export function Sidebar({ controller, width, activePath, onSelectFile, onPathChanged, onNewFile, onOpenFile, onSaveFile, canSave, isSaving, openDocuments, onCloseDocuments, onCloseWorkspace, shortcuts = {}, onSettings, isOpen, isHovering }: SidebarProps) {
+export function Sidebar({ controller, width, activePath, onSelectFile, onPathChanged, onNewFile, onOpenFile, onSaveFile, canSave, isSaving, openDocuments, onCloseDocuments, onCloseWorkspace, shortcuts = {}, onSettings, isOpen, isHovering, showSidebarToggle = false, onToggleSidebar, topChromeHidden = false }: SidebarProps) {
   const [renamePath, setRenamePath] = useState<string | null>(null)
   const [menu, setMenu] = useState<{ target: WorkspaceFileEntry | 'root'; x: number; y: number } | null>(null)
   const [movePath, setMovePath] = useState<string | null>(null)
@@ -146,18 +149,18 @@ export function Sidebar({ controller, width, activePath, onSelectFile, onPathCha
     items.push({ id: 'delete', label: 'Delete', icon: 'pi-trash', danger: true, onSelect: () => deleteEntry(entry.path) })
     return items
   }
-  return <div className={`relative z-4 w-0 overflow-visible pointer-events-none transition-[width] duration-[160ms] [transition-timing-function:cubic-bezier(0,0,0.58,1)] react-sidebar-host${isOpen ? ' is-open' : ''}${isHovering ? ' is-hovering' : ''}`} style={isOpen ? { width } : undefined}>
+  return <div className={`relative z-4 w-0 overflow-visible pointer-events-none transition-[width] duration-[160ms] [transition-timing-function:cubic-bezier(0,0,0.58,1)] react-sidebar-host${isOpen ? ' is-open' : ''}${isHovering ? ' is-hovering' : ''}${topChromeHidden && !isOpen ? ' is-top-chrome-hidden' : ''}`} style={isOpen ? { width } : undefined}>
    <div className={`react-safety-triangle${isHovering && !isOpen ? ' is-active' : ''}`} />
    <aside className="react-sidebar absolute left-[5px] top-[92px] z-4 h-[calc(100%-97px)] min-w-0 overflow-hidden rounded-[25px] p-2.5 text-[rgba(163,163,168,1)] opacity-0 bg-transparent transition-[transform,backdrop-filter,opacity,background,top,height] duration-[160ms] [transition-timing-function:cubic-bezier(0.42,0,1,1)]" style={{ width: width - 10 }} aria-label="Navigation" onClick={() => menu && setMenu(null)}>
-     <div className="grid h-full w-full grid-rows-[1fr_auto] overflow-hidden rounded-[25px]">
+       <div className="grid h-full w-full grid-rows-[1fr_auto] overflow-hidden rounded-[25px]">
        <nav className="flex min-h-0 flex-col overflow-hidden px-2 text-sm" aria-label="Navigation">
-         <div className="mb-2 flex items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
-           <span className={`min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-white/90${controller.rootName ? '' : ' italic font-normal text-white/40'}`} onContextMenu={contextMenuRoot}>{controller.rootName ?? 'No folder open'}</span>
+         <div className="mb-2 flex items-center justify-end gap-2 border-b border-white/10 px-3 pt-[3px] pb-2">
            <div className="flex flex-none gap-0.5">
              <button type="button" className="inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30" onClick={onNewFile} title="New File (⌘N)" aria-label="New File"><i className="pi pi-plus text-sm" /></button>
              <button type="button" className="inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30" onClick={onOpenFile} title="Open File (⌘O)" aria-label="Open File"><i className="pi pi-file text-sm" /></button>
              <button type="button" className="inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30" onClick={open} title="Open Folder (⌘⇧O)" aria-label="Open Folder"><i className="pi pi-folder-open text-sm" /></button>
              <button type="button" className={`inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90 disabled:cursor-not-allowed disabled:opacity-30${hasChanges ? ' text-[rgb(var(--react-brand-rgb))] hover:bg-[rgba(var(--react-brand-rgb),0.2)]' : ''}`} disabled={!canSave || isSaving} onClick={onSaveFile} title="Save (⌘S)" aria-label="Save"><i className="pi pi-save text-sm" /></button>
+             {showSidebarToggle && <button type="button" className="inline-flex items-center justify-center rounded bg-transparent p-1 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90" onClick={onToggleSidebar} title={isOpen ? 'Hide Sidebar' : 'Show Sidebar'} aria-label={isOpen ? 'Hide Sidebar' : 'Show Sidebar'}><Icon>dock_to_right</Icon></button>}
            </div>
          </div>
          {controller.loading && <p className="p-3 text-xs text-white/40" role="status">Loading workspace…</p>}
@@ -165,7 +168,10 @@ export function Sidebar({ controller, width, activePath, onSelectFile, onPathCha
          {!controller.rootPath && !controller.loading && <div className="flex flex-col items-center justify-center px-4 py-8 text-center text-white/40"><p className="m-0 text-[13px]">Open a folder to browse files</p></div>}
          {controller.rootPath && <FileTree entries={controller.entries} rootPath={controller.rootPath} expandedPaths={controller.expandedPaths} activePath={activePath} renamePath={renamePath} onToggle={path => void controller.toggleFolder(path)} onSelectFile={onSelectFile} onRename={rename} onRenameRequest={setRenamePath} onContextMenu={contextMenu} onMove={async (source, target) => { const result = await controller.moveItem(source, target); if (result) onPathChanged(source, result, controller.entries.find(item => item.path === source)?.is_dir) }} />}
        </nav>
-        <footer className="flex items-center border-t border-white/10 p-3"><button type="button" className="flex h-[30px] w-[30px] items-center justify-center rounded bg-transparent p-0 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90" aria-label="Settings" title="Settings" onClick={onSettings}><Icon>settings</Icon></button></footer>
+        <footer className="flex min-w-0 items-center gap-2 border-t border-white/10 p-3">
+          <span className={`min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-white/90${controller.rootName ? '' : ' italic font-normal text-white/40'}`} title={controller.rootName ?? 'No folder open'} onContextMenu={contextMenuRoot}>{controller.rootName ?? 'No folder open'}</span>
+          <button type="button" className="ml-auto flex h-[30px] w-[30px] flex-none items-center justify-center rounded bg-transparent p-0 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/90" aria-label="Settings" title="Settings" onClick={onSettings}><Icon>settings</Icon></button>
+        </footer>
      </div>
      {menu && <ContextMenu x={menu.x} y={menu.y} label={menu.target === 'root' ? 'Workspace actions' : `Actions for ${menu.target.name}`} items={menuItems()} onClose={() => setMenu(null)} />}
      {movePath && controller.rootPath && <div className="fixed inset-0 z-[1999] flex items-center justify-center bg-black/20 p-4" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setMovePath(null) }}>

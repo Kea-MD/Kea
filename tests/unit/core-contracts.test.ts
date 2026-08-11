@@ -14,7 +14,7 @@ describe('framework-neutral contracts', () => {
     const entry: WorkspaceFileEntry = { name: 'Readme.md', path: '/Readme.md', is_dir: false, is_markdown: true }
     const watch: FileWatchEvent = { kind: 'modified', path: entry.path }
     const command: EditorCommandEventDetail = { command: 'bold' }
-    const settings: SettingsSnapshot = { restoreWorkspaceOnLaunch: true, edgeGlowEnabled: false, shortcuts: {} }
+    const settings: SettingsSnapshot = { restoreWorkspaceOnLaunch: true, revealSidebarOnEdgeHover: false, revealTopChromeOnEdgeHover: false, edgeGlowEnabled: false, shortcuts: {} }
     const error: KeaError = { code: 'cancelled', message: 'Cancelled' }
     expect({ document, entry, watch, command, settings, error }).toBeTruthy()
   })

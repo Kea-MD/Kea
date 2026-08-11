@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useHoverReveal } from './useHoverReveal'
 
 const STORAGE_KEY = 'kea-sidebar-open'
 
@@ -10,15 +11,8 @@ export function useSidebarInteraction(): {
   handleSidebarHover: (hovering: boolean) => void
 } {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.localStorage.getItem(STORAGE_KEY) === 'true')
-  const [sidebarHovering, setSidebarHovering] = useState(false)
+  const { hovering: sidebarHovering, handleHover, closeHover } = useHoverReveal()
   const hoverDisabled = useRef(false)
-  const hoverTimeout = useRef<number | null>(null)
-
-  const clearHoverTimeout = useCallback(() => {
-    if (hoverTimeout.current === null) return
-    window.clearTimeout(hoverTimeout.current)
-    hoverTimeout.current = null
-  }, [])
 
   const toggleSidebar = useCallback(() => {
     if (!sidebarOpen) {
@@ -26,33 +20,23 @@ export function useSidebarInteraction(): {
       return
     }
     hoverDisabled.current = true
-    setSidebarHovering(false)
+    closeHover()
     setSidebarOpen(false)
     window.setTimeout(() => {
       hoverDisabled.current = false
     }, 300)
-  }, [sidebarOpen])
+  }, [closeHover, sidebarOpen])
 
   const closeSidebar = useCallback(() => {
-    clearHoverTimeout()
-    setSidebarHovering(false)
+    closeHover()
     setSidebarOpen(false)
-  }, [clearHoverTimeout])
+  }, [closeHover])
 
   const handleSidebarHover = useCallback((hovering: boolean) => {
     if (hoverDisabled.current) return
-    clearHoverTimeout()
-    if (hovering) {
-      setSidebarHovering(true)
-      return
-    }
-    hoverTimeout.current = window.setTimeout(() => {
-      hoverTimeout.current = null
-      setSidebarHovering(false)
-    }, 200)
-  }, [clearHoverTimeout])
+    handleHover(hovering)
+  }, [handleHover])
 
-  useEffect(() => () => clearHoverTimeout(), [clearHoverTimeout])
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, String(sidebarOpen))
   }, [sidebarOpen])

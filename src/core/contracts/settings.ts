@@ -2,6 +2,8 @@ export type ThemeMode = 'light' | 'dark' | 'system'
 
 export interface SettingsSnapshot {
   restoreWorkspaceOnLaunch: boolean
+  revealSidebarOnEdgeHover: boolean
+  revealTopChromeOnEdgeHover: boolean
   edgeGlowEnabled: boolean
   shortcuts: Record<string, string>
 }

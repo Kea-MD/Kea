@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/App'
 import { RuntimeProvider } from '../../src/runtime/RuntimeContext'
 import type { RuntimePort } from '../../src/core/contracts'
@@ -63,6 +63,7 @@ describe('React shell spike', () => {
     Object.defineProperty(window, 'matchMedia', { configurable: true, value: matchMedia })
     document.documentElement.classList.remove('dark')
   })
+  afterEach(() => vi.useRealTimers())
 
   it('renders the shell controls and empty editor state', async () => {
     await act(async () => {
@@ -169,6 +170,18 @@ describe('React shell spike', () => {
       effects: { edgeGlowEnabled: false },
     })
 
+    fireEvent.click(screen.getByRole('switch', { name: 'Reveal sidebar on edge hover' }))
+    expect(JSON.parse(window.localStorage.getItem('kea-settings') ?? '{}')).toMatchObject({
+      workspace: { revealSidebarOnEdgeHover: true },
+    })
+    expect(screen.getByTestId('sidebar-edge-hover-trigger')).not.toBeNull()
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Reveal tabs and toolbar on top hover' }))
+    expect(JSON.parse(window.localStorage.getItem('kea-settings') ?? '{}')).toMatchObject({
+      workspace: { revealTopChromeOnEdgeHover: true },
+    })
+    expect(screen.getByTestId('top-chrome-edge-hover-trigger')).not.toBeNull()
+
     const shortcut = screen.getByRole('button', { name: 'Ctrl+N' })
     fireEvent.click(shortcut)
     fireEvent.keyDown(shortcut, { key: 'k', altKey: true })
@@ -176,6 +189,68 @@ describe('React shell spike', () => {
 
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('dialog', { name: 'Settings' })).toBeNull()
+  })
+
+  it('reveals the sidebar from the window edge when enabled', async () => {
+    vi.useFakeTimers()
+    window.localStorage.setItem('kea-settings', JSON.stringify({ workspace: { revealSidebarOnEdgeHover: true, revealTopChromeOnEdgeHover: true } }))
+
+    await act(async () => {
+      render(<RuntimeProvider port={testRuntimePort}><App /></RuntimeProvider>)
+    })
+
+    const edgeTrigger = screen.getByTestId('sidebar-edge-hover-trigger')
+    const sidebarHost = document.querySelector('.react-sidebar-host')
+    expect(screen.getByRole('button', { name: 'Show Sidebar' })).not.toBeNull()
+    expect(sidebarHost?.classList.contains('is-top-chrome-hidden')).toBe(true)
+    fireEvent.mouseEnter(edgeTrigger)
+    expect(sidebarHost?.classList.contains('is-hovering')).toBe(true)
+    expect(sidebarHost?.classList.contains('is-top-chrome-hidden')).toBe(true)
+
+    fireEvent.mouseLeave(edgeTrigger)
+    act(() => { vi.advanceTimersByTime(200) })
+    expect(sidebarHost?.classList.contains('is-hovering')).toBe(false)
+    expect(sidebarHost?.classList.contains('is-top-chrome-hidden')).toBe(true)
+  })
+
+  it('reveals the tabs and toolbar from the top edge when enabled', async () => {
+    vi.useFakeTimers()
+    window.localStorage.setItem('kea-settings', JSON.stringify({ workspace: { revealTopChromeOnEdgeHover: true } }))
+
+    await act(async () => {
+      render(<RuntimeProvider port={testRuntimePort}><App /></RuntimeProvider>)
+    })
+
+    const edgeTrigger = screen.getByTestId('top-chrome-edge-hover-trigger')
+    const topChrome = screen.getByTestId('react-top-chrome')
+    const main = screen.getByRole('main')
+    const editorContent = main.querySelector('.react-editor-content')
+    expect(topChrome.classList.contains('is-hover-enabled')).toBe(true)
+    expect(topChrome.classList.contains('is-hovering')).toBe(false)
+    expect(editorContent?.classList.contains('is-top-chrome-aware')).toBe(true)
+
+    fireEvent.mouseEnter(edgeTrigger)
+    expect(topChrome.classList.contains('is-hovering')).toBe(true)
+    expect(main.classList.contains('is-top-chrome-visible')).toBe(true)
+
+    fireEvent.mouseLeave(edgeTrigger)
+    act(() => { vi.advanceTimersByTime(200) })
+    expect(topChrome.classList.contains('is-hovering')).toBe(false)
+    expect(main.classList.contains('is-top-chrome-visible')).toBe(false)
+  })
+
+  it('moves the sidebar toggle into the sidebar actions when the top chrome hides', async () => {
+    window.localStorage.setItem('kea-settings', JSON.stringify({ workspace: { revealSidebarOnEdgeHover: true, revealTopChromeOnEdgeHover: true } }))
+
+    await act(async () => {
+      render(<RuntimeProvider port={testRuntimePort}><App /></RuntimeProvider>)
+    })
+
+    fireEvent.mouseEnter(screen.getByTestId('sidebar-edge-hover-trigger'))
+    const showSidebar = screen.getByRole('button', { name: 'Show Sidebar' })
+    expect(showSidebar.closest('.react-sidebar')).not.toBeNull()
+    fireEvent.click(showSidebar)
+    expect(screen.getByRole('button', { name: 'Hide Sidebar' }).closest('.react-sidebar')).not.toBeNull()
   })
 
   it('switches back to light mode and ignores system changes for explicit mode', async () => {
