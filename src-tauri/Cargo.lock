@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "Kea"
-version = "0.7.3"
+version = "0.8.1"
 dependencies = [
  "objc2-app-kit",
  "serde",
